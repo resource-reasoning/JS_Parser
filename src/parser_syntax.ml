@@ -114,6 +114,7 @@ and exp_syntax =
   | Switch of exp * (switch_case * exp) list
   | Debugger
   | ConditionalOp of exp * exp * exp (* (e ? e : e) *)
+  | Block of exp list (* { es }*)
 and switch_case =
   | Case of exp
   | DefaultCase

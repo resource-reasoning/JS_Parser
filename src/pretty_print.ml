@@ -90,7 +90,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Var x -> string_of_var x
     | If (e1, e2, None) -> Printf.sprintf "if (%s) {\n%s\n}" (f e1) (f e2)
     | If (e1, e2, Some e3) -> Printf.sprintf "if (%s) {\n%s\n} else {\n%s\n}" (f e1) (f e2) (f e3)
-    | While (e1, e2) -> Printf.sprintf "while (%s) {\n%s\n}" (f e1) (f e2)
+    | While (e1, e2) -> Printf.sprintf "while (%s) \n%s\n" (f e1) (f e2)
     | VarDec (x, None) -> Printf.sprintf "var %s" (string_of_var x)
     | VarDec (x, Some e) -> Printf.sprintf "var %s = (%s)" (string_of_var x) (f e)
     | This -> "this"
@@ -107,8 +107,8 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Call (e1, e2s) -> Printf.sprintf "(%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Assign (e1, e2) -> Printf.sprintf "%s = %s" (f e1) (f e2)
     | AssignOp (e1, op, e2) -> Printf.sprintf "%s %s= %s" (f e1) (string_of_arith_op op) (f e2)
-    | AnnonymousFun (xs, e) -> Printf.sprintf "function (%s){\n%s\n}" (string_of_vars xs) (f e)
-    | NamedFun (n, xs, e) -> Printf.sprintf "function %s(%s){\n%s\n}" n (string_of_vars xs) (f e)
+    | AnnonymousFun (xs, e) -> Printf.sprintf "function (%s) \n%s\n" (string_of_vars xs) (f e)
+    | NamedFun (n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" n (string_of_vars xs) (f e)
     | New (e1, e2s) -> Printf.sprintf "new (%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Obj l -> Printf.sprintf "{%s}" 
       (String.concat "; " (map (fun (x, e) -> Printf.sprintf "%s : %s" x (f e)) l))
@@ -121,22 +121,23 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Return (Some e) -> Printf.sprintf "return %s" (f e)
     | Return None -> "return"
     | RegExp (s1, s2) -> Printf.sprintf "/%s/%s" s1 s2
-    | ForIn (e1, e2, e3) -> Printf.sprintf "for (%s in %s) {%s}" (f e1) (f e2) (f e3)
+    | ForIn (e1, e2, e3) -> Printf.sprintf "for (%s in %s) %s" (f e1) (f e2) (f e3)
     | Break None -> "break"
     | Break (Some l) -> Printf.sprintf "break %s" l
     | Continue None -> "continue"
     | Continue (Some l) -> Printf.sprintf "continue %s" l
-    | Try (e1, e2s, e3) -> Printf.sprintf "try {%s}\n%s" (f e1) (string_of_catch_finally with_annot e2s e3)
+    | Try (e1, e2s, e3) -> Printf.sprintf "try %s\n%s" (f e1) (string_of_catch_finally with_annot e2s e3)
     | Switch (e1, e2s) -> Printf.sprintf "switch (%s) {\n%s\n}" (f e1) (String.concat "\n" (map (string_of_case with_annot) e2s))
     | Debugger -> "debugger"
     | ConditionalOp (e1, e2, e3) -> Printf.sprintf "((%s) ? (%s) : (%s))" (f e1) (f e2) (f e3)
+    | Block es -> Printf.sprintf "{ %s }" (String.concat ";\n" (map f es))  
 and string_of_catch_finally with_annot catch finally =
   (match catch with
     | None -> ""
-    | Some (v, e) -> Printf.sprintf "catch (%s) {%s}" v (string_of_exp with_annot e)) ^
+    | Some (v, e) -> Printf.sprintf "catch (%s) %s" v (string_of_exp with_annot e)) ^
   (match finally with
     | None -> ""
-    | Some e -> Printf.sprintf "finally {%s}" (string_of_exp with_annot e))
+    | Some e -> Printf.sprintf " finally %s" (string_of_exp with_annot e))
 and string_of_case with_annot (case, exp) =
   let label = match case with
     | Case e -> Printf.sprintf "case %s:" (string_of_exp with_annot e)

@@ -129,8 +129,8 @@ let test_for () =
   let one = mk_exp (Num 1.0) 60 in
   let x = mk_exp (Var "x") 56 in
   let assignment = mk_exp (Assign (x, one)) 56 in
-  let body = mk_exp (Seq (assignment, inc)) 0 in
-  let loop = mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  let block = mk_exp (Block [assignment; inc]) 20 in
+  let loop = mk_exp_with_annot (While (condition, block)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
   assert_equal (mk_exp (Seq (empty, loop)) 0) exp
   
 let test_forin () =
@@ -144,7 +144,8 @@ let test_forin () =
   let prop2 = mk_exp (Var "prop") 46 in
   let ca2 = mk_exp (CAccess (oldObj2, prop2)) 39 in
   let assignment = mk_exp (Assign (ca1, ca2)) 27 in
-  assert_equal (mk_exp (ForIn (varprop, oldObj1, assignment)) 0) exp
+  let block = mk_exp (Block [assignment]) 25 in
+  assert_equal (mk_exp (ForIn (varprop, oldObj1, block)) 0) exp
   
 let test_assign_add () =
   let exp = exp_from_string "a += b" in
@@ -304,14 +305,16 @@ let test_bitxor () =
 let test_return () =
   let exp = exp_from_string "function f() {return}" in
   let r = mk_exp (Return None) 14 in
-  assert_equal (mk_exp (NamedFun ("f", [], r)) 0) exp
+  let block = mk_exp (Block [r]) 13 in
+  assert_equal (mk_exp (NamedFun ("f", [], block)) 0) exp
   
 let test_return_exp () =
   let exp = exp_from_string "function f() {return g()}" in
   let g = mk_exp (Var "g") 21 in
   let gcall = mk_exp (Call (g, [])) 21 in
   let r = mk_exp (Return (Some gcall)) 14 in
-  assert_equal (mk_exp (NamedFun ("f", [], r)) 0) exp
+  let block = mk_exp (Block [r]) 13 in
+  assert_equal (mk_exp (NamedFun ("f", [], block)) 0) exp
   
 let test_do_while () =
   let exp = exp_from_string "do { /** @invariant #cScope = [#lg] */ a = 1 } while (a < 5)" in
@@ -321,8 +324,9 @@ let test_do_while () =
   let a = mk_exp (Var "a") 39 in
   let one = mk_exp (Num 1.0) 43 in
   let assignment = mk_exp (Assign (a, one)) 39 in
-  let loop = mk_exp_with_annot (While (condition, assignment)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
-  assert_equal (mk_exp (Seq (assignment, loop)) 0) exp
+  let body = mk_exp (Block [assignment]) 3 in
+  let loop = mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  assert_equal (mk_exp (Seq (body, loop)) 0) exp
   
 let test_delete () =
   let exp = exp_from_string "delete a" in
@@ -337,7 +341,7 @@ let test_continue () =
   let a = mk_exp (Var "a") 49 in
   let app = mk_exp (Unary_op (Post_Incr, a)) 49 in
   let cont = mk_exp (Continue None) 54 in
-  let body = mk_exp (Seq (app, cont)) 49 in
+  let body = mk_exp (Block [app; cont]) 14 in
   assert_equal (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]) exp 
   
 let test_continue_label () =
@@ -348,7 +352,7 @@ let test_continue_label () =
   let a = mk_exp (Var "a") 55 in
   let app = mk_exp (Unary_op (Post_Incr, a)) 55 in
   let cont = mk_exp (Continue (Some "test")) 60 in
-  let body = mk_exp (Seq (app, cont)) 55 in
+  let body = mk_exp (Block [app; cont]) 20 in
   let loop = mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
   assert_equal (mk_exp (Label ("test", loop)) 0) exp
   
@@ -360,7 +364,7 @@ let test_break () =
   let a = mk_exp (Var "a") 49 in
   let app = mk_exp (Unary_op (Post_Incr, a)) 49 in
   let cont = mk_exp (Break None) 54 in
-  let body = mk_exp (Seq (app, cont)) 49 in
+  let body = mk_exp (Block [app; cont]) 14 in
   assert_equal (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]) exp 
   
 let test_break_label () =
@@ -371,7 +375,7 @@ let test_break_label () =
   let a = mk_exp (Var "a") 55 in
   let app = mk_exp (Unary_op (Post_Incr, a)) 55 in
   let cont = mk_exp (Break (Some "test")) 60 in
-  let body = mk_exp (Seq (app, cont)) 55 in
+  let body = mk_exp (Block [app; cont]) 20 in
   let loop = mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
   assert_equal (mk_exp (Label ("test", loop)) 0) exp
   
@@ -397,21 +401,28 @@ let test_get_invariant () =
 let test_try_catch () =
   let exp = exp_from_string "try {a} catch (b) {c}" in
   let a = mk_exp (Var "a") 5 in
+  let ablock = mk_exp (Block [a]) 4 in
   let c = mk_exp (Var "c") 19 in
-  assert_equal (mk_exp (Try (a, Some ("b", c), None)) 0) exp
+  let cblock = mk_exp (Block [c]) 18 in
+  assert_equal (mk_exp (Try (ablock, Some ("b", cblock), None)) 0) exp
   
 let test_try_catch_finally () =
   let exp = exp_from_string "try {a} catch (b) {c} finally {d}" in
   let a = mk_exp (Var "a") 5 in
+  let ablock = mk_exp (Block [a]) 4 in
   let c = mk_exp (Var "c") 19 in
+  let cblock = mk_exp (Block [c]) 18 in
   let d = mk_exp (Var "d") 31 in
-  assert_equal (mk_exp (Try (a, Some ("b", c), Some d)) 0) exp
+  let dblock = mk_exp (Block [d]) 30 in
+  assert_equal (mk_exp (Try (ablock, Some ("b", cblock), Some dblock)) 0) exp
   
 let test_try_finally () =
   let exp = exp_from_string "try {a} finally {d}" in
   let a = mk_exp (Var "a") 5 in
+  let ablock = mk_exp (Block [a]) 4 in
   let d = mk_exp (Var "d") 17 in
-  assert_equal (mk_exp (Try (a, None, Some d)) 0) exp
+  let dblock = mk_exp (Block [d]) 16 in
+  assert_equal (mk_exp (Try (ablock, None, Some dblock)) 0) exp
   
 let test_switch () =
   let exp = exp_from_string "switch (a) { case 1 : b; break; default : d; case 2 : c }" in
@@ -419,11 +430,13 @@ let test_switch () =
   let one = mk_exp (Num 1.0) 18 in
   let b = mk_exp (Var "b") 22 in
   let break = mk_exp (Break None) 25 in
-  let seq = mk_exp (Seq (b, break)) 22 in
+  let block1 = mk_exp (Block [b; break]) 13 in
   let d = mk_exp (Var "d") 42 in
+  let block2 = mk_exp (Block [d]) 32 in
   let two = mk_exp (Num 2.0) 50 in
   let c = mk_exp (Var "c") 54 in
-  assert_equal (mk_exp (Switch (a, [(Case one, seq); (DefaultCase, d); (Case two, c)])) 0) exp
+  let block3 = mk_exp (Block [c]) 45 in
+  assert_equal (mk_exp (Switch (a, [(Case one, block1); (DefaultCase, block2); (Case two, block3)])) 0) exp
   
 let test_debugger () =
   let exp = exp_from_string "debugger" in

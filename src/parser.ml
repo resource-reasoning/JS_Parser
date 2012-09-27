@@ -206,15 +206,9 @@ let rec xml_to_exp xml : exp =
       let fn_spec = get_function_spec xml in
       if (fn_name = "") then mk_exp_with_annot (AnnonymousFun (fn_params,fn_body)) (get_offset attrs) fn_spec
       else mk_exp_with_annot (NamedFun (fn_name,fn_params,fn_body)) (get_offset attrs) fn_spec
-    | Element ("BLOCK", _, children) ->  
+    | Element ("BLOCK", attrs, children) ->  
       let stmts = map xml_to_exp (remove_annotation_elements children) in
-      begin match stmts with
-	        | [] -> mk_exp Skip 0
-	        | stmts -> 
-	          let last = List.last stmts in
-	          let stmts = List.take (List.length stmts - 1) stmts in
-	          fold_right (fun s1 s2 -> (mk_exp (Seq (s1, s2)) s1.exp_offset)) stmts last
-      end
+      mk_exp (Block stmts) (get_offset attrs)
     | Element ("VAR", attrs, children) -> 
       let offset = get_offset attrs in
       begin match (remove_annotation_elements children) with
@@ -349,12 +343,18 @@ let rec xml_to_exp xml : exp =
       mk_exp (CAccess (xml_to_exp child1, xml_to_exp child2)) (get_offset attrs)
     | Element ("ARRAYLIT", attrs, children) ->
       parse_array_literal attrs children
+    (* TODO: Have a separate syntax construct? *)
     | Element ("FOR", attrs, children) ->
       let offset = get_offset attrs in
       begin match (remove_annotation_elements children) with
         | [init; condition; incr; exp] ->
           let invariant = get_invariant xml in
-          let body = mk_exp (Seq (xml_to_exp exp, xml_to_exp incr)) offset in
+          let block = xml_to_exp exp in
+          let stmts = match block.exp_stx with
+            | Block stmts -> stmts
+            | _ -> raise (Parser_Unknown_Tag ("FOR", offset))
+          in
+          let body = mk_exp (Block (stmts @ [xml_to_exp incr])) block.exp_offset in
           let whileloop = mk_exp_with_annot (While (xml_to_exp condition, body)) offset invariant in
           mk_exp (Seq (xml_to_exp init, whileloop)) offset
         | [var; obj; exp] ->
