@@ -1,4 +1,3 @@
-open Batteries_uni
 open Parser
 open Pretty_print
 open Parser_syntax
@@ -25,7 +24,6 @@ let exp_from_file file =
 
 let exp_from_string s =
   let (file, out) = Filename.open_temp_file "js_gen" ".js" in
-  let out = BatIO.output_channel out in
   output_string out s;
   close_out out;
   exp_from_file file

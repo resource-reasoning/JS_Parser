@@ -1,4 +1,3 @@
-open Batteries_uni
 open Xml
 open Parser_syntax
 open List
@@ -20,6 +19,7 @@ exception Unknown_Dec_Inc_Position
 exception Parser_Xml_To_Label_Name
 exception More_Than_One_Finally
 exception CannotHappen
+exception Empty_list
 
 let unescape_html s =
   Str.global_substitute
@@ -176,6 +176,21 @@ let get_xml_three_children xml =
         | _ -> raise (Parser_Unknown_Tag (tag, (get_offset attrs))) 
       end
     | _ -> raise CannotHappen
+
+let split_last stmts = 
+  match stmts with
+    | [] -> raise Empty_list 
+    | hd :: tl ->
+      let rec aux l acc = function
+          | [] -> l, rev acc
+          | hd :: tl -> aux hd (l::acc) tl
+      in aux hd [] tl
+      
+let mapi f l = 
+  let rec aux i = function
+    | [] -> []
+    | hd :: tl -> (f i hd) :: (aux (i + 1) tl)
+  in aux 0 l
     
 let rec xml_to_exp xml : exp =
   match xml with
@@ -186,8 +201,7 @@ let rec xml_to_exp xml : exp =
       match stmts with
         | [] -> raise Parser_No_Program
         | stmts -> 
-          let last = List.last stmts in
-          let stmts = List.take (List.length stmts - 1) stmts in
+          let last, stmts = split_last stmts in
           let program = fold_right (fun s1 s2 -> (mk_exp (Seq (s1,s2)) s1.exp_offset)) stmts last in
           let program_spec = get_program_spec xml in
           mk_exp_with_annot program.exp_stx program.exp_offset (program.exp_annot @ program_spec)
@@ -214,8 +228,8 @@ let rec xml_to_exp xml : exp =
       begin match (remove_annotation_elements children) with
         | [] -> raise (Parser_Unknown_Tag ("VAR", offset))
         | children ->
-          let last = var_declaration (List.last children) offset in
-          let children = List.take (List.length children - 1) children in
+          let last, children = split_last children in
+          let last = var_declaration last offset in
           fold_right (fun s1 s2 -> (
             let s1 = var_declaration s1 offset in
             mk_exp (Seq (s1, s2)) (s1.exp_offset))

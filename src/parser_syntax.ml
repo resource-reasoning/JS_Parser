@@ -1,4 +1,3 @@
-open Batteries_uni
 open List
 
 (* syntax *)
