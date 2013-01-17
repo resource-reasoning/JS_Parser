@@ -3,6 +3,7 @@ open Pretty_print
 open Parser_syntax
 
 let js_to_xml_parser = ref ""
+let verbose = ref false
 
 let js_to_xml (filename : string) : string =
   match Unix.system ("java -jar " ^ !js_to_xml_parser ^ " " ^ (Filename.quote filename)) with
@@ -13,9 +14,9 @@ let exp_from_file file =
   try
     let xml_file = js_to_xml file in 
     let data = Xml.parse_file xml_file in
-    print_string (Xml.to_string_fmt data);
+    if (!verbose) then print_string (Xml.to_string_fmt data);
     let expression = xml_to_exp data in
-    print_string (string_of_exp true expression);
+    if (!verbose) then print_string (string_of_exp true expression);
     expression    
   with 
     | Xml.Error error -> 
