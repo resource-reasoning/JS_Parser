@@ -7,20 +7,19 @@ let test_unescape_html () =
     
 let test_var () =
   let exp = exp_from_string "var x" in
-  assert_equal (mk_exp (VarDec ("x", None)) 4) exp
+  assert_equal (mk_exp (VarDec ["x", None]) 0) exp
   
 let test_var_value () =
   let exp = exp_from_string "var x = 5" in
   let num_5 = mk_exp (Num 5.0) 8 in
-  assert_equal (mk_exp (VarDec ("x", Some num_5)) 4) exp
+  assert_equal (mk_exp (VarDec ["x", Some num_5]) 0) exp
   
 let test_var_list () =
   let exp = exp_from_string "var x = 5, y = null" in
   let num_5 = mk_exp (Num 5.0) 8 in
-  let seq1 = mk_exp (VarDec ("x", Some num_5)) 4 in
   let nul = mk_exp Null 15 in
-  let seq2 = mk_exp (VarDec ("y", Some nul)) 11 in
-  assert_equal (Seq (seq1, seq2)) exp.exp_stx
+  let vardec = mk_exp (VarDec [("x", Some num_5);("y", Some nul)]) 0 in
+  assert_equal vardec exp
   
 let test_regexp () =
   let exp = exp_from_string "/^\\s+/" in
@@ -135,7 +134,7 @@ let test_for () =
   
 let test_forin () =
   let exp = exp_from_string "for (var prop in oldObj) { obj[prop] = oldObj[prop] }" in
-  let varprop = mk_exp (VarDec ("prop", None)) 9 in
+  let varprop = mk_exp (VarDec ["prop", None]) 5 in
   let oldObj1= mk_exp (Var "oldObj") 17 in
   let obj = mk_exp (Var "obj") 27 in
   let prop1 = mk_exp (Var "prop") 31 in

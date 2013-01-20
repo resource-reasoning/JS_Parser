@@ -77,6 +77,12 @@ let rec string_of_exp with_annot exp =
   let annot_string = if with_annot then (string_of_annots exp.exp_annot) else "" in
   Printf.sprintf "%s%s" (if annot_string <> "" then annot_string ^ "\n" else "")
   (string_of_exp_syntax_1 exp.exp_stx with_annot)
+  
+and string_of_var_in_dec with_annot (x, v) =
+  match v with
+    | None -> x
+    | Some v -> Printf.sprintf "%s = (%s)" x (string_of_exp with_annot v)
+
 
 and string_of_exp_syntax_1 expstx with_annot =
   let f = string_of_exp with_annot in
@@ -91,8 +97,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | If (e1, e2, None) -> Printf.sprintf "if (%s) {\n%s\n}" (f e1) (f e2)
     | If (e1, e2, Some e3) -> Printf.sprintf "if (%s) {\n%s\n} else {\n%s\n}" (f e1) (f e2) (f e3)
     | While (e1, e2) -> Printf.sprintf "while (%s) \n%s\n" (f e1) (f e2)
-    | VarDec (x, None) -> Printf.sprintf "var %s" (string_of_var x)
-    | VarDec (x, Some e) -> Printf.sprintf "var %s = (%s)" (string_of_var x) (f e)
+    | VarDec xs -> Printf.sprintf "var %s" (String.concat ", " (map (string_of_var_in_dec with_annot) xs))
     | This -> "this"
     | Delete e -> Printf.sprintf "delete %s" (f e)
     | Comma (e1, e2) -> Printf.sprintf "%s , %s" (f e1) (f e2)

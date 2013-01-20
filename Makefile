@@ -2,7 +2,7 @@ JS_PARSER_JAR=./lib/js_parser.jar
 
 BUILD_FLAGS=-I,+site-lib/oUnit
 
-LIBS=xml-light,unix,nums,str,bigarray
+LIBS=xml-light,unix,nums,str,bigarray,Ounit
 
 build: 
 	ocamlbuild -libs ${LIBS} \

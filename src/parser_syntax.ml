@@ -85,7 +85,7 @@ and exp_syntax =
   | Var of var            (* x *)
   | If of exp * exp * exp option (* if (e){e}{e} *)
   | While of exp * exp   (* while (e){e} *)
-  | VarDec of var * exp option (* var x *)
+  | VarDec of (var * exp option) list (* var x *)
   | This                  (* this *)
   | Delete of exp         (* delete e *)
   | Comma of exp * exp    (* e, e *)
