@@ -253,7 +253,9 @@ let rec xml_to_exp xml : exp =
     | Element ("OBJECTLIT", attrs, objl) ->
       let l = map (fun obj -> 
         match obj with
-          | Element ("STRING_KEY", attrs, [e]) -> (get_value attrs, xml_to_exp e) 
+          | Element ("COLON", attrs, children) ->
+            let child1, child2 = get_xml_two_children obj in
+            (name_element child1, xml_to_exp child2) 
           | _ -> raise Parser_ObjectList
       ) (remove_annotation_elements objl)
       in (mk_exp (Obj l) (get_offset attrs))
@@ -308,7 +310,7 @@ let rec xml_to_exp xml : exp =
       mk_exp_with_annot (While (xml_to_exp condition, xml_to_exp block)) (get_offset attrs) invariant
     | Element ("GETPROP", attrs, children) ->
       let child1, child2 = get_xml_two_children xml in
-      mk_exp (Access (xml_to_exp child1, string_element child2)) (get_offset attrs)
+      mk_exp (Access (xml_to_exp child1, name_element child2)) (get_offset attrs)
     | Element ("STRING", attrs, _) -> mk_exp (String (string_element xml)) (get_offset attrs)
     | Element ("TRUE", attrs, _) -> mk_exp (Bool true) (get_offset attrs)
     | Element ("FALSE", attrs, _) -> mk_exp (Bool false) (get_offset attrs)
