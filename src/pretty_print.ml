@@ -92,11 +92,11 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Label (x, e) -> Printf.sprintf "%s: %s" x (f e)
     | Null -> "null"
     | Bool b -> string_of_bool b
-    | Seq (e1, e2) -> Printf.sprintf "(%s;\n%s)" (f e1) (f e2)
     | Var x -> string_of_var x
     | If (e1, e2, None) -> Printf.sprintf "if (%s) {\n%s\n}" (f e1) (f e2)
     | If (e1, e2, Some e3) -> Printf.sprintf "if (%s) {\n%s\n} else {\n%s\n}" (f e1) (f e2) (f e3)
     | While (e1, e2) -> Printf.sprintf "while (%s) \n%s\n" (f e1) (f e2)
+    | DoWhile (e1, e2) -> Printf.sprintf "do \n%s\n while (%s) \n" (f e1) (f e2)
     | VarDec xs -> Printf.sprintf "var %s" (String.concat ", " (map (string_of_var_in_dec with_annot) xs))
     | This -> "this"
     | Delete e -> Printf.sprintf "delete %s" (f e)
@@ -127,6 +127,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Return None -> "return"
     | RegExp (s1, s2) -> Printf.sprintf "/%s/%s" s1 s2
     | ForIn (e1, e2, e3) -> Printf.sprintf "for (%s in %s) %s" (f e1) (f e2) (f e3)
+    | For (e1, e2, e3, e4) -> Printf.sprintf "for (%s ; %s ; %s) %s" (f e1) (f e2) (f e3) (f e4)
     | Break None -> "break"
     | Break (Some l) -> Printf.sprintf "break %s" l
     | Continue None -> "continue"

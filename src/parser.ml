@@ -352,32 +352,24 @@ let rec xml_to_exp xml : exp =
       mk_exp (CAccess (xml_to_exp child1, xml_to_exp child2)) (get_offset attrs)
     | Element ("ARRAYLIT", attrs, children) ->
       parse_array_literal attrs children
-    (* TODO: Have a separate syntax construct? *)
     | Element ("FOR", attrs, children) ->
       let offset = get_offset attrs in
       begin match (remove_annotation_elements children) with
         | [init; condition; incr; exp] ->
           let invariant = get_invariant xml in
           let block = xml_to_exp exp in
-          let stmts = match block.exp_stx with
-            | Block stmts -> stmts
-            | _ -> raise (Parser_Unknown_Tag ("FOR", offset))
-          in
-          let body = mk_exp (Block (stmts @ [xml_to_exp incr])) block.exp_offset in
-          let whileloop = mk_exp_with_annot (While (xml_to_exp condition, body)) offset invariant in
-          mk_exp (Seq (xml_to_exp init, whileloop)) offset
+          mk_exp_with_annot (For (xml_to_exp init, xml_to_exp condition, xml_to_exp incr, block)) offset invariant
         | [var; obj; exp] ->
+        (* TODO: Add invariant *)
           mk_exp (ForIn (xml_to_exp var, xml_to_exp obj, xml_to_exp exp)) offset
         | _ -> raise (Parser_Unknown_Tag ("FOR", offset)) 
       end
-    (* TODO: Separate construct *)
     | Element ("DO", attrs, children) -> 
       let offset = get_offset attrs in
       let invariant = get_invariant xml in
       let body, condition = get_xml_two_children xml in
       let body = xml_to_exp body in
-      let whileloop = mk_exp_with_annot (While (xml_to_exp condition, body)) offset invariant in
-      mk_exp (Seq (body, whileloop)) offset
+      mk_exp_with_annot (DoWhile (body, xml_to_exp condition)) offset invariant
     | Element ("DELPROP", attrs, children) -> 
       let child = get_xml_child xml in
       mk_exp (Delete (xml_to_exp child)) (get_offset attrs)

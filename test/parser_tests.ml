@@ -131,9 +131,9 @@ let test_for () =
   let one = mk_exp (Num 1.0) 60 in
   let x = mk_exp (Var "x") 56 in
   let assignment = mk_exp (Assign (x, one)) 56 in
-  let block = mk_exp (Block [assignment; inc]) 20 in
-  let loop = mk_exp_with_annot (While (condition, block)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
-  assert_equal (add_script (mk_exp (Seq (empty, loop)) 0)) exp
+  let block = mk_exp (Block [assignment]) 20 in
+  let loop = mk_exp_with_annot (For (empty, condition, inc, block)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  assert_equal (add_script loop) exp
   
 let test_forin () =
   let exp = exp_from_string "for (var prop in oldObj) { obj[prop] = oldObj[prop] }" in
@@ -327,8 +327,8 @@ let test_do_while () =
   let one = mk_exp (Num 1.0) 43 in
   let assignment = mk_exp (Assign (a, one)) 39 in
   let body = mk_exp (Block [assignment]) 3 in
-  let loop = mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
-  assert_equal (add_script (mk_exp (Seq (body, loop)) 0)) exp
+  let loop = mk_exp_with_annot (DoWhile (body, condition)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  assert_equal (add_script loop) exp
   
 let test_delete () =
   let exp = exp_from_string "delete a" in
