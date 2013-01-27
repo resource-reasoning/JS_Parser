@@ -95,8 +95,8 @@ and exp_syntax =
   | Call of exp * exp list     (* e(e1,..,en) *)
   | Assign of exp * exp   (* e = e *)
   | AssignOp of exp * arith_op * exp   (* e op= e *)
-  | AnnonymousFun of var list * exp (* function (x1,..,x2){e} *)
-  | NamedFun of string * var list * exp (* function x(x1,..,x2){e} *)
+  | AnnonymousFun of bool * var list * exp (* function (x1,..,x2){e} *)
+  | NamedFun of bool * string * var list * exp (* function x(x1,..,x2){e} *)
   | New of exp * exp list      (* new e(e1,..,en) *)
   | Obj of (string * exp) list (* {x_i : e_i} *)
   | Array of (exp option) list (* [e1,...,en] *)
@@ -113,7 +113,8 @@ and exp_syntax =
   | Switch of exp * (switch_case * exp) list
   | Debugger
   | ConditionalOp of exp * exp * exp (* (e ? e : e) *)
-  | Block of exp list (* { es }*)
+  | Block of exp list (* { es } *)
+  | Script of bool * exp list (* top node *)
 and switch_case =
   | Case of exp
   | DefaultCase

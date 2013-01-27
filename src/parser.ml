@@ -200,17 +200,10 @@ let mapi f l =
 let rec xml_to_exp xml : exp =
   match xml with
     (*Element (tag name, attributes, children )*)
-    | Element ("SCRIPT", _, children) -> 
+    | Element ("SCRIPT", attrs, children) -> 
       let stmts = map xml_to_exp children in
-      begin
-      match stmts with
-        | [] -> raise Parser_No_Program
-        | stmts -> 
-          let last, stmts = split_last stmts in
-          let program = fold_right (fun s1 s2 -> (mk_exp (Seq (s1,s2)) s1.exp_offset)) stmts last in
-          let program_spec = get_program_spec xml in
-          mk_exp_with_annot program.exp_stx program.exp_offset (program.exp_annot @ program_spec)
-      end
+      let program_spec = get_program_spec xml in 
+      mk_exp_with_annot (Script (false, stmts)) (get_offset attrs) program_spec
     | Element ("EXPR_VOID", attrs, children) -> xml_to_exp (get_xml_child xml)
     | Element ("EXPR_RESULT", attrs, children) -> xml_to_exp (get_xml_child xml)
     | Element ("ASSIGN", attrs, children) -> 
@@ -224,8 +217,8 @@ let rec xml_to_exp xml : exp =
       let fn_params = xml_to_vars params in
       let fn_body = xml_to_exp block in
       let fn_spec = get_function_spec xml in
-      if (fn_name = "") then mk_exp_with_annot (AnnonymousFun (fn_params,fn_body)) (get_offset attrs) fn_spec
-      else mk_exp_with_annot (NamedFun (fn_name,fn_params,fn_body)) (get_offset attrs) fn_spec
+      if (fn_name = "") then mk_exp_with_annot (AnnonymousFun (false,fn_params,fn_body)) (get_offset attrs) fn_spec
+      else mk_exp_with_annot (NamedFun (false,fn_name,fn_params,fn_body)) (get_offset attrs) fn_spec
     | Element ("BLOCK", attrs, children) ->  
       let stmts = map xml_to_exp (remove_annotation_elements children) in
       mk_exp (Block stmts) (get_offset attrs)
@@ -377,6 +370,7 @@ let rec xml_to_exp xml : exp =
           mk_exp (ForIn (xml_to_exp var, xml_to_exp obj, xml_to_exp exp)) offset
         | _ -> raise (Parser_Unknown_Tag ("FOR", offset)) 
       end
+    (* TODO: Separate construct *)
     | Element ("DO", attrs, children) -> 
       let offset = get_offset attrs in
       let invariant = get_invariant xml in

@@ -112,8 +112,8 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Call (e1, e2s) -> Printf.sprintf "(%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Assign (e1, e2) -> Printf.sprintf "%s = %s" (f e1) (f e2)
     | AssignOp (e1, op, e2) -> Printf.sprintf "%s %s= %s" (f e1) (string_of_arith_op op) (f e2)
-    | AnnonymousFun (xs, e) -> Printf.sprintf "function (%s) \n%s\n" (string_of_vars xs) (f e)
-    | NamedFun (n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" n (string_of_vars xs) (f e)
+    | AnnonymousFun (_, xs, e) -> Printf.sprintf "function (%s) \n%s\n" (string_of_vars xs) (f e)
+    | NamedFun (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" n (string_of_vars xs) (f e)
     | New (e1, e2s) -> Printf.sprintf "new (%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Obj l -> Printf.sprintf "{%s}" 
       (String.concat "; " (map (fun (x, e) -> Printf.sprintf "%s : %s" x (f e)) l))
@@ -136,6 +136,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Debugger -> "debugger"
     | ConditionalOp (e1, e2, e3) -> Printf.sprintf "((%s) ? (%s) : (%s))" (f e1) (f e2) (f e3)
     | Block es -> Printf.sprintf "{ %s }" (String.concat ";\n" (map f es))  
+    | Script (_, es) -> Printf.sprintf "%s" (String.concat ";\n" (map f es))  
 and string_of_catch_finally with_annot catch finally =
   (match catch with
     | None -> ""
