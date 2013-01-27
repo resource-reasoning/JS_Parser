@@ -448,6 +448,32 @@ let test_top_annotations () =
   let exp = exp_from_string "/** @topensures #cScope = [#lg] */ debugger" in
   assert_equal (mk_exp_with_annot (Script (false, [mk_exp Debugger 35])) 0 [{annot_type = TopEnsures; annot_formula = "#cScope = [#lg]"}]) exp
   
+let test_script_strict () =
+  let exp = exp_from_string "'use strict'; function f() {return}" in
+  let string_exp = mk_exp (String "use strict") 0 in
+  let r = mk_exp (Return None) 28 in
+  let block = mk_exp (Block [r]) 27 in
+  let script = mk_exp (Script (true, [string_exp; mk_exp (NamedFun (true, "f", [], block)) 14])) 0 in
+  assert_equal script exp  
+  
+let test_script_not_strict () =
+  let exp = exp_from_string "{'use strict'}; function f() {return}" in
+  let string_exp = mk_exp (String "use strict") 1 in
+  let block_strict = mk_exp (Block [string_exp]) 0 in
+  let r = mk_exp (Return None) 30 in
+  let block = mk_exp (Block [r]) 29 in
+  let empty = mk_exp Skip 14 in
+  let script = mk_exp (Script (false, [block_strict; empty; mk_exp (NamedFun (false, "f", [], block)) 16])) 0 in
+  assert_equal script exp 
+  
+let test_fun_strict () =
+  let exp = exp_from_string "function f() {'use strict'; return}" in
+  let string_exp = mk_exp (String "use strict") 14 in
+  let r = mk_exp (Return None) 28 in
+  let block = mk_exp (Block [string_exp; r]) 13 in
+  let script = mk_exp (Script (false, [mk_exp (NamedFun (true, "f", [], block)) 0])) 0 in
+  assert_equal script exp  
+  
 (* TODO: tests for object initializer, unnamed function expression *)
 
 let suite = "Testing_Parser" >:::
@@ -515,6 +541,9 @@ let suite = "Testing_Parser" >:::
    "test_switch" >:: test_switch;
    "test_debugger" >:: test_debugger;
    "test_top_annotations" >:: test_top_annotations;
+   "test_script_strict" >:: test_script_strict;
+   "test_script_not_strict" >:: test_script_not_strict;
+   "test_fun_strict" >:: test_fun_strict
   ]
   
   let arguments () =

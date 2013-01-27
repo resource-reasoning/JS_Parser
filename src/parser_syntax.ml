@@ -1,5 +1,7 @@
 open List
 
+exception CannotHappen
+
 (* syntax *)
 
 type comparison_op =
@@ -124,3 +126,84 @@ let mk_exp_with_annot s o annots =
 
 let mk_exp s o =
   mk_exp_with_annot s o []
+  
+let is_directive exp =
+  match exp.exp_stx with 
+    | String s -> true
+    | _ -> false
+  
+let get_directives exp = 
+    match exp.exp_stx with
+    | Script (_, stmts)
+    | Block stmts ->
+      let (_, directives) = List.fold_left (fun (is_in_directive, directives) e -> 
+        if (not is_in_directive) then
+          (false, directives)
+        else if (is_directive e) then 
+          (true, (match e.exp_stx with 
+            | String s -> s
+            | _ -> raise CannotHappen) :: directives)
+        else (false, directives)
+      ) (true, []) stmts in directives
+    | _ -> []
+
+let is_in_strict_mode exp = 
+  List.mem "use strict" (get_directives exp)
+  
+let rec add_strictness parent_strict exp =
+  let f = add_strictness parent_strict in
+  let fop e = match e with 
+    | None -> None
+    | Some e -> Some (f e) in
+  match exp.exp_stx with
+    | Num n -> exp
+    | String x -> exp
+    | Label (x, e1) -> {exp with exp_stx = Label (x, f e1)}
+    | Null -> exp
+    | Bool b -> exp
+    | Seq (e1, e2) -> {exp with exp_stx = Seq (f e1, f e2)}
+    | Var x -> exp
+    | If (e1, e2, e3) -> {exp with exp_stx = If (f e1, f e2, fop e3)}
+    | While (e1, e2) -> {exp with exp_stx = While (f e1, f e2)}
+    | VarDec xs -> exp
+    | This -> exp
+    | Delete e -> {exp with exp_stx = Delete (f e)}
+    | Comma (e1, e2) -> {exp with exp_stx = Comma (f e1, f e2)}
+    | Unary_op (op, e) -> {exp with exp_stx = Unary_op (op, f e)}
+    | BinOp (e1, op, e2) -> {exp with exp_stx = BinOp (f e1, op, f e2)}
+    | Access (e, x) -> {exp with exp_stx = Access (f e, x)}
+    | Call (e1, e2s) -> {exp with exp_stx = Call (f e1, List.map f e2s)}
+    | Assign (e1, e2) -> {exp with exp_stx = Assign (f e1, f e2)}
+    | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
+    | AnnonymousFun (_, xs, e) -> 
+      let strict = parent_strict || is_in_strict_mode e in
+      {exp with exp_stx = AnnonymousFun (strict, xs, add_strictness strict e)}
+    | NamedFun (_, n, xs, e) -> 
+      let strict = parent_strict || is_in_strict_mode e in
+      {exp with exp_stx = NamedFun (strict, n, xs, add_strictness strict e)}
+    | New (e1, e2s) -> {exp with exp_stx = New (f e1, List.map f e2s)}
+    | Obj l -> {exp with exp_stx = Obj (List.map (fun (x, e) -> (x, f e)) l)}
+    | Array es -> {exp with exp_stx = Array (List.map fop es)}
+    | CAccess (e1, e2) -> {exp with exp_stx = CAccess (f e1, f e2)}
+    | With (e1, e2) -> {exp with exp_stx = With (f e1, f e2)}
+    | Skip -> exp
+    | Throw e -> {exp with exp_stx = Throw (f e)}
+    | Return e -> {exp with exp_stx = Return (fop e)}
+    | RegExp (s1, s2) -> exp
+    | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
+    | Break _ -> exp
+    | Continue _ -> exp
+    | Try (e1, e2, e3) -> {exp with exp_stx = Try (f e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), fop e3)}
+    | Switch (e1, e2s) -> 
+      {exp with exp_stx = Switch (f e1, List.map (
+        fun (case, e) ->
+          match case with
+            | Case ce -> Case (f ce), f e
+            | DefaultCase -> DefaultCase, f e
+        ) e2s)}
+    | Debugger -> exp
+    | ConditionalOp (e1, e2, e3) -> {exp with exp_stx = ConditionalOp (f e1, f e2, f e3)}
+    | Block es -> {exp with exp_stx = Block (List.map f es)}
+    | Script (_, es) -> 
+      let strict = is_in_strict_mode exp in
+      {exp with exp_stx = Script (strict, List.map (add_strictness strict) es)}

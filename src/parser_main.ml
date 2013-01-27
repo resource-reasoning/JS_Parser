@@ -17,7 +17,7 @@ let exp_from_file file =
     if (!verbose) then print_string (Xml.to_string_fmt data);
     let expression = xml_to_exp data in
     if (!verbose) then print_string (string_of_exp true expression);
-    expression    
+    add_strictness false expression    
   with 
     | Xml.Error error -> 
       Printf.printf "Xml Parsing error occurred in line %d : %s \n" (Xml.line (snd error)) (Xml.error_msg (fst error)); 
