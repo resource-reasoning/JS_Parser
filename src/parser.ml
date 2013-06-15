@@ -10,7 +10,7 @@ exception Parser_PCData
 exception Parser_ObjectLit
 exception JS_To_XML_parser_failure
 exception OnlyIntegersAreImplemented
-exception Parser_Name_Element
+exception Parser_Name_Element of string
 exception Parser_Param_List
 exception Unknown_Annotation of string
 exception InvalidArgument
@@ -63,7 +63,16 @@ let string_element xml : string =
 let name_element xml : string =
   match xml with
     | Element ("NAME", attrs, _) -> get_value attrs
-    | _ -> raise Parser_Name_Element
+    | Element (el, _, _) -> raise (Parser_Name_Element el)
+    | _ -> raise (Parser_Name_Element "")
+
+let propname_element xml : propname =
+  match xml with
+    | Element ("NAME", attrs, _) -> PropnameId (get_value attrs)
+    | Element ("STRING", attrs, _) -> PropnameString (get_value attrs)
+    | Element ("NUMBER", attrs, _) -> PropnameNum (float_of_string (get_value attrs))
+    | Element (el, _, _) -> raise (Parser_Name_Element el)
+    | _ -> raise (Parser_Name_Element "")
 
 let remove_annotation_elements children =
   filter (fun child -> 
@@ -248,14 +257,14 @@ let rec xml_to_exp xml : exp =
         match obj with
           | Element ("COLON", attrs, children) ->
             let child1, child2 = get_xml_two_children obj in
-            (name_element child1, PropbodyVal, xml_to_exp child2) 
+            (propname_element child1, PropbodyVal, xml_to_exp child2) 
           (* TODO: Have a flag for the EcmaScript version *)
           | Element ("GET", attrs, children) ->
             let child1, child2 = get_xml_two_children obj in
-            (name_element child1, PropbodyGet, xml_to_exp child2)
+            (propname_element child1, PropbodyGet, xml_to_exp child2)
           | Element ("SET", attrs, children) ->
             let child1, child2 = get_xml_two_children obj in
-            (name_element child1, PropbodySet, xml_to_exp child2)
+            (propname_element child1, PropbodySet, xml_to_exp child2)
           | _ -> raise Parser_ObjectLit
       ) (remove_annotation_elements objl)
       in (mk_exp (Obj l) (get_offset attrs))

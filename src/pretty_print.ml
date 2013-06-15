@@ -72,6 +72,12 @@ let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (ann
 let string_of_annots annots = 
   let annot_string = (String.concat "\n" (map string_of_annot annots)) in
   if annot_string <> "" then (Printf.sprintf "/** %s */" annot_string) else ""
+  
+let string_of_propname pn =
+  match pn with
+    | PropnameId id -> id
+    | PropnameString s -> Printf.sprintf "'%s'" s
+    | PropnameNum n -> string_of_float n
 
 let rec string_of_exp with_annot exp =
   let annot_string = if with_annot then (string_of_annots exp.exp_annot) else "" in
@@ -118,9 +124,9 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Obj l -> Printf.sprintf "{%s}" 
       (String.concat "; " (map (fun (x, p, e) -> 
         match p with 
-          | PropbodyVal -> Printf.sprintf "%s : %s" x (f e) 
-          | PropbodyGet -> Printf.sprintf "get %s %s" x (f e)
-          | PropbodySet -> Printf.sprintf "set %s %s "x (f e))
+          | PropbodyVal -> Printf.sprintf "%s : %s" (string_of_propname x) (f e) 
+          | PropbodyGet -> Printf.sprintf "get %s %s" (string_of_propname x) (f e)
+          | PropbodySet -> Printf.sprintf "set %s %s" (string_of_propname x) (f e))
       l))
     | Array es -> Printf.sprintf "[%s]" 
       (String.concat ", " (map (fun e -> match e with None -> "" | Some e -> Printf.sprintf "%s" (f e)) es))

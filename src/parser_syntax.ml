@@ -76,6 +76,11 @@ let is_function_spec annot : bool =
 let is_invariant annot : bool =
   annot.annot_type = Invariant 
   
+type propname =
+  | PropnameId of string
+  | PropnameString of string
+  | PropnameNum of float
+  
 type proptype =
   | PropbodyVal
   | PropbodyGet
@@ -105,7 +110,7 @@ and exp_syntax =
   | AnnonymousFun of bool * var list * exp (* function (x1,..,x2){e} *)
   | NamedFun of bool * string * var list * exp (* function x(x1,..,x2){e} *)
   | New of exp * exp list      (* new e(e1,..,en) *)
-  | Obj of (string * proptype * exp) list (* {x_i : e_i} *)
+  | Obj of (propname * proptype * exp) list (* {x_i : e_i} *)
   | Array of (exp option) list (* [e1,...,en] *)
   | CAccess of exp * exp  (* e[e] *)
   | With of exp * exp     (* with (e){e} *)

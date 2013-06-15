@@ -480,7 +480,7 @@ let test_getter () =
   let r = mk_exp (Return (Some zero)) 15 in
   let block = mk_exp (Block [r]) 13 in
   let getter = mk_exp (AnnonymousFun (false, [], block)) 9 in
-  let obj = mk_exp (Obj ["y", PropbodyGet, getter]) 4 in
+  let obj = mk_exp (Obj [PropnameId "y", PropbodyGet, getter]) 4 in
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
   let script = mk_exp (Script (false, [assign])) 0 in
@@ -490,11 +490,22 @@ let test_setter () =
   let exp = exp_from_string "a = {set y(val) {}};" in
   let block = mk_exp (Block []) 16 in
   let setter = mk_exp (AnnonymousFun (false, ["val"], block)) 9 in
-  let obj = mk_exp (Obj ["y", PropbodySet, setter]) 4 in
+  let obj = mk_exp (Obj [PropnameId "y", PropbodySet, setter]) 4 in
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
   let script = mk_exp (Script (false, [assign])) 0 in
   assert_equal script exp
+  
+let test_obj_init () =
+  let exp = exp_from_string "a = {1 : b, \"abc\" : c, name : d};" in
+  let b = mk_exp (Var "b") 9 in 
+  let c = mk_exp (Var "c") 20 in
+  let d = mk_exp (Var "d") 30 in
+  let obj = mk_exp (Obj [PropnameNum 1.0, PropbodyVal, b; PropnameString "abc", PropbodyVal, c; PropnameId "name", PropbodyVal, d]) 4 in
+  let a = mk_exp (Var "a") 0 in
+  let assign = mk_exp (Assign (a, obj)) 0 in  
+  let script = mk_exp (Script (false, [assign])) 0 in
+  assert_equal script exp  
   
 (* TODO: tests for object initializer, unnamed function expression *)
 
@@ -568,6 +579,7 @@ let suite = "Testing_Parser" >:::
    "test_fun_strict" >:: test_fun_strict;
    "test_getter" >:: test_getter;
    "test_setter" >:: test_setter;
+   "test_obj_init" >:: test_obj_init
   ]
   
   let arguments () =
