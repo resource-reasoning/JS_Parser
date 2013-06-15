@@ -1,6 +1,6 @@
 JS_PARSER_JAR=./lib/js_parser.jar
 
-BUILD_FLAGS=-I,+site-lib/oUnit
+BUILD_FLAGS=-I,$(shell ocamlfind query oUnit),-I,$(shell ocamlfind query xml-light)
 
 LIBS=xml-light,unix,nums,str,bigarray,Ounit
 

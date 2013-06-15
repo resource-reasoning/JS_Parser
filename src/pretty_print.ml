@@ -116,7 +116,12 @@ and string_of_exp_syntax_1 expstx with_annot =
     | NamedFun (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" n (string_of_vars xs) (f e)
     | New (e1, e2s) -> Printf.sprintf "new (%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Obj l -> Printf.sprintf "{%s}" 
-      (String.concat "; " (map (fun (x, e) -> Printf.sprintf "%s : %s" x (f e)) l))
+      (String.concat "; " (map (fun (x, p, e) -> 
+        match p with 
+          | PropbodyVal -> Printf.sprintf "%s : %s" x (f e) 
+          | PropbodyGet -> Printf.sprintf "get %s %s" x (f e)
+          | PropbodySet -> Printf.sprintf "set %s %s "x (f e))
+      l))
     | Array es -> Printf.sprintf "[%s]" 
       (String.concat ", " (map (fun e -> match e with None -> "" | Some e -> Printf.sprintf "%s" (f e)) es))
     | CAccess (e1, e2) -> Printf.sprintf "(%s)[%s]" (f e1) (f e2)

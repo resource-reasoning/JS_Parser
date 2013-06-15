@@ -7,7 +7,7 @@ exception Parser_Xml_To_String
 exception Parser_Xml_To_Var
 exception Parser_Unknown_Tag of (string * int)
 exception Parser_PCData
-exception Parser_ObjectList
+exception Parser_ObjectLit
 exception JS_To_XML_parser_failure
 exception OnlyIntegersAreImplemented
 exception Parser_Name_Element
@@ -248,8 +248,15 @@ let rec xml_to_exp xml : exp =
         match obj with
           | Element ("COLON", attrs, children) ->
             let child1, child2 = get_xml_two_children obj in
-            (name_element child1, xml_to_exp child2) 
-          | _ -> raise Parser_ObjectList
+            (name_element child1, PropbodyVal, xml_to_exp child2) 
+          (* TODO: Have a flag for the EcmaScript version *)
+          | Element ("GET", attrs, children) ->
+            let child1, child2 = get_xml_two_children obj in
+            (name_element child1, PropbodyGet, xml_to_exp child2)
+          | Element ("SET", attrs, children) ->
+            let child1, child2 = get_xml_two_children obj in
+            (name_element child1, PropbodySet, xml_to_exp child2)
+          | _ -> raise Parser_ObjectLit
       ) (remove_annotation_elements objl)
       in (mk_exp (Obj l) (get_offset attrs))
     | Element ("WITH", attrs, children) ->
