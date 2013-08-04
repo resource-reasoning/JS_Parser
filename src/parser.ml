@@ -37,7 +37,7 @@ let unescape_html s =
 let flat_map f l = flatten (map f l)
 
 let get_attr attrs attr_name =
-  let _, value = List.find (fun (name, value) -> name = attr_name) attrs in value
+  let _, value = List.find (fun (name, value) -> name = attr_name) attrs in unescape_html value
 
 let get_offset attrs : int =
   int_of_string (get_attr attrs "pos")
@@ -90,7 +90,6 @@ let rec xml_to_vars xml : string list =
 let get_annot attrs : annotation =
   let atype = get_attr attrs "type" in
   let f = get_attr attrs "formula" in
-  let f = unescape_html f in
   match atype with
     | "toprequires" -> {annot_type = TopRequires; annot_formula = f}
     | "topensures" -> {annot_type = TopEnsures; annot_formula = f}

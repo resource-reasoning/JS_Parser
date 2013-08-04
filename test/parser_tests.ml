@@ -7,6 +7,11 @@ let test_unescape_html () =
   
 let add_script e =
   mk_exp (Script(false, [e])) 0
+  
+let test_unescape_html_1 () =
+  let exp = exp_from_string "var o = \"3 < 2\"" in
+  let s = mk_exp (String "3 < 2") 8 in
+  assert_equal (add_script(mk_exp(VarDec ["o", Some s]) 0)) exp
     
 let test_var () =
   let exp = exp_from_string "var x" in
@@ -511,6 +516,7 @@ let test_obj_init () =
 
 let suite = "Testing_Parser" >:::
   ["test_unescape_html" >:: test_unescape_html;
+   "test_unescape_html_1" >:: test_unescape_html_1;
    "test var" >:: test_var;
    "test var with assignment" >:: test_var_value;
    "test var list" >:: test_var_list;
