@@ -3,7 +3,13 @@ open Parser_syntax
 open Parser_main
 
 let test_unescape_html () =
-  assert_equal "<>&\"" (Parser.unescape_html "&lt;&gt;&amp;&quot;")
+  assert_equal "<>&\"'" (Parser.unescape_html "&lt;&gt;&amp;&quot;&apos;")
+  
+let test_unescape_html_number () =
+  assert_equal "a\009a" (Parser.unescape_html "a&#9;a")
+  
+let test_unescape_html_hex () =
+  assert_equal "abb\009abb\010" (Parser.unescape_html "abb&#x9;abb&#xA;")
   
 let add_script e =
   mk_exp (Script(false, [e])) 0
@@ -516,6 +522,8 @@ let test_obj_init () =
 
 let suite = "Testing_Parser" >:::
   ["test_unescape_html" >:: test_unescape_html;
+   "test_unescape_html_number" >:: test_unescape_html_number;
+   "test_unescape_html_hex" >:: test_unescape_html_hex;
    "test_unescape_html_1" >:: test_unescape_html_1;
    "test var" >:: test_var;
    "test var with assignment" >:: test_var_value;
