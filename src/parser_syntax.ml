@@ -176,7 +176,7 @@ let rec add_strictness parent_strict exp =
     | If (e1, e2, e3) -> {exp with exp_stx = If (f e1, f e2, fop e3)}
     | While (e1, e2) -> {exp with exp_stx = While (f e1, f e2)}
     | DoWhile (e1, e2) -> {exp with exp_stx = DoWhile (f e1, f e2)}
-    | VarDec xs -> {exp with exp_stx = VarDec (List.map (fun (x, eo) -> (x, fop eo)) xs)}
+    | VarDec xs -> {exp with exp_stx = VarDec (List.map (fun (name, e1) -> (name, fop e1)) xs)}
     | This -> exp
     | Delete e -> {exp with exp_stx = Delete (f e)}
     | Comma (e1, e2) -> {exp with exp_stx = Comma (f e1, f e2)}

@@ -23,21 +23,37 @@ exception Empty_list
 
 let unescape_html s =
   Str.global_substitute
-    (Str.regexp "&lt;\\|&gt;\\|&amp;\\|&quot;\\|&#9;")
-    (fun s ->
-      match Str.matched_string s with
+    (Str.regexp "&lt;\\|&gt;\\|&amp;\\|&quot;\\|&apos;\\|&#[0-9]*;\\|&#x[0-9a-fA-F]*;")
+    (fun s -> 
+      let sm = Str.matched_string s in
+      match sm with
           "&lt;" -> "<"
         | "&gt;" -> ">"
         | "&amp;" -> "&"
         | "&quot;" -> "\""
-        | "&#9;" -> " "
-        | _ -> assert false)
+        | "&apos;" -> "'"
+        | _ -> 
+          if String.sub sm 0 3 = "&#x" then 
+            begin 
+              let len = String.length sm in 
+              let x = String.sub sm 3 (len - 4) in
+              let c = Char.chr (int_of_string ("0x" ^ x)) in
+              String.make 1 c
+            end 
+          else if String.sub sm 0 2 = "&#" then 
+            begin 
+              let len = String.length sm in 
+              let x = String.sub sm 2 (len - 3) in
+              let c = Char.chr (int_of_string x) in
+              String.make 1 c
+            end 
+          else assert false)
     s
     
 let flat_map f l = flatten (map f l)
 
 let get_attr attrs attr_name =
-  let _, value = List.find (fun (name, value) -> name = attr_name) attrs in value
+  let _, value = List.find (fun (name, value) -> name = attr_name) attrs in unescape_html value
 
 let get_offset attrs : int =
   int_of_string (get_attr attrs "pos")
@@ -90,7 +106,6 @@ let rec xml_to_vars xml : string list =
 let get_annot attrs : annotation =
   let atype = get_attr attrs "type" in
   let f = get_attr attrs "formula" in
-  let f = unescape_html f in
   match atype with
     | "toprequires" -> {annot_type = TopRequires; annot_formula = f}
     | "topensures" -> {annot_type = TopEnsures; annot_formula = f}
