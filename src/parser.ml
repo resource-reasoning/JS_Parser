@@ -229,18 +229,16 @@ let get_json_field field_name json =
     | _ -> raise Empty_list
 
 let get_json_type json = 
-  let json_type = get_json_field "type" json in
-  match json_type with
+  match get_json_field "type" json with
     | `String s -> s
     | _ -> raise CannotHappen
 
 let get_json_offset json =
-  try
-    (let range = get_json_field "range" json in
-     match range with
+  try (
+     match get_json_field "range" json with
        | `List((`Int(start)) :: _) -> start
        | _ -> raise CannotHappen
-    )  with
+  )  with
   | Not_found -> 0
 
 let get_json_list field json = 
@@ -283,10 +281,11 @@ let rec json_to_exp json : exp =
       begin match (get_json_list "declarations" json) with
         | [] -> raise Empty_list
         | children ->
-          let vars = map (json_var_declaration offset) children in
-          mk_exp (VarDec vars) offset
+            let vars = map (json_var_declaration offset) children in
+            mk_exp (VarDec vars) offset
       end
-    | "ExpressionStatement" -> json_to_exp (get_json_field "expression" json)
+    | "ExpressionStatement" -> 
+      json_to_exp (get_json_field "expression" json)
     | "IfStatement" ->
       let offset = get_json_offset json in
       let test = json_to_exp (get_json_field "test" json) in
@@ -294,7 +293,7 @@ let rec json_to_exp json : exp =
       let alt = 
       begin match (get_json_field "alternate" json) with
         | `Null -> None
-        | stat -> Some (json_to_exp stat)
+        | stat  -> Some (json_to_exp stat)
       end in
       mk_exp (If (test, cons, alt)) offset
     | "LabeledStatement" ->
@@ -360,25 +359,16 @@ let rec json_to_exp json : exp =
       mk_exp (ForIn (var, obj, block)) offset
     | "DebuggerStatement" ->
       mk_exp Debugger (get_json_offset json)
-    | "AssignmentExpression" ->
-      let child1 = json_to_exp (get_json_field "left" json) in
-      let child2 = json_to_exp (get_json_field "right" json) in
-      let op = get_json_string "operator" json in
-      json_mk_assign_op child1 child2 op (get_json_offset json)
     | "UnaryExpression" ->
       let child = json_to_exp (get_json_field "argument" json) in
       let op = get_json_string "operator" json in
       json_mk_un_op child op (get_json_offset json)
     | "BinaryExpression" ->
-      let child1 = json_to_exp (get_json_field "left" json) in
-      let child2 = json_to_exp (get_json_field "right" json) in
-      let op = get_json_string "operator" json in
-      json_mk_bin_op child1 child2 op (get_json_offset json)
+      json_mk_left_right_op json json_mk_bin_op
+    | "AssignmentExpression" ->
+      json_mk_left_right_op json json_mk_assign_op
     | "LogicalExpression" ->
-      let child1 = json_to_exp (get_json_field "left" json) in
-      let child2 = json_to_exp (get_json_field "right" json) in
-      let op = get_json_string "operator" json in
-      json_mk_logical_op child1 child2 op (get_json_offset json)
+      json_mk_left_right_op json json_mk_logical_op
     | "UpdateExpression" ->
       let child = json_to_exp (get_json_field "argument" json) in
       let op = get_json_string "operator" json in
@@ -402,12 +392,9 @@ let rec json_to_exp json : exp =
         let key = json_propname_element (get_json_field "key" obj) in
         let value = json_to_exp (get_json_field "value" obj) in
         match (get_json_string "kind" obj) with
-          | "init" ->
-            (key, PropbodyVal, value) 
-          | "get" ->
-            (key, PropbodyGet, value)
-          | "set" ->
-            (key, PropbodySet, value)
+          | "init" -> (key, PropbodyVal, value) 
+          | "get"  -> (key, PropbodyGet, value)
+          | "set"  -> (key, PropbodySet, value)
           | _ -> raise Parser_ObjectLit
       ) (get_json_list "properties" json)
     in (mk_exp (Obj l) (get_json_offset json))
@@ -426,23 +413,25 @@ let rec json_to_exp json : exp =
       let offset = (get_json_offset json) in
       begin match (get_json_field "argument" json) with
         | `Null -> mk_exp (Return None) offset 
-        | expr-> mk_exp (Return (Some (json_to_exp expr))) offset
+        | expr  -> mk_exp (Return (Some (json_to_exp expr))) offset
       end
     | "CallExpression" ->
       let callee = json_to_exp (get_json_field "callee" json) in
       let arguments = (get_json_list "arguments" json) in
       mk_exp (Call (callee, (map json_to_exp arguments))) (get_json_offset json)
-    | "Identifier" -> mk_exp (Var (get_json_ident_name json)) (get_json_offset json)
+    | "Identifier" -> 
+      mk_exp (Var (get_json_ident_name json)) (get_json_offset json)
     | "Literal" ->
       mk_exp (json_parse_literal (get_json_field "value" json)) (get_json_offset json)
-    | "EmptyStatement" -> mk_exp Skip (get_json_offset json)
+    | "EmptyStatement" -> 
+      mk_exp Skip (get_json_offset json)
     | _ -> print_string json_type; raise Unknown_Dec_Inc_Position
 and
 json_propname_element key =
   match (get_json_string "type" key) with
     | "Identifier" -> PropnameId (get_json_ident_name key)
     | "Literal" -> begin match (json_parse_literal (get_json_field "value" key)) with
-                     | Num(f) -> PropnameNum (f)
+                     | Num(f)    -> PropnameNum (f)
                      | String(s) -> PropnameString (s)
                      | _ -> raise InvalidArgument
                    end
@@ -452,7 +441,7 @@ json_var_declaration offset vd =
   let name = get_json_ident_name (get_json_field "id" vd) in
   let init = begin match get_json_field "init" vd with
    | `Null -> None
-   | expr -> Some (json_to_exp expr)
+   | expr  -> Some (json_to_exp expr)
   end in
   name, init
 and
@@ -465,24 +454,30 @@ json_get_catch_finally handler guardedHandlers f_block offset =
   begin if (guardedHandlers <> []) then raise (Parser_Unknown_Tag ("json_get_catch_finally", offset)) end;
   let finaliser = begin match f_block with
     | `Null -> None
-    | expr -> Some (json_to_exp expr)
+    | expr  -> Some (json_to_exp expr)
   end in
   match handler with
-    | [] -> None, finaliser
+    | []      -> None, finaliser
     | h :: [] -> Some (json_parse_catch h offset), finaliser
     | _ -> raise (Parser_Unknown_Tag ("json_get_catch_finally", offset)) 
 and
-json_mk_block_exp children off= 
+json_mk_left_right_op json json_mk_op =
+  let child1 = json_to_exp (get_json_field "left" json) in
+  let child2 = json_to_exp (get_json_field "right" json) in
+  let op = get_json_string "operator" json in
+  json_mk_op child1 child2 op (get_json_offset json)
+and
+json_mk_block_exp children off = 
   let stmts = map json_to_exp children in
   mk_exp (Block stmts) off
 and
 json_parse_literal value =
   match value with
-    | `Bool(b) -> Bool(b)
-    | `Float(f) -> Num(f)
-    | `Int(i) -> Num(float_of_int(i))
-    | `Intlit(s) ->Num(float_of_string(s))
-    | `Null -> Null
+    | `Bool(b)     -> Bool(b)
+    | `Float(f)    -> Num(f)
+    | `Int(i)      -> Num(float_of_int(i))
+    | `Intlit(s)   -> Num(float_of_string(s))
+    | `Null        -> Null
     | `String(str) -> String(str)
     | _ -> raise InvalidArgument
 and
@@ -490,18 +485,18 @@ json_mk_assign_op e1 e2 op off =
   match op with
     | "=" -> mk_exp (Assign (e1, e2)) off
     | _ -> let op_enum = begin match op with
-                 | "+=" -> Plus
-                 | "-=" -> Minus
-                 | "*=" -> Times
-                 | "/=" -> Div
-                 | "%=" -> Mod
-                 | "<<=" -> Lsh
-                 | ">>=" -> Rsh
-                 | ">>>=" -> Ursh
-                 | "|=" -> Bitor
-                 | "^=" -> Bitxor
-                 | "&=" -> Bitand
-                 | _ -> raise InvalidArgument
+             | "+="   -> Plus
+             | "-="   -> Minus
+             | "*="   -> Times
+             | "/="   -> Div
+             | "%="   -> Mod
+             | "<<="  -> Lsh
+             | ">>="  -> Rsh
+             | ">>>=" -> Ursh
+             | "|="   -> Bitor
+             | "^="   -> Bitxor
+             | "&="   -> Bitand
+             | _ -> raise InvalidArgument
            end in
            mk_exp (AssignOp (e1, op_enum, e2)) off
 and
@@ -509,40 +504,42 @@ json_mk_un_op e op off =
   match op with
     | "delete" -> mk_exp (Delete e) off
     | _ -> let op_enum = begin match op with
-                 | "-" -> Negative
-                 | "+" -> Positive
-                 | "!" -> Not
-                 | "~" -> Bitnot
-                 | "typeof" -> TypeOf
-                 | "void" -> Void
-                 | _ -> raise InvalidArgument
+             | "-" -> Negative
+             | "+" -> Positive
+             | "!" -> Not
+             | "~" -> Bitnot
+             | "typeof" -> TypeOf
+             | "void"   -> Void
+             | _ -> raise InvalidArgument
            end in
            mk_exp (Unary_op (op_enum, e)) off
 and
 json_mk_bin_op e1 e2 op off = 
-  match op with
-    | "==" -> mk_exp (BinOp (e1, (Comparison Equal), e2)) off
-    | "!=" -> mk_exp (BinOp (e1, (Comparison NotEqual), e2)) off
-    | "===" -> mk_exp (BinOp (e1, (Comparison TripleEqual), e2)) off
-    | "!==" -> mk_exp (BinOp (e1, (Comparison NotTripleEqual), e2)) off
-    | "<" -> mk_exp (BinOp (e1, (Comparison Lt), e2)) off
-    | "<=" -> mk_exp (BinOp (e1, (Comparison Le), e2)) off
-    | ">" -> mk_exp (BinOp (e1, (Comparison Gt), e2)) off
-    | ">=" -> mk_exp (BinOp (e1, (Comparison Ge), e2)) off
-    | "in" -> mk_exp (BinOp (e1, (Comparison In), e2)) off
-    | "instanceof" -> mk_exp (BinOp (e1, (Comparison InstanceOf), e2)) off
-    | "<<" -> mk_exp (BinOp (e1, (Arith Lsh), e2)) off
-    | ">>" -> mk_exp (BinOp (e1, (Arith Rsh), e2)) off
-    | ">>>" -> mk_exp (BinOp (e1, (Arith Ursh), e2)) off
-    | "+" -> mk_exp (BinOp (e1, (Arith Plus), e2)) off
-    | "-" -> mk_exp (BinOp (e1, (Arith Minus), e2)) off
-    | "*" -> mk_exp (BinOp (e1, (Arith Times), e2)) off
-    | "/" -> mk_exp (BinOp (e1, (Arith Div), e2)) off
-    | "%" -> mk_exp (BinOp (e1, (Arith Mod), e2)) off
-    | "|" -> mk_exp (BinOp (e1, (Arith Bitor), e2)) off
-    | "^" -> mk_exp (BinOp (e1, (Arith Bitxor), e2)) off
-    | "&" -> mk_exp (BinOp (e1, (Arith Bitand), e2)) off
+  let op_enum = begin match op with
+    | "=="  -> Comparison Equal
+    | "!="  -> Comparison NotEqual
+    | "===" -> Comparison TripleEqual
+    | "!==" -> Comparison NotTripleEqual
+    | "<"   -> Comparison Lt
+    | "<="  -> Comparison Le
+    | ">"   -> Comparison Gt
+    | ">="  -> Comparison Ge
+    | "in"  -> Comparison In
+    | "instanceof" -> Comparison InstanceOf
+    | "<<"  -> Arith Lsh
+    | ">>"  -> Arith Rsh
+    | ">>>" -> Arith Ursh
+    | "+"   -> Arith Plus
+    | "-"   -> Arith Minus
+    | "*"   -> Arith Times
+    | "/"   -> Arith Div
+    | "%"   -> Arith Mod
+    | "|"   -> Arith Bitor
+    | "^"   -> Arith Bitxor
+    | "&"   -> Arith Bitand
     | _ -> raise InvalidArgument
+  end in
+  mk_exp (BinOp (e1, op_enum, e2)) off
 and
 json_mk_logical_op e1 e2 op off =
   match op with
@@ -564,7 +561,7 @@ json_parse_case child offset =
   let test =
   begin match test_obj with
     | `Null -> DefaultCase
-    | expr -> Case (json_to_exp expr)
+    | expr  -> Case (json_to_exp expr)
   end in
   let block = json_mk_block_exp stat_list (get_json_offset child) in
   test, block
@@ -573,7 +570,7 @@ json_parse_array_literal members offset =
   let l = mapi (fun index child -> 
     match child with
       | `Null -> None
-      | expr -> Some (json_to_exp child)
+      | expr  -> Some (json_to_exp child)
   ) members in
   mk_exp (Array l) offset
 and
