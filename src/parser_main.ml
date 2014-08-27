@@ -1,14 +1,24 @@
 open Parser
 open Pretty_print
 open Parser_syntax
+open Unix
+open Yojson.Safe
 
 let js_to_xml_parser = ref ""
 let verbose = ref false
+let use_json = ref false
 
 let js_to_xml (filename : string) : string =
   match Unix.system ("java -jar " ^ !js_to_xml_parser ^ " " ^ (Filename.quote filename)) with
     | Unix.WEXITED _ -> String.sub filename 0 (String.length filename - 3) ^ ".xml"
     | _ -> raise JS_To_XML_parser_failure
+
+let exp_from_stdin_json =
+  fun() ->
+    let data = Yojson.Safe.from_channel Pervasives.stdin in
+    let expression = json_to_exp data in
+    add_strictness false expression
+
 
 let exp_from_file file =
   try
@@ -28,3 +38,12 @@ let exp_from_string s =
   output_string out s;
   close_out out;
   exp_from_file file
+
+let exp_from_main file = 
+  fun() ->
+    begin
+      if(!use_json) then
+        exp_from_stdin_json()
+      else
+        exp_from_file file
+    end
