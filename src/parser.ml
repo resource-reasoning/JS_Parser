@@ -226,7 +226,7 @@ let get_json_field field_name json =
   match json with
     | `Assoc contents ->  
         snd (List.find (fun (str, _) -> (str = field_name)) contents)
-    | _ -> raise Empty_list
+    | _ -> print_string field_name; raise Empty_list
 
 let get_json_type json = 
   match get_json_field "type" json with
@@ -271,11 +271,13 @@ let rec json_to_exp json : exp =
       json_mk_block_exp children (get_json_offset json)
     | "FunctionExpression"
     | "FunctionDeclaration" ->
-      let fn_name = get_json_ident_name (get_json_field "id" json) in
+      let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
-      if (fn_name = "") then mk_exp (AnnonymousFun (false,fn_params,fn_body)) (get_json_offset json)
-      else mk_exp (NamedFun (false,fn_name,fn_params,fn_body)) (get_json_offset json)
+      begin match fn_name with
+        | `Null -> mk_exp (AnnonymousFun (false,fn_params,fn_body)) (get_json_offset json)
+        | ident -> mk_exp (NamedFun (false,(get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json)
+      end
     | "VariableDeclaration" -> 
       let offset = (get_json_offset json) in
       begin match (get_json_list "declarations" json) with
@@ -343,7 +345,7 @@ let rec json_to_exp json : exp =
     | "DoWhileStatement" ->
       let condition = json_to_exp (get_json_field "test" json) in
       let block = json_to_exp (get_json_field "body" json) in
-      mk_exp (DoWhile (condition, block)) (get_json_offset json)
+      mk_exp (DoWhile (block, condition)) (get_json_offset json)
     | "ForStatement" ->
       let offset = get_json_offset json in
       let init = json_to_exp (get_json_field "init" json) in
