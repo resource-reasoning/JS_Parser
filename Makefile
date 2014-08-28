@@ -2,26 +2,24 @@ JS_PARSER_JAR=./lib/js_parser.jar
 
 BUILD_FLAGS=-I,$(shell ocamlfind query oUnit),-I,$(shell ocamlfind query xml-light, yojson)
 
-LIBS=xml-light,unix,nums,str,bigarray,Ounit
+PACKAGES=xml-light,oUnit,yojson
+
+LIBS=nums,str,bigarray
 
 build: 
-	ocamlbuild -libs ${LIBS} \
-	-cflags ${BUILD_FLAGS} \
-	-lflags ${BUILD_FLAGS} \
+	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
+	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.byte
-	
 native:
-	ocamlbuild -libs ${LIBS} \
-	-cflags ${BUILD_FLAGS} \
-	-lflags ${BUILD_FLAGS} \
+	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
+	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.native
 
 build_cma: 
-	ocamlbuild -libs ${LIBS} \
-	-cflags ${BUILD_FLAGS} \
-	-lflags ${BUILD_FLAGS} \
+	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
+	-libs ${LIBS} \
 	-Is src \
 	src/parser_main.cma
 
