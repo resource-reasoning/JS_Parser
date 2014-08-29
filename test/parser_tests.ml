@@ -133,12 +133,12 @@ let test_inc_post () =
   
 let test_for () =
   let exp = exp_from_string "for (; a < 5; a++ ) { /** @invariant #cScope = [#lg] */ x = 1 }" in
-  let empty = mk_exp Skip 5 in
+  let empty = None in
   let a = mk_exp (Var "a") 7 in
   let five = mk_exp (Num 5.0) 11 in
-  let condition = mk_exp (BinOp (a, Comparison Lt, five)) 7 in
+  let condition = Some (mk_exp (BinOp (a, Comparison Lt, five)) 7) in
   let a = mk_exp (Var "a") 14 in
-  let inc = mk_exp (Unary_op (Post_Incr, a)) 14 in
+  let inc = Some (mk_exp (Unary_op (Post_Incr, a)) 14) in
   let one = mk_exp (Num 1.0) 60 in
   let x = mk_exp (Var "x") 56 in
   let assignment = mk_exp (Assign (x, one)) 56 in
