@@ -583,8 +583,8 @@ json_parse_case child offset =
 and
 json_parse_for_exp exp off = 
   match exp with
-    | `Null -> mk_exp Skip off
-    | expr  -> json_to_exp exp
+    | `Null -> None
+    | expr  -> Some (json_to_exp exp)
 and
 json_parse_array_literal members offset =
   let l = mapi (fun index child -> 
@@ -769,7 +769,7 @@ let rec xml_to_exp xml : exp =
         | [init; condition; incr; exp] ->
           let invariant = get_invariant xml in
           let block = xml_to_exp exp in
-          mk_exp_with_annot (For (xml_to_exp init, xml_to_exp condition, xml_to_exp incr, block)) offset invariant
+          mk_exp_with_annot (For (parse_for_exp init, parse_for_exp condition, parse_for_exp incr, block)) offset invariant
         | [var; obj; exp] ->
         (* TODO: Add invariant *)
           mk_exp (ForIn (xml_to_exp var, xml_to_exp obj, xml_to_exp exp)) offset
@@ -889,6 +889,11 @@ and get_catch_finally children offset =
       end 
     | _ -> raise (Parser_Unknown_Tag ("TRY", offset))
   end
+and parse_for_exp child =
+  match child with
+    | Element ("EMPTY", attrs, children) -> None
+    | _ -> Some (xml_to_exp child)
+
 and parse_case child offset =
   begin match child with
     | Element ("CASE", attrs, children) ->
