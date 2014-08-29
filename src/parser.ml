@@ -428,7 +428,7 @@ let rec json_to_exp json : exp =
       mk_exp (json_parse_literal json) (get_json_offset json)
     | "EmptyStatement" -> 
       mk_exp Skip (get_json_offset json)
-    | _ -> print_string json_type; raise Unknown_Dec_Inc_Position
+    | _ -> raise (Parser_Unknown_Tag (json_type, (get_json_offset json)))
 and
 json_propname_element key =
   match (get_json_string "type" key) with
