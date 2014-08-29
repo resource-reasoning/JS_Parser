@@ -29,6 +29,9 @@ clean:
 test: build
 	./parser_tests.byte -jsparser ${JS_PARSER_JAR}
 
+test_json: build
+	./parser_tests.byte -json -jsparser ${JS_PARSER_JAR}
+
 test_native: native
 	./parser_tests.native -jsparser ${JS_PARSER_JAR}
 

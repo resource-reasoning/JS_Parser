@@ -241,6 +241,7 @@ let get_json_offset json =
   )  with
   | Not_found -> 0
 
+
 let get_json_list field json = 
   match get_json_field field json with
     | `List(children) -> children
@@ -348,9 +349,9 @@ let rec json_to_exp json : exp =
       mk_exp (DoWhile (block, condition)) (get_json_offset json)
     | "ForStatement" ->
       let offset = get_json_offset json in
-      let init = json_to_exp (get_json_field "init" json) in
-      let condition = json_to_exp (get_json_field "test" json) in
-      let incr = json_to_exp (get_json_field "update" json) in
+      let init = json_parse_for_exp (get_json_field "init" json) offset in
+      let condition = json_parse_for_exp (get_json_field "test" json) offset in
+      let incr = json_parse_for_exp (get_json_field "update" json) offset in
       let block = json_to_exp (get_json_field "body" json) in
       mk_exp (For (init, condition, incr, block)) offset
     | "ForInStatement" ->
@@ -424,7 +425,7 @@ let rec json_to_exp json : exp =
     | "Identifier" -> 
       mk_exp (Var (get_json_ident_name json)) (get_json_offset json)
     | "Literal" ->
-      mk_exp (json_parse_literal (get_json_field "value" json)) (get_json_offset json)
+      mk_exp (json_parse_literal json) (get_json_offset json)
     | "EmptyStatement" -> 
       mk_exp Skip (get_json_offset json)
     | _ -> print_string json_type; raise Unknown_Dec_Inc_Position
@@ -432,7 +433,7 @@ and
 json_propname_element key =
   match (get_json_string "type" key) with
     | "Identifier" -> PropnameId (get_json_ident_name key)
-    | "Literal" -> begin match (json_parse_literal (get_json_field "value" key)) with
+    | "Literal" -> begin match (json_parse_literal key) with
                      | Num(f)    -> PropnameNum (f)
                      | String(s) -> PropnameString (s)
                      | _ -> raise InvalidArgument
@@ -473,7 +474,9 @@ json_mk_block_exp children off =
   let stmts = map json_to_exp children in
   mk_exp (Block stmts) off
 and
-json_parse_literal value =
+json_parse_literal lit =
+  let value = get_json_field "value" lit in
+  let raw = get_json_string "raw" lit in
   match value with
     | `Bool(b)     -> Bool(b)
     | `Float(f)    -> Num(f)
@@ -481,7 +484,17 @@ json_parse_literal value =
     | `Intlit(s)   -> Num(float_of_string(s))
     | `Null        -> Null
     | `String(str) -> String(str)
+    | `Assoc([]) -> json_parse_regexp(raw) (*This is a regexp*)
     | _ -> raise InvalidArgument
+and
+json_parse_regexp raw =
+  let trimmed_lit = Str.string_after raw 1 in
+  let lit, flag = begin match Str.last_chars raw 1 with
+    | "/" -> (Str.string_before trimmed_lit ((String.length trimmed_lit) - 1)), ""
+    | c -> (Str.string_before trimmed_lit ((String.length trimmed_lit) - ((String.length c) + 1))), c
+  end in 
+  RegExp(lit, flag)
+  
 and
 json_mk_assign_op e1 e2 op off =
   match op with
@@ -567,6 +580,11 @@ json_parse_case child offset =
   end in
   let block = json_mk_block_exp stat_list (get_json_offset child) in
   test, block
+and
+json_parse_for_exp exp off = 
+  match exp with
+    | `Null -> mk_exp Skip off
+    | expr  -> json_to_exp exp
 and
 json_parse_array_literal members offset =
   let l = mapi (fun index child -> 

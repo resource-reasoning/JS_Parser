@@ -599,7 +599,11 @@ let suite = "Testing_Parser" >:::
   let arguments () =
     let usage_msg="Usage: -jsparser <path>" in
     Arg.parse
-      ["-jsparser", Arg.String(fun f -> js_to_xml_parser := f), "path to js_parser.jar"]
+      [ "-json",
+        Arg.Unit(fun () -> Parser_main.use_json := true), "test json parser";
+        "-jsparser", 
+        Arg.String(fun f -> js_to_xml_parser := f), "path to js_parser.jar"
+      ]
       (fun s -> Format.eprintf "WARNING: Ignored argument %s.@." s)
       usage_msg
   

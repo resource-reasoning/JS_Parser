@@ -3,3 +3,16 @@ default arguments
 unescape_html
 handler vs handlers (empty list vs null)
 for loop is assumed non-empty!!!! for(s1;s2;s3) {} with any of s1, s2, s3 empty gives Parser.InvalidArgument
+
+tests expected to fail
+
+test_do_while due to test for @invariant annotation
+test_continue due to test for @invariant annotation
+test_continue_label due to test for @invariant annotation
+test_break due to test for @invariant annotation
+test_break_label due to test for @invariant annotation
+test_for due to test for @invariant annotation, would also fail due to minor offset calculation differences between parsers
+test_getter due to minor offset calculation differences between parsers
+test_setter due to minor offset calculation differences between parsers
+test_top_annotations due to test for @topensures annotation
+
