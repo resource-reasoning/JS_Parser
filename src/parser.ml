@@ -482,7 +482,7 @@ json_parse_literal lit =
     | `Float(f)    -> Num(f)
     | `Int(i)      -> Num(float_of_int(i))
     | `Intlit(s)   -> Num(float_of_string(s))
-    | `Null        -> Null
+    | `Null        -> if(raw = "null") then Null else Num(infinity) (*This is a very bad workaround*)
     | `String(str) -> String(str)
     | `Assoc([]) -> json_parse_regexp(raw) (*This is a regexp*)
     | _ -> raise InvalidArgument
