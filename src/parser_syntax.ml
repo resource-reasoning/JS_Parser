@@ -66,21 +66,21 @@ type annotation =
     annot_type : annotation_type;
     annot_formula : string
   }
-  
+
 let is_top_spec annot : bool =
   annot.annot_type = TopRequires || annot.annot_type = TopEnsures || annot.annot_type = PredDefn
-  
+
 let is_function_spec annot : bool =
   annot.annot_type = Requires || annot.annot_type = Ensures || annot.annot_type = Codename || annot.annot_type = PredDefn
-  
+
 let is_invariant annot : bool =
   annot.annot_type = Invariant 
-  
+
 type propname =
   | PropnameId of string
   | PropnameString of string
   | PropnameNum of float
-  
+
 type proptype =
   | PropbodyVal
   | PropbodyGet
@@ -131,18 +131,18 @@ and exp_syntax =
 and switch_case =
   | Case of exp
   | DefaultCase
-  
+
 let mk_exp_with_annot s o annots =
   { exp_offset = o; exp_stx = s; exp_annot = annots }
 
 let mk_exp s o =
   mk_exp_with_annot s o []
-  
+
 let is_directive exp =
   match exp.exp_stx with 
     | String s -> true
     | _ -> false
-  
+
 let get_directives exp = 
     match exp.exp_stx with
     | Script (_, stmts)
@@ -158,9 +158,9 @@ let get_directives exp =
       ) (true, []) stmts in directives
     | _ -> []
 
-let is_in_strict_mode exp = 
+let is_in_strict_mode exp =
   List.mem "use strict" (get_directives exp)
-  
+
 let rec add_strictness parent_strict exp =
   let f = add_strictness parent_strict in
   let fop e = match e with 
@@ -201,8 +201,8 @@ let rec add_strictness parent_strict exp =
     | Throw e -> {exp with exp_stx = Throw (f e)}
     | Return e -> {exp with exp_stx = Return (fop e)}
     | RegExp (s1, s2) -> exp
-    | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
     | For (e1, e2, e3, e4) -> {exp with exp_stx = For (f e1, f e2, f e3, f e4)}
+    | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
     | Break _ -> exp
     | Continue _ -> exp
     | Try (e1, e2, e3) -> {exp with exp_stx = Try (f e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), fop e3)}
@@ -219,3 +219,4 @@ let rec add_strictness parent_strict exp =
     | Script (_, es) -> 
       let strict = is_in_strict_mode exp in
       {exp with exp_stx = Script (strict, List.map (add_strictness strict) es)}
+
