@@ -4,8 +4,11 @@ unescape_html
 handler vs handlers (empty list vs null)
 for loop is assumed non-empty!!!! for(s1;s2;s3) {} with any of s1, s2, s3 empty gives Parser.InvalidArgument
 
-tests expected to fail
+tests using FunctionDeclaration as statement, goes against spec recommendation
+ch12/12.14/12.14-13.js
+ch12/12.8/S12.8_A4_T3.js
 
+parser tests expected to fail
 test_do_while due to test for @invariant annotation
 test_continue due to test for @invariant annotation
 test_continue_label due to test for @invariant annotation
