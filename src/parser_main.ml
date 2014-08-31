@@ -14,9 +14,10 @@ let js_to_xml (filename : string) : string =
     | Unix.WEXITED _ -> String.sub filename 0 (String.length filename - 3) ^ ".xml"
     | _ -> raise JS_To_XML_parser_failure
 
-let js_to_json ?force_strict:(f = false) (filename : string) : string =
+let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) : string =
   let force_strict = (if (f) then " -force_strict" else "") in
-  match Unix.system ("nodejs simple_print.js" ^ " " ^ (Filename.quote filename) ^ force_strict) with
+  let init = (if (i) then " -builtin_init" else "") in
+  match Unix.system ("nodejs simple_print.js" ^ " " ^ (Filename.quote filename) ^ force_strict ^ init) with
     | Unix.WEXITED n -> 
         (if(n <> 0) then raise (Xml.File_not_found filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
     | _ -> raise JS_To_XML_parser_failure
@@ -46,8 +47,8 @@ let exp_from_stdin =
     else
       exp_from_stdin_xml()
 
-let exp_from_file_json ?force_strict:(f = false) file =
-  let js_file = js_to_json ~force_strict:f file in
+let exp_from_file_json ?force_strict:(f = false) ?init:(i = false) file =
+  let js_file = js_to_json ~force_strict:f ~init:i file in
   let data = Yojson.Safe.from_file js_file in
   let expression = json_to_exp data in
   add_strictness false expression
@@ -67,10 +68,10 @@ let exp_from_file_xml file =
           (Xml.line (snd error)) (Xml.error_msg (fst error)); 
         raise Parser.XmlParserException
 
-let exp_from_file ?force_strict:(f = false) file =
+let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
   try
     if(!use_json) then
-      exp_from_file_json ~force_strict:f file
+      exp_from_file_json ~force_strict:f ~init:i file
     else
       exp_from_file_xml file
   with
