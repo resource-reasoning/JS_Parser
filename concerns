@@ -2,15 +2,17 @@ annotations
 default arguments
 unescape_html
 handler vs handlers (empty list vs null)
-for loop is assumed non-empty!!!! for(s1;s2;s3) {} with any of s1, s2, s3 empty gives Parser.InvalidArgument
+for loop is assumed non-empty!!!! for(s1;s2;s3) {} with any of s1, s2, s3 empty gives Parser.InvalidArgument - FIXED
 S7.4_A6.js runs out of memory on my computer before finishing
-esprima treats AssignmentExpression with literal on LHS as a parse error (ECMA "early error"), which is not spec compliant
+esprima treats AssignmentExpression with literal on LHS as a parse error (ECMA "early error"), which is not spec compliant - FIXED
 esprima doesn't interpret a single unbracketed bare FunctionExpression as valid javacript e.g. the program "function() {}"
 
 eval doesn't know if its parent context is strict when parsing. change parse_pickable to take parent's strict status, and change exp_from_string to take a force_strict parameter, and set the strict var of esprima based on that
 
+eval doesn't correctly throw SyntaxError for true parser borks. -FIXED
+
 tests using FunctionDeclaration as statement, goes against spec recommendation, see FunctionDeclarationAsStatement.txt
-we may be incorrectly interpreting some FunctionExpressions as FunctionStatements
+we may be incorrectly interpreting some FunctionExpressions as FunctionStatements - FIXED
 every single abort is now either this issue or a NYI
 
 parser tests expected to fail

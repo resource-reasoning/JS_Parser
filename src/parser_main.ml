@@ -61,17 +61,20 @@ let exp_from_file_xml file =
     let expression = xml_to_exp data in
     if (!verbose) then print_string (string_of_exp true expression);
     add_strictness false expression
-    with 
-      | Xml.Error error -> 
-          Printf.printf "Xml Parsing error occurred in line %d : %s \n" 
-            (Xml.line (snd error)) (Xml.error_msg (fst error)); 
-          raise Parser.XmlParserException
+  with 
+    | Xml.Error error -> 
+        Printf.printf "Xml Parsing error occurred in line %d : %s \n" 
+          (Xml.line (snd error)) (Xml.error_msg (fst error)); 
+        raise Parser.XmlParserException
 
 let exp_from_file ?force_strict:(f = false) file =
-  if(!use_json) then
-    exp_from_file_json ~force_strict:f file
-  else
-    exp_from_file_xml file
+  try
+    if(!use_json) then
+      exp_from_file_json ~force_strict:f file
+    else
+      exp_from_file_xml file
+  with
+    | Xml.File_not_found f -> raise (Parser.ParserFailure f)
 
 let exp_from_string ?force_strict:(f = false) s =
   let (file, out) = Filename.open_temp_file "js_gen" ".js" in
