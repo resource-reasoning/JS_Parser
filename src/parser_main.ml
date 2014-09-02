@@ -57,7 +57,6 @@ let exp_from_file_xml file =
   try
     let xml_file = js_to_xml file in 
     let data = Xml.parse_file xml_file in
-    print_string "got here!";
     if (!verbose) then print_string (Xml.to_string_fmt data);
     let expression = xml_to_exp data in
     if (!verbose) then print_string (string_of_exp true expression);
