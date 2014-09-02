@@ -22,6 +22,7 @@ let exp_from_file file =
     | Xml.Error error -> 
       Printf.printf "Xml Parsing error occurred in line %d : %s \n" (Xml.line (snd error)) (Xml.error_msg (fst error)); 
       raise Parser.XmlParserException
+    | Xml.File_not_found f -> raise (Parser.ParserFailure f)
 
 let exp_from_string s =
   let (file, out) = Filename.open_temp_file "js_gen" ".js" in

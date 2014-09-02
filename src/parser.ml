@@ -3,6 +3,7 @@ open Parser_syntax
 open List
 
 exception Parser_No_Program
+exception ParserFailure of string
 exception Parser_Xml_To_String
 exception Parser_Xml_To_Var
 exception Parser_Unknown_Tag of (string * int)
