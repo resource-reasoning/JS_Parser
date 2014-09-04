@@ -1,7 +1,5 @@
 JS_PARSER_JAR=./lib/js_parser.jar
 
-BUILD_FLAGS=-I,$(shell ocamlfind query oUnit),-I,$(shell ocamlfind query xml-light, yojson)
-
 JS_OF_OCAML_LOCATION=$(shell ocamlfind query js_of_ocaml)
 
 PACKAGES=xml-light,oUnit,yojson
@@ -14,6 +12,7 @@ build:
 	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.byte
+
 native:
 	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
 	-pp "camlp4o pa_macro.cmo -UTARGETJS" \
@@ -50,3 +49,4 @@ test_json: build
 test_native: native
 	./parser_tests.native -jsparser ${JS_PARSER_JAR}
 
+.PHONY: build native build_cma clean test test_native
