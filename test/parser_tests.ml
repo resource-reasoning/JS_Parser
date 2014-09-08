@@ -151,7 +151,12 @@ let test_for () =
   let x = mk_exp (Var "x") 56 in
   let assignment = mk_exp (Assign (x, one)) 56 in
   let block = mk_exp (Block [assignment]) 20 in
-  let loop = mk_exp_with_annot (For (empty, condition, inc, block)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  let loop =
+    IFDEF TARGETJS THEN
+    mk_exp (For (empty, condition, inc, block)) 0
+    ELSE
+    mk_exp_with_annot (For (empty, condition, inc, block)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+    END in
   assert_equal (add_script loop) exp
   
 let test_forin () =
@@ -346,7 +351,12 @@ let test_do_while () =
   let one = mk_exp (Num 1.0) 43 in
   let assignment = mk_exp (Assign (a, one)) 39 in
   let body = mk_exp (Block [assignment]) 3 in
-  let loop = mk_exp_with_annot (DoWhile (body, condition)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  let loop =
+    IFDEF TARGETJS THEN
+	  mk_exp (DoWhile (body, condition)) 0
+    ELSE 
+    mk_exp_with_annot (DoWhile (body, condition)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+    END in
   assert_equal (add_script loop) exp
   
 let test_delete () =
@@ -363,7 +373,12 @@ let test_continue () =
   let app = mk_exp (Unary_op (Post_Incr, a)) 49 in
   let cont = mk_exp (Continue None) 54 in
   let body = mk_exp (Block [app; cont]) 14 in
-  assert_equal (add_script (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}])) exp 
+  assert_equal (add_script
+		  (IFDEF TARGETJS THEN
+			 mk_exp (While (condition, body)) 0 
+			 ELSE
+			 mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+			 END)) exp 
   
 let test_continue_label () =
   let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; continue test}" in
@@ -374,7 +389,12 @@ let test_continue_label () =
   let app = mk_exp (Unary_op (Post_Incr, a)) 55 in
   let cont = mk_exp (Continue (Some "test")) 60 in
   let body = mk_exp (Block [app; cont]) 20 in
-  let loop = mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  let loop =
+    IFDEF TARGETJS THEN
+	  mk_exp (While (condition, body)) 6
+	  ELSE
+	  mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+    END in
   assert_equal (add_script (mk_exp (Label ("test", loop)) 0)) exp
   
 let test_break () =
@@ -386,7 +406,12 @@ let test_break () =
   let app = mk_exp (Unary_op (Post_Incr, a)) 49 in
   let cont = mk_exp (Break None) 54 in
   let body = mk_exp (Block [app; cont]) 14 in
-  assert_equal (add_script (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}])) exp 
+  assert_equal (add_script
+		  ( IFDEF TARGETJS THEN
+			  mk_exp (While (condition, body)) 0 
+			  ELSE
+			  mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+			  END)) exp 
   
 let test_break_label () =
   let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break test}" in
@@ -397,7 +422,11 @@ let test_break_label () =
   let app = mk_exp (Unary_op (Post_Incr, a)) 55 in
   let cont = mk_exp (Break (Some "test")) 60 in
   let body = mk_exp (Block [app; cont]) 20 in
-  let loop = mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  let loop = IFDEF TARGETJS THEN
+		   mk_exp (While (condition, body)) 6
+		   ELSE
+		   mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+		   END in
   assert_equal (add_script (mk_exp (Label ("test", loop)) 0)) exp
   
 let test_get_invariant () =
@@ -464,9 +493,14 @@ let test_debugger () =
   assert_equal (add_script (mk_exp Debugger 0)) exp
   
 let test_top_annotations () =
+  IFDEF TARGETJS THEN
+(* There are no annotations in the JS Target *)
+	()
+	ELSE 
   let exp = exp_from_string "/** @topensures #cScope = [#lg] */ debugger" in
   assert_equal (mk_exp_with_annot (Script (false, [mk_exp Debugger 35])) 0 [{annot_type = TopEnsures; annot_formula = "#cScope = [#lg]"}]) exp
-  
+	       END
+
 let test_script_strict () =
   let exp = exp_from_string "'use strict'; function f() {return}" in
   let string_exp = mk_exp (String "use strict") 0 in
