@@ -23,6 +23,8 @@ exception More_Than_One_Finally
 exception CannotHappen
 exception Empty_list
 
+	    
+IFDEF TARGETJS THEN () ELSE
 let unescape_html s =
   Str.global_substitute
     (Str.regexp "&lt;\\|&gt;\\|&amp;\\|&quot;\\|&apos;\\|&#[0-9]*;\\|&#x[0-9a-fA-F]*;")
@@ -51,11 +53,13 @@ let unescape_html s =
             end 
           else assert false)
     s
-    
+END    
+
 let flat_map f l = flatten (map f l)
 
 let get_attr attrs attr_name =
-  let _, value = List.find (fun (name, value) -> name = attr_name) attrs in unescape_html value
+  let _, value = List.find (fun (name, value) -> name = attr_name) attrs in
+      IFDEF TARGETJS THEN value ELSE unescape_html value END
 
 let get_offset attrs : int =
   int_of_string (get_attr attrs "pos")

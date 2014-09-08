@@ -6,6 +6,8 @@ PACKAGES=xml-light,oUnit,yojson
 
 LIBS=nums,str,bigarray
 
+NODE=node			# How to call node.js
+
 build: 
 	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
 	-pp "camlp4o pa_macro.cmo -UTARGETJS" \
@@ -35,7 +37,7 @@ targetjs:
 	test/parser_tests.byte
 
 test/parser_tests.js: targetjs
-	js_of_ocaml -o _build/test/parser_tests.js _build/test/parser_tests.byte
+	js_of_ocaml +nat.js -opt 0 run_tests.js -o _build/test/parser_tests.js _build/test/parser_tests.byte
 
 clean:
 	ocamlbuild -clean
@@ -48,5 +50,9 @@ test_json: build
 
 test_native: native
 	./parser_tests.native -jsparser ${JS_PARSER_JAR}
+
+test_js: test/parser_tests.js
+	./run_node.sh _build/test/parser_tests.js
+
 
 .PHONY: build native build_cma clean test test_native

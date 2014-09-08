@@ -1,7 +1,12 @@
-open OUnit
+IFDEF TARGETJS THEN () ELSE open OUnit END
 open Parser_syntax
 open Parser_main
 
+IFDEF TARGETJS THEN
+let assert_equal a b = if a=b then print_string "."
+		       else print_string "\nA test failed\n"
+ELSE
+       
 let test_unescape_html () =
   assert_equal "<>&\"'" (Parser.unescape_html "&lt;&gt;&amp;&quot;&apos;")
   
@@ -10,14 +15,17 @@ let test_unescape_html_number () =
   
 let test_unescape_html_hex () =
   assert_equal "abb\009abb\010" (Parser.unescape_html "abb&#x9;abb&#xA;")
-  
+END
+	       
 let add_script e =
   mk_exp (Script(false, [e])) 0
-  
+
+IFDEF TARGETJS THEN () ELSE	 
 let test_unescape_html_1 () =
   let exp = exp_from_string "var o = \"3 < 2\"" in
   let s = mk_exp (String "3 < 2") 8 in
   assert_equal (add_script(mk_exp(VarDec ["o", Some s]) 0)) exp
+END
     
 let test_var () =
   let exp = exp_from_string "var x" in
@@ -520,12 +528,21 @@ let test_obj_init () =
   
 (* TODO: tests for object initializer, unnamed function expression *)
 
+IFDEF TARGETJS THEN
+let (>:::) _ b = b
+let (>::) a b = (a,b)
+END
+
 let suite = "Testing_Parser" >:::
-  ["test_unescape_html" >:: test_unescape_html;
+  [ IFDEF TARGETJS THEN
+   "test var" >:: test_var;
+    ELSE
+   "test_unescape_html" >:: test_unescape_html;
    "test_unescape_html_number" >:: test_unescape_html_number;
    "test_unescape_html_hex" >:: test_unescape_html_hex;
    "test_unescape_html_1" >:: test_unescape_html_1;
    "test var" >:: test_var;
+   END;
    "test var with assignment" >:: test_var_value;
    "test var list" >:: test_var_list;
    "test regexp" >:: test_regexp;
@@ -595,7 +612,7 @@ let suite = "Testing_Parser" >:::
    "test_setter" >:: test_setter;
    "test_obj_init" >:: test_obj_init
   ]
-  
+
   let arguments () =
     let usage_msg="Usage: -jsparser <path>" in
     Arg.parse
@@ -608,5 +625,8 @@ let suite = "Testing_Parser" >:::
       usage_msg
   
   let _ = 
-    arguments (); 
-    run_test_tt_main suite
+    IFDEF TARGETJS THEN
+    List.map (fun (name,f) -> print_string name ; f ()) suite
+	     ELSE
+	     arguments () ;
+    run_test_tt_main suite END 
