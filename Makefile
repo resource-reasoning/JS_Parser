@@ -1,7 +1,5 @@
 JS_PARSER_JAR=./lib/js_parser.jar
 
-JS_OF_OCAML_LOCATION=$(shell ocamlfind query js_of_ocaml)
-
 PACKAGES=xml-light,oUnit,yojson
 
 LIBS=nums,str,bigarray
@@ -10,28 +8,28 @@ NODE=node			# How to call node.js
 
 build: 
 	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
-	-pp "camlp4o pa_macro.cmo -UTARGETJS" \
+	-pp "camlp4of -UTARGETJS" \
 	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.byte
 
 native:
 	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
-	-pp "camlp4o pa_macro.cmo -UTARGETJS" \
+	-pp "camlp4of -UTARGETJS" \
 	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.native
 
 build_cma: 
 	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
-	-pp "camlp4o pa_macro.cmo -UTARGETJS" \
+	-pp "camlp4of -UTARGETJS" \
 	-libs ${LIBS} \
 	-Is src \
 	src/parser_main.cma
 
 targetjs:
 	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES},js_of_ocaml \
-	-pp "camlp4o ${JS_OF_OCAML_LOCATION}/pa_js.cmo pa_macro.cmo -DTARGETJS" \
+	-pp "camlp4of -DTARGETJS" \
 	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.byte
