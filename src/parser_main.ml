@@ -17,7 +17,7 @@ let js_to_xml (filename : string) : string =
 let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) : string =
   let force_strict = (if (f) then " -force_strict" else "") in
   let init = (if (i) then " -builtin_init" else "") in
-  match Unix.system ("nodejs simple_print.js" ^ " " ^ (Filename.quote filename) ^ force_strict ^ init) with
+  match Unix.system ("./run_node.sh simple_print.js" ^ " " ^ (Filename.quote filename) ^ force_strict ^ init) with
     | Unix.WEXITED n -> 
         (if(n <> 0) then raise (Xml.File_not_found filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
     | _ -> raise JS_To_XML_parser_failure
