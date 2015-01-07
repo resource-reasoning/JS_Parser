@@ -271,14 +271,21 @@ let rec json_to_exp json : exp =
     | "BlockStatement" ->
       let children = get_json_list "body" json in
       json_mk_block_exp children (get_json_offset json)
-    | "FunctionExpression"
+    | "FunctionExpression" ->
+      let fn_name = get_json_field "id" json in
+      let fn_params = map get_json_ident_name (get_json_list "params" json) in
+      let fn_body = json_to_exp (get_json_field "body" json) in
+      begin match fn_name with
+        | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body)) (get_json_offset json)
+        | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json)
+      end
     | "FunctionDeclaration" ->
       let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
       begin match fn_name with
-        | `Null -> mk_exp (AnnonymousFun (false,fn_params,fn_body)) (get_json_offset json)
-        | ident -> mk_exp (NamedFun (false,(get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json)
+        | `Null -> mk_exp (Function (false,None,fn_params,fn_body)) (get_json_offset json)
+        | ident -> mk_exp (Function (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json)
       end
     | "VariableDeclaration" -> 
       let offset = (get_json_offset json) in
@@ -603,14 +610,17 @@ json_nest_sequence expressions off =
     | _ -> raise CannotHappen
 
 let rec xml_to_exp xml : exp =
+  xml_to_exp' xml false
+and
+xml_to_exp' xml fn_force_exp =
   match xml with
     (*Element (tag name, attributes, children )*)
     | Element ("SCRIPT", attrs, children) -> 
       let stmts = map xml_to_exp children in
       let program_spec = get_program_spec xml in 
       mk_exp_with_annot (Script (false, stmts)) (get_offset attrs) program_spec
-    | Element ("EXPR_VOID", attrs, children) -> xml_to_exp (get_xml_child xml)
-    | Element ("EXPR_RESULT", attrs, children) -> xml_to_exp (get_xml_child xml)
+    | Element ("EXPR_VOID", attrs, children) -> xml_to_exp' (get_xml_child xml) true
+    | Element ("EXPR_RESULT", attrs, children) -> xml_to_exp' (get_xml_child xml) true
     | Element ("ASSIGN", attrs, children) -> 
       let child1, child2 = get_xml_two_children xml in
       mk_exp (Assign (xml_to_exp child1, xml_to_exp child2)) (get_offset attrs)
@@ -622,8 +632,9 @@ let rec xml_to_exp xml : exp =
       let fn_params = xml_to_vars params in
       let fn_body = xml_to_exp block in
       let fn_spec = get_function_spec xml in
-      if (fn_name = "") then mk_exp_with_annot (AnnonymousFun (false,fn_params,fn_body)) (get_offset attrs) fn_spec
-      else mk_exp_with_annot (NamedFun (false,fn_name,fn_params,fn_body)) (get_offset attrs) fn_spec
+      let fn_name_op = (if (fn_name = "") then None else (Some fn_name)) in 
+      if fn_force_exp then mk_exp_with_annot (FunctionExp (false,fn_name_op,fn_params,fn_body)) (get_offset attrs) fn_spec
+      else mk_exp_with_annot (Function (false,fn_name_op,fn_params,fn_body)) (get_offset attrs) fn_spec
     | Element ("BLOCK", attrs, children) ->  
       let stmts = map xml_to_exp (remove_annotation_elements children) in
       mk_exp (Block stmts) (get_offset attrs)

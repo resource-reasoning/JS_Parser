@@ -95,6 +95,9 @@ and string_of_exp_syntax_1 expstx with_annot =
   let fop e = match e with 
     | None -> ""
     | Some e -> f e in
+  let string_op s = match s with
+    | None -> ""
+    | Some str -> str in
   match expstx with
     | Num n -> string_of_float n
     | String x -> Printf.sprintf "\"%s\"" x
@@ -121,8 +124,8 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Call (e1, e2s) -> Printf.sprintf "(%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Assign (e1, e2) -> Printf.sprintf "%s = %s" (f e1) (f e2)
     | AssignOp (e1, op, e2) -> Printf.sprintf "%s %s= %s" (f e1) (string_of_arith_op op) (f e2)
-    | AnnonymousFun (_, xs, e) -> Printf.sprintf "function (%s) \n%s\n" (string_of_vars xs) (f e)
-    | NamedFun (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" n (string_of_vars xs) (f e)
+    | FunctionExp (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
+    | Function (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
     | New (e1, e2s) -> Printf.sprintf "new (%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Obj l -> Printf.sprintf "{%s}" 
       (String.concat "; " (map (fun (x, p, e) -> 
