@@ -1,10 +1,10 @@
 language: c    # Not really, but close enough
 
 env:
- - TARGET=test
+ - MAKETARGET=test
  # These are broken until esprima is moved
- # - TARGET=test_json
- # - TARGET=test_js
+ # - MAKETARGET=test_json
+ # - MAKETARGET=test_js
 
 before_install:
   - sudo add-apt-repository -y ppa:avsm/ocaml42+opam12
@@ -17,5 +17,5 @@ install:
   - opam install -y ounit xml-light yojson js_of_ocaml
 
 script:
-  - make $TARGET
+  - make $MAKETARGET
 
