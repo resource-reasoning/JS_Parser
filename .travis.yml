@@ -11,7 +11,7 @@ before_install:
   - sudo apt-get update
 
 install:
-  - sudo apt-get install opam ocaml-native-compilers
+  - sudo apt-get install opam ocaml-native-compilers camlp4-extra
   - opam init -y
   - eval `opam config env`
   - opam install -y ounit xml-light yojson js_of_ocaml
