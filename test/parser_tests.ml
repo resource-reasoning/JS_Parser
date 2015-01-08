@@ -8,13 +8,13 @@ let assert_equal a b = if a=b then print_string "."
 ELSE
        
 let test_unescape_html () =
-  assert_equal "<>&\"'" (Parser.unescape_html "&lt;&gt;&amp;&quot;&apos;")
+  assert_equal "<>&\"'" (Parser_xml.unescape_html "&lt;&gt;&amp;&quot;&apos;")
   
 let test_unescape_html_number () =
-  assert_equal "a\009a" (Parser.unescape_html "a&#9;a")
+  assert_equal "a\009a" (Parser_xml.unescape_html "a&#9;a")
   
 let test_unescape_html_hex () =
-  assert_equal "abb\009abb\010" (Parser.unescape_html "abb&#x9;abb&#xA;")
+  assert_equal "abb\009abb\010" (Parser_xml.unescape_html "abb&#x9;abb&#xA;")
 END
 	       
 let add_script e =
@@ -446,7 +446,7 @@ let test_get_invariant () =
 						    </BLOCK>
 						  </WHILE>" in
   let xml = Xml.parse_string xml in
-  assert_equal [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] (Parser.get_invariant xml)
+  assert_equal [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] (Parser_xml.get_invariant xml)
   
 let test_try_catch () =
   let exp = exp_from_string "try {a} catch (b) {c}" in
