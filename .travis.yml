@@ -1,0 +1,21 @@
+language: c    # Not really, but close enough
+
+env:
+ - TARGET=test
+ # These are broken until esprima is moved
+ # - TARGET=test_json
+ # - TARGET=test_js
+
+before_install:
+  - sudo add-apt-repository -y ppa:avsm/ocaml42+opam12
+  - sudo apt-get update
+
+install:
+  - sudo apt-get install opam ocaml-native-compilers
+  - opam init -y
+  - eval `opam config env`
+  - opam install -y ounit xml-light yojson js_of_ocaml
+
+script:
+  - make $TARGET
+

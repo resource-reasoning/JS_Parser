@@ -647,20 +647,31 @@ let suite = "Testing_Parser" >:::
    "test_obj_init" >:: test_obj_init
   ]
 
-  let arguments () =
-    let usage_msg="Usage: -jsparser <path>" in
-    Arg.parse
-      [ "-json",
-        Arg.Unit(fun () -> Parser_main.use_json := true), "test json parser";
-        "-jsparser", 
-        Arg.String(fun f -> js_to_xml_parser := f), "path to js_parser.jar"
-      ]
-      (fun s -> Format.eprintf "WARNING: Ignored argument %s.@." s)
-      usage_msg
-  
-  let _ = 
-    IFDEF TARGETJS THEN
+IFDEF TARGETJS THEN () ELSE
+let exit_code results =
+  match List.exists (fun r -> match r with
+    | RFailure _ -> true
+    | _ -> false
+  ) results with
+  | true -> 1
+  | false -> 0
+
+let arguments () =
+  let usage_msg="Usage: -jsparser <path>" in
+  Arg.parse
+    [ "-json",
+      Arg.Unit(fun () -> Parser_main.use_json := true), "test json parser";
+      "-jsparser", 
+      Arg.String(fun f -> js_to_xml_parser := f), "path to js_parser.jar"
+    ]
+    (fun s -> Format.eprintf "WARNING: Ignored argument %s.@." s)
+    usage_msg
+END
+
+let _ =
+  IFDEF TARGETJS THEN
     List.map (fun (name,f) -> print_string name ; f ()) suite
-	     ELSE
-	     arguments () ;
-    run_test_tt_main suite END 
+  ELSE
+    arguments () ;
+    exit (exit_code (run_test_tt_main suite))
+  END

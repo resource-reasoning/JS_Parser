@@ -6,39 +6,41 @@ LIBS=nums,str,bigarray
 
 NODE=node			# How to call node.js
 
+OCAMLBUILD=ocamlbuild -verbose 1
+
 build: 
-	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
+	${OCAMLBUILD} -use-ocamlfind -pkgs ${PACKAGES} \
 	-pp "camlp4of -UTARGETJS" \
 	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.byte
 
 native:
-	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
+	${OCAMLBUILD} -use-ocamlfind -pkgs ${PACKAGES} \
 	-pp "camlp4of -UTARGETJS" \
 	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.native
 
 build_cma: 
-	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
+	${OCAMLBUILD} -use-ocamlfind -pkgs ${PACKAGES} \
 	-pp "camlp4of -UTARGETJS" \
 	-libs ${LIBS} \
 	-Is src \
 	src/parser_main.cma
 
 targetjs:
-	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES},js_of_ocaml \
+	${OCAMLBUILD} -use-ocamlfind -pkgs ${PACKAGES},js_of_ocaml \
 	-pp "camlp4of -DTARGETJS" \
 	-libs ${LIBS} \
 	-Is src,test \
 	test/parser_tests.byte
 
 test/parser_tests.js: targetjs
-	js_of_ocaml +nat.js -opt 0 run_tests.js -o _build/test/parser_tests.js _build/test/parser_tests.byte
+	js_of_ocaml +nat.js run_tests.js -o _build/test/parser_tests.js _build/test/parser_tests.byte
 
 clean:
-	ocamlbuild -clean
+	${OCAMLBUILD} -clean
 
 test: build
 	./parser_tests.byte -jsparser ${JS_PARSER_JAR}
