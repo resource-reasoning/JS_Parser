@@ -1,6 +1,6 @@
 open Parser
-open Parser_xml
 open Parser_json
+open Parser_xml
 open Pretty_print
 open Parser_syntax
 open Unix

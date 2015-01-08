@@ -1,5 +1,3 @@
-open List
-
 exception Parser_No_Program
 exception ParserFailure of string
 exception Parser_Xml_To_String
