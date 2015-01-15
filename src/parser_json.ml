@@ -3,6 +3,27 @@ open Parser_syntax
 open List
 open Yojson.Safe
 
+let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) : string =
+  let force_strict = (if (f) then " -force_strict" else "") in
+  let init = (if (i) then " -builtin_init" else "") in
+  match Unix.system ("nodejs simple_print.js" ^ " " ^ (Filename.quote filename) ^ force_strict ^ init) with
+    | Unix.WEXITED n -> 
+        (if(n <> 0) then raise (Xml.File_not_found filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
+    | _ -> raise JS_To_XML_parser_failure
+
+let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
+  let js_file = js_to_json ~force_strict:f ~init:i file in
+  let data = Yojson.Safe.from_file js_file in
+  let expression = json_to_exp data in
+  add_strictness false expression
+
+let exp_from_stdin =
+  fun() ->
+    let data = Yojson.Safe.from_channel Pervasives.stdin in
+    let expression = json_to_exp data in
+    add_strictness false expression
+
+
 let get_json_field field_name json =
   match json with
     | `Assoc contents ->  
