@@ -2,37 +2,10 @@ open Xml
 open Parser
 open Parser_syntax
 open List
+open Pretty_print
 
-let js_to_xml (filename : string) : string =
-  match Unix.system ("java -jar " ^ !js_to_xml_parser ^ " " ^ (Filename.quote filename)) with
-    | Unix.WEXITED _ -> String.sub filename 0 (String.length filename - 3) ^ ".xml"
-    | _ -> raise JS_To_XML_parser_failure
-
-let exp_from_stdin =
-  fun() ->
-    try
-      let data = Xml.parse_in Pervasives.stdin in
-      let expression = xml_to_exp data in
-      add_strictness false expression
-    with
-        | Xml.Error error -> 
-            Printf.printf "Xml Parsing error occurred in line %d : %s \n" 
-              (Xml.line (snd error)) (Xml.error_msg (fst error)); 
-            raise Parser.XmlParserException
-
-let exp_from_file_xml file =
-  try
-    let xml_file = js_to_xml file in 
-    let data = Xml.parse_file xml_file in
-    if (!verbose) then print_string (Xml.to_string_fmt data);
-    let expression = xml_to_exp data in
-    if (!verbose) then print_string (string_of_exp true expression);
-    add_strictness false expression
-  with 
-    | Xml.Error error -> 
-        Printf.printf "Xml Parsing error occurred in line %d : %s \n" 
-          (Xml.line (snd error)) (Xml.error_msg (fst error)); 
-        raise Parser.XmlParserException
+let js_to_xml_parser = ref ""
+let verbose = ref false
 
 let unescape_html s =
   Str.global_substitute
@@ -540,3 +513,45 @@ and parse_case child offset =
       DefaultCase, xml_to_exp block
     | _ -> raise (Parser_Unknown_Tag ("SWITCH", offset))
   end
+
+
+
+let js_to_xml (filename : string) : string =
+  match Unix.system ("java -jar " ^ !js_to_xml_parser ^ " " ^ (Filename.quote filename)) with
+    | Unix.WEXITED _ -> String.sub filename 0 (String.length filename - 3) ^ ".xml"
+    | _ -> raise JS_To_XML_parser_failure
+
+let exp_from_stdin =
+  fun() ->
+    try
+      let data = Xml.parse_in Pervasives.stdin in
+      let expression = xml_to_exp data in
+      add_strictness false expression
+    with
+        | Xml.Error error -> 
+            Printf.printf "Xml Parsing error occurred in line %d : %s \n" 
+              (Xml.line (snd error)) (Xml.error_msg (fst error)); 
+            raise Parser.XmlParserException
+
+let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
+  try
+    let xml_file = js_to_xml file in 
+    let data = Xml.parse_file xml_file in
+    if (!verbose) then print_string (Xml.to_string_fmt data);
+    let expression = xml_to_exp data in
+    if (!verbose) then print_string (string_of_exp true expression);
+    add_strictness false expression
+  with 
+    | Xml.Error error -> 
+        Printf.printf "Xml Parsing error occurred in line %d : %s \n" 
+          (Xml.line (snd error)) (Xml.error_msg (fst error)); 
+        raise Parser.XmlParserException
+    | Xml.File_not_found error -> raise (Parser.ParserFailure error)
+
+
+let exp_from_string ?force_strict:(f = false) s =
+  let (file, out) = Filename.open_temp_file "js_gen" ".js" in
+  output_string out s;
+  close_out out;
+  exp_from_file ~force_strict:f file
+
