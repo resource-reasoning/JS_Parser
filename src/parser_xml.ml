@@ -7,6 +7,8 @@ open Pretty_print
 let js_to_xml_parser = ref ""
 let verbose = ref false
 
+let supports_annots = true
+
 let unescape_html s =
   Str.global_substitute
     (Str.regexp "&lt;\\|&gt;\\|&amp;\\|&quot;\\|&apos;\\|&#[0-9]*;\\|&#x[0-9a-fA-F]*;")

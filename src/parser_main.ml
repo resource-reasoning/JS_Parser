@@ -19,15 +19,18 @@ let use_parser_xml ?path:(s = "") ?verbose:(v = false) =
 let use_parser_json () =
   parser_impl := parser_json
 
-let exp_from_stdin =
+let exp_from_stdin () =
   let module P = (val !parser_impl : ParserImpl) in
-  P.exp_from_stdin
+  P.exp_from_stdin ()
 
-let exp_from_file =
+let exp_from_file ?force_strict ?init str =
   let module P = (val !parser_impl : ParserImpl) in
-  P.exp_from_file
+  P.exp_from_file ?force_strict ?init str
 
-let exp_from_string =
+let exp_from_string ?force_strict str =
   let module P = (val !parser_impl : ParserImpl) in
-  P.exp_from_string
+  P.exp_from_string ?force_strict str
 
+let supports_annots () =
+  let module P = (val !parser_impl : ParserImpl) in
+  P.supports_annots

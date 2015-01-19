@@ -5,6 +5,7 @@ open Yojson
 open Yojson.Safe
 
 let nodebin = ref "nodejs"
+let supports_annots = false
 
 let get_json_field field_name json =
   match json with

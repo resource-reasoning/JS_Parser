@@ -1,6 +1,9 @@
 open List
 open Parser_syntax
 
+(* Switch to true to get pretty-printed output with nesting and exp offsets *)
+let debug = false
+
 let string_of_comparison_op x =
   match x with
     | Equal -> "=="
@@ -81,9 +84,13 @@ let string_of_propname pn =
 
 let rec string_of_exp with_annot exp =
   let annot_string = if with_annot then (string_of_annots exp.exp_annot) else "" in
-  Printf.sprintf "%s%s" (if annot_string <> "" then annot_string ^ "\n" else "")
-  (string_of_exp_syntax_1 exp.exp_stx with_annot)
-  
+  let annot_string1 = if annot_string <> "" then annot_string ^ "\n" else "" in
+  let pp_expr = string_of_exp_syntax_1 exp.exp_stx with_annot in
+  if debug then
+    Printf.sprintf "%s(%s)[%d]" annot_string1 pp_expr exp.exp_offset
+  else
+    Printf.sprintf "%s%s" annot_string1 pp_expr
+
 and string_of_var_in_dec with_annot (x, v) =
   match v with
     | None -> x

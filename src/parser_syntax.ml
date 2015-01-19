@@ -219,3 +219,62 @@ let rec add_strictness parent_strict exp =
     | Script (_, es) -> 
       let strict = is_in_strict_mode exp in
       {exp with exp_stx = Script (strict, List.map (add_strictness strict) es)}
+
+let rec map_exp (g : exp -> exp) (e : exp) : exp =
+  g {e with exp_stx = map_stx (map_exp g) e.exp_stx}
+and map_stx (f : exp -> exp) (stx : exp_syntax) : exp_syntax =
+  let fop e = match e with
+    | None -> None
+    | Some e -> Some (f e) in
+  match stx with
+    | Num f -> stx
+    | String s -> stx
+    | Label (x, e1) -> Label (x, map_exp f e1)
+    | Null -> stx
+    | Bool b -> stx
+    | Var x -> stx
+    | If (e1, e2, e3) -> If (f e1, f e2, fop e3)
+    | While (e1, e2) -> While (f e1, f e2)
+    | DoWhile (e1, e2) -> DoWhile (f e1, f e2)
+    | VarDec xs -> VarDec (List.map (fun (name, e1) -> (name, fop e1)) xs)
+    | This -> stx
+    | Delete e -> Delete (f e)
+    | Comma (e1, e2) -> Comma (f e1, f e2)
+    | Unary_op (op, e) -> Unary_op (op, f e)
+    | BinOp (e1, op, e2) -> BinOp (f e1, op, f e2)
+    | Access (e, x) -> Access (f e, x)
+    | Call (e1, e2s) -> Call (f e1, List.map f e2s)
+    | Assign (e1, e2) -> Assign (f e1, f e2)
+    | AssignOp (e1, op, e2) -> AssignOp (f e1, op, f e2)
+    | AnnonymousFun (b, xs, e) -> AnnonymousFun (b, xs, f e)
+    | NamedFun (b, n, xs, e) -> NamedFun (b, n, xs, f e)
+    | New (e1, e2s) -> New (f e1, List.map f e2s)
+    | Obj l -> Obj (List.map (fun (x, p, e) -> (x, p, f e)) l)
+    | Array es -> Array (List.map fop es)
+    | CAccess (e1, e2) -> CAccess (f e1, f e2)
+    | With (e1, e2) -> With (f e1, f e2)
+    | Skip -> stx
+    | Throw e -> Throw (f e)
+    | Return e -> Return (fop e)
+    | RegExp (_, _) -> stx
+    | For (e1, e2, e3, e4) -> For (fop e1, fop e2, fop e3, f e4)
+    | ForIn (e1, e2, e3) -> ForIn (f e1, f e2, f e3)
+    | Break _ -> stx
+    | Continue _ -> stx
+    | Try (e1, e2, e3) -> Try (f e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), fop e3)
+    | Switch (e1, e2s) -> Switch (f e1, List.map (
+      fun (case, e) ->
+        match case with
+          | Case ce -> Case (f ce), f e
+          | DefaultCase -> DefaultCase, f e
+      ) e2s)
+    | Debugger -> stx
+    | ConditionalOp (e1, e2, e3) -> ConditionalOp (f e1, f e2, f e3)
+    | Block es -> Block (List.map f es)
+    | Script (b, es) -> Script (b, List.map f es)
+
+let exp_erase_offset =
+  map_exp (fun e -> {e with exp_offset = 0})
+
+let weak_cmp_exp e1 e2 =
+  (exp_erase_offset e1) = (exp_erase_offset e2)
