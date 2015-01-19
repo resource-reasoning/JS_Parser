@@ -1,6 +1,7 @@
 open Parser
 open Parser_syntax
 open List
+open Yojson
 open Yojson.Safe
 
 let nodebin = ref "nodejs"
@@ -405,7 +406,7 @@ let js_str_to_json ?force_strict:(f = false) ?init:(i = false) str =
     close_in in_ch;
     json
   with
-  | Json_error error -> raise (ParserError error)
+  | Json_error error -> raise (ParserFailure error)
 
 let exp_from_string ?force_strict:(f = false) str =
   let expression = json_to_exp (js_str_to_json ~force_strict:f str) in
@@ -418,7 +419,7 @@ let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
     let expression = json_to_exp data in
     add_strictness false expression
   with
-  | Json_error error -> raise (ParserError error)
+  | Json_error error -> raise (ParserFailure error)
 
 let exp_from_stdin =
   fun() ->
@@ -427,4 +428,4 @@ let exp_from_stdin =
       let expression = json_to_exp data in
       add_strictness false expression
     with
-    | Json_error error -> raise (ParserError error)
+    | Json_error error -> raise (ParserFailure error)

@@ -43,7 +43,7 @@ clean:
 	${OCAMLBUILD} -clean
 
 test: build
-	./parser_tests.byte -jsparser ${JS_PARSER_JAR}
+	./parser_tests.byte
 
 test_json: build
 	./parser_tests.byte -json -jsparser ${JS_PARSER_JAR}
