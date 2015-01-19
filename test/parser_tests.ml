@@ -610,7 +610,8 @@ IFDEF TARGETJS THEN () ELSE
 (* Because OUnit2 doesn't work with thread-unsafe code, and OUnit1 (regressively?) doesn't give exit codes... *)
 let exit_code results =
   match List.exists (fun r -> match r with
-    | RFailure _ -> true
+    | RFailure _
+    | RError _ -> true
     | _ -> false
   ) results with
   | true -> 1
