@@ -29,3 +29,15 @@ Prerequisites:
 
     `sudo apt-get install java7-jdk`
 
+For the Node.js/Esprima based-parser:
+6. Node.js
+
+    `sudo apt-get install nodejs-legacy`
+
+7. [yoJson]
+
+    `opam install yojson`
+
+8. Esprima
+
+    `npm install esprima`
