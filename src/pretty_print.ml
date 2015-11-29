@@ -61,8 +61,10 @@ let string_of_annot_type atype =
   match atype with
     | TopRequires -> "@toprequires"
     | TopEnsures -> "@topensures"
+    | TopEnsuresErr -> "@topensureserr" 
     | Requires -> "@requires"
     | Ensures -> "@ensures"
+    | EnsuresErr -> "@ensureserr"
     | Invariant -> "@invariant"
     | Codename -> "@codename"
     | PredDefn -> "@preddefn"

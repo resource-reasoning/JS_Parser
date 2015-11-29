@@ -55,8 +55,10 @@ type var = string
 type annotation_type =
   | TopRequires
   | TopEnsures
+  | TopEnsuresErr
   | Requires
   | Ensures
+  | EnsuresErr
   | Invariant
   | Codename
   | PredDefn
@@ -68,10 +70,17 @@ type annotation =
   }
   
 let is_top_spec annot : bool =
-  annot.annot_type = TopRequires || annot.annot_type = TopEnsures || annot.annot_type = PredDefn
+  annot.annot_type = TopRequires || 
+  annot.annot_type = TopEnsures || 
+  annot.annot_type = TopEnsuresErr ||
+  annot.annot_type = PredDefn
   
 let is_function_spec annot : bool =
-  annot.annot_type = Requires || annot.annot_type = Ensures || annot.annot_type = Codename || annot.annot_type = PredDefn
+  annot.annot_type = Requires || 
+  annot.annot_type = Ensures || 
+  annot.annot_type = EnsuresErr || 
+  annot.annot_type = Codename || 
+  annot.annot_type = PredDefn
   
 let is_invariant annot : bool =
   annot.annot_type = Invariant 

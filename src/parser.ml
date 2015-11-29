@@ -109,8 +109,10 @@ let get_annot attrs : annotation =
   match atype with
     | "toprequires" -> {annot_type = TopRequires; annot_formula = f}
     | "topensures" -> {annot_type = TopEnsures; annot_formula = f}
+    | "topensureserr" -> {annot_type = TopEnsuresErr; annot_formula = f}
     | "requires" -> {annot_type = Requires; annot_formula = f}
     | "ensures" -> {annot_type = Ensures; annot_formula = f}
+    | "ensureserr" -> {annot_type = EnsuresErr; annot_formula = f}
     | "invariant" -> {annot_type = Invariant; annot_formula = f}
     | "codename" -> {annot_type = Codename; annot_formula = f}
     | "preddefn" -> {annot_type = PredDefn; annot_formula = f}
