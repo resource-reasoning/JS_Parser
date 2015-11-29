@@ -3,6 +3,7 @@ open Parser_syntax
 open List
 
 exception Parser_No_Program
+exception ParserFailure of string
 exception Parser_Xml_To_String
 exception Parser_Xml_To_Var
 exception Parser_Unknown_Tag of (string * int)
@@ -391,7 +392,7 @@ let rec xml_to_exp xml : exp =
         | [init; condition; incr; exp] ->
           let invariant = get_invariant xml in
           let block = xml_to_exp exp in
-          mk_exp_with_annot (For (xml_to_exp init, xml_to_exp condition, xml_to_exp incr, block)) offset invariant
+          mk_exp_with_annot (For (parse_for_exp init, parse_for_exp condition, parse_for_exp incr, block)) offset invariant
         | [var; obj; exp] ->
         (* TODO: Add invariant *)
           mk_exp (ForIn (xml_to_exp var, xml_to_exp obj, xml_to_exp exp)) offset
@@ -511,7 +512,13 @@ and get_catch_finally children offset =
       end 
     | _ -> raise (Parser_Unknown_Tag ("TRY", offset))
   end
-and parse_case child offset =
+and 
+parse_for_exp child =
+  match child with
+    | Element("EMPTY", attrs, children) -> None
+    | _ -> Some (xml_to_exp child)
+and 
+parse_case child offset =
   begin match child with
     | Element ("CASE", attrs, children) ->
       let exp, block = get_xml_two_children child in

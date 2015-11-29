@@ -127,7 +127,7 @@ and exp_syntax =
   | Throw of exp          (* throw e *)
   | Return of exp option        (* return e *)
   | RegExp of string * string (* / pattern / flags *)
-  | For of exp * exp * exp * exp (* for (e1; e2; e3) {e4} *)
+  | For of (exp option) * (exp option) * (exp option) * exp (* for (e1; e2; e3) {e4} *)
   | ForIn of exp * exp * exp (* for (exp in exp) {exp}*)
   | Break of string option
   | Continue of string option
@@ -211,7 +211,7 @@ let rec add_strictness parent_strict exp =
     | Return e -> {exp with exp_stx = Return (fop e)}
     | RegExp (s1, s2) -> exp
     | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
-    | For (e1, e2, e3, e4) -> {exp with exp_stx = For (f e1, f e2, f e3, f e4)}
+    | For (e1, e2, e3, e4) -> {exp with exp_stx = For (fop e1, fop e2, fop e3, f e4)}
     | Break _ -> exp
     | Continue _ -> exp
     | Try (e1, e2, e3) -> {exp with exp_stx = Try (f e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), fop e3)}

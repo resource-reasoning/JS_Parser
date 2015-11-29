@@ -94,6 +94,9 @@ and string_of_var_in_dec with_annot (x, v) =
 
 and string_of_exp_syntax_1 expstx with_annot =
   let f = string_of_exp with_annot in
+  let fop e = match e with 
+    | None -> ""
+    | Some e -> f e in
   match expstx with
     | Num n -> string_of_float n
     | String x -> Printf.sprintf "\"%s\"" x
@@ -140,7 +143,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Return None -> "return"
     | RegExp (s1, s2) -> Printf.sprintf "/%s/%s" s1 s2
     | ForIn (e1, e2, e3) -> Printf.sprintf "for (%s in %s) %s" (f e1) (f e2) (f e3)
-    | For (e1, e2, e3, e4) -> Printf.sprintf "for (%s ; %s ; %s) %s" (f e1) (f e2) (f e3) (f e4)
+    | For (e1, e2, e3, e4) -> Printf.sprintf "for (%s ; %s ; %s) %s" (fop e1) (fop e2) (fop e3) (f e4)
     | Break None -> "break"
     | Break (Some l) -> Printf.sprintf "break %s" l
     | Continue None -> "continue"
