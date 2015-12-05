@@ -82,9 +82,9 @@ let exp_from_string ?force_strict:(f = false) s =
   close_out out;
   exp_from_file ~force_strict:f file
 
-let exp_from_main file = 
+let exp_from_main ?force_strict:(str = false) file = 
   fun() ->
     if(!from_stdin) then
       exp_from_stdin()
     else
-      exp_from_file file
+      exp_from_file ~force_strict:str file
