@@ -1,0 +1,9 @@
+---
+git-sync:
+  script:
+  - eval `ssh-agent`
+  - echo "$PUSH_KEY" | ssh-add -
+  - git sync-remote git@github.com:resource-reasoning/JS_Parser.git git@gitlab.doc.ic.ac.uk:resource-reasoning/JS_Parser.git
+  - ssh-agent -k
+  only:
+  - triggers
