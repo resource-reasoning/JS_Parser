@@ -244,7 +244,7 @@ let rec xml_to_exp xml : exp =
       let fn_params = xml_to_vars params in
       let fn_body = xml_to_exp block in
       let fn_spec = get_function_spec xml in
-      if (fn_name = "") then mk_exp_with_annot (AnnonymousFun (false,fn_params,fn_body)) (get_offset attrs) fn_spec
+      if (fn_name = "") then mk_exp_with_annot (AnonymousFun (false,fn_params,fn_body)) (get_offset attrs) fn_spec
       else mk_exp_with_annot (NamedFun (false,fn_name,fn_params,fn_body)) (get_offset attrs) fn_spec
     | Element ("BLOCK", attrs, children) ->  
       let stmts = map xml_to_exp (remove_annotation_elements children) in
