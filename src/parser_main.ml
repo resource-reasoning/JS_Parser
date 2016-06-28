@@ -20,9 +20,10 @@ let exp_from_file file =
     add_strictness false expression    
   with 
     | Xml.Error error -> 
-      Printf.printf "Xml Parsing error occurred in line %d : %s \n" (Xml.line (snd error)) (Xml.error_msg (fst error)); 
-      raise (Failure "Parser squealed!") (* Parser.XmlParserException *)
-    | Xml.File_not_found f -> raise (Parser.ParserFailure f)
+        Printf.eprintf "Xml Parsing error occurred in line %d : %s \n" (Xml.line (snd error)) (Xml.error_msg (fst error)); 
+        raise Parser.XmlParserException
+    | Xml.File_not_found f -> raise (Parser.ParserFailure (Printf.sprintf "XML File not found: %s" f))
+		| JS_To_XML_parser_failure -> raise JS_To_XML_parser_failure
 
 let exp_from_string s =
   let (file, out) = Filename.open_temp_file "js_gen" ".js" in
