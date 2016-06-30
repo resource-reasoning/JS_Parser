@@ -3,7 +3,7 @@ open Pretty_print
 open Parser_syntax
 
 let js_to_xml_parser = ref ""
-let verbose = ref true
+let verbose = ref false
 
 let js_to_xml (filename : string) : string =
   match Unix.system ("java -jar " ^ !js_to_xml_parser ^ " " ^ (Filename.quote filename)) with
