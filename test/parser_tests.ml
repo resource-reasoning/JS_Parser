@@ -490,7 +490,7 @@ let test_getter () =
   let zero = mk_exp (Num 0.0) 22 in
   let r = mk_exp (Return (Some zero)) 15 in
   let block = mk_exp (Block [r]) 13 in
-  let getter = mk_exp (AnnonymousFun (false, [], block)) 9 in
+  let getter = mk_exp (AnonymousFun (false, [], block)) 9 in
   let obj = mk_exp (Obj [PropnameId "y", PropbodyGet, getter]) 4 in
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
@@ -500,7 +500,7 @@ let test_getter () =
 let test_setter () =
   let exp = exp_from_string "a = {set y(val) {}};" in
   let block = mk_exp (Block []) 16 in
-  let setter = mk_exp (AnnonymousFun (false, ["val"], block)) 9 in
+  let setter = mk_exp (AnonymousFun (false, ["val"], block)) 9 in
   let obj = mk_exp (Obj [PropnameId "y", PropbodySet, setter]) 4 in
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
