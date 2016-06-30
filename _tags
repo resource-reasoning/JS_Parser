@@ -1,0 +1,3 @@
+true: package(xml-light), package(batteries)
+<src/**>: include
+<test/**>: include, package(oUnit)

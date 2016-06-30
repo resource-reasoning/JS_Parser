@@ -1,29 +1,26 @@
 JS_PARSER_JAR=./lib/js_parser.jar
+FLAGS=-use-ocamlfind -verbose 1
 
-PACKAGES=xml-light,oUnit,yojson
+all: build native build_cma
 
-LIBS=nums,str,bigarray
+%: _build/test/% ;
+%: _build/src/% ;
 
-build: 
-	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
-	-libs ${LIBS} \
-	-Is src,test \
-	test/parser_tests.byte
-	
-native:
-	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
-	-libs ${LIBS} \
-	-Is src,test \
-	test/parser_tests.native
+_build/%.byte: %.ml src/* test/*
+	ocamlbuild ${FLAGS} $*.byte
 
-build_cma: 
-	ocamlbuild -use-ocamlfind -pkgs ${PACKAGES} \
-	-libs ${LIBS} \
-	-Is src \
-	src/parser_main.cma
+_build/%.native: %.ml src/* test/*.ml
+	ocamlbuild ${FLAGS} $*.native
+
+_build/%.cma: %.ml src/*.ml test/*.ml
+	ocamlbuild ${FLAGS} $*.cma
+
+build: parser_tests.byte
+build_cma: parser_main.cma
+native: parser_tests.native
 
 clean:
-	ocamlbuild -clean
+	ocamlbuild ${FLAGS} -clean
 
 test: build
 	./parser_tests.byte -jsparser ${JS_PARSER_JAR}
@@ -31,4 +28,7 @@ test: build
 test_native: native
 	./parser_tests.native -jsparser ${JS_PARSER_JAR}
 
-.PHONY: build native build_cma clean test test_native
+test_all: test test_native
+
+.PHONY: all build native build_cma clean test test_native test_all
+.PRECIOUS: _build/%.byte _build/%.native _build/%.cma

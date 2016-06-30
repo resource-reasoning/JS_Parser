@@ -1,0 +1,17 @@
+language: c
+sudo: required
+install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  global:
+    - PACKAGE=JS_Parser
+  matrix:
+    - OCAML_VERSION=3.12
+    - OCAML_VERSION=4.00
+    - OCAML_VERSION=4.01
+    - OCAML_VERSION=4.02
+    - OCAML_VERSION=4.03
+os:
+  - linux
+  - osx
+

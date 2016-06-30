@@ -2,30 +2,21 @@
 
 This is a JavaScript Parser Wrapper that uses Google Closure Compiler.
 
-Prerequisites:
+## Dependencies
+It is recommended to use OPAM to install dependencies for this package
+Execute the following line from this directory.
+```shell
+opam pin add .
+```
 
-1. [ocaml 3.11 or higher]([http://caml.inria.fr/ocaml/index.en.html)
-    You can get this in ubuntu with:
+The current set of OCaml dependencies are maintained in the [opam](opam) file.
 
-    `sudo apt-get install ocaml`
+### Google Closure Parser Backend
+The Google Closure parser backend additionally requires:
 
-2. [the XML-light library](http://tech.motion-twin.com/xmllight)
-    You can get this in ubuntu with:
+1. [Java](http://www.oracle.com/technetwork/java/index.html)
 
-    `sudo apt-get install libxml-light-ocaml-dev`
-
-3. [ocaml batteries included](http://batteries.forge.ocamlcore.org/)
-    You can get this in ubuntu with:
-
-    `sudo apt-get install ocaml-batteries-included`
-
-4. [The ocaml unit testing library OUnit](http://ounit.forge.ocamlcore.org/)
-    You can get this in ubuntu with:
-
-    `sudo apt-get install libounit-ocaml-dev`
-
-5. [Java](http://www.oracle.com/technetwork/java/index.html )
-    You can get this in ubuntu with:
-
-    `sudo apt-get install java7-jdk`
-
+You can get this on Ubuntu with:
+```shell
+sudo apt-get install java7-jdk
+```
