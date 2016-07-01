@@ -319,7 +319,7 @@ let test_return () =
   let exp = exp_from_string "function f() {return}" in
   let r = mk_exp (Return None) 14 in
   let block = mk_exp (Block [r]) 13 in
-  assert_equal (add_script (mk_exp (NamedFun (false, "f", [], block)) 0)) exp
+  assert_equal (add_script (mk_exp (Function (false, Some "f", [], block)) 0)) exp
   
 let test_return_exp () =
   let exp = exp_from_string "function f() {return g()}" in
@@ -327,7 +327,7 @@ let test_return_exp () =
   let gcall = mk_exp (Call (g, [])) 21 in
   let r = mk_exp (Return (Some gcall)) 14 in
   let block = mk_exp (Block [r]) 13 in
-  assert_equal (add_script (mk_exp (NamedFun (false, "f", [], block)) 0)) exp
+  assert_equal (add_script (mk_exp (Function (false, Some "f", [], block)) 0)) exp
   
 let test_do_while () =
   let exp = exp_from_string "do { /** @invariant #cScope = [#lg] */ a = 1 } while (a < 5)" in
@@ -464,7 +464,7 @@ let test_script_strict () =
   let string_exp = mk_exp (String "use strict") 0 in
   let r = mk_exp (Return None) 28 in
   let block = mk_exp (Block [r]) 27 in
-  let script = mk_exp (Script (true, [string_exp; mk_exp (NamedFun (true, "f", [], block)) 14])) 0 in
+  let script = mk_exp (Script (true, [string_exp; mk_exp (Function (true, Some "f", [], block)) 14])) 0 in
   assert_equal script exp  
   
 let test_script_not_strict () =
@@ -474,7 +474,7 @@ let test_script_not_strict () =
   let r = mk_exp (Return None) 30 in
   let block = mk_exp (Block [r]) 29 in
   let empty = mk_exp Skip 14 in
-  let script = mk_exp (Script (false, [block_strict; empty; mk_exp (NamedFun (false, "f", [], block)) 16])) 0 in
+  let script = mk_exp (Script (false, [block_strict; empty; mk_exp (Function (false, Some "f", [], block)) 16])) 0 in
   assert_equal script exp 
   
 let test_fun_strict () =
@@ -482,7 +482,7 @@ let test_fun_strict () =
   let string_exp = mk_exp (String "use strict") 14 in
   let r = mk_exp (Return None) 28 in
   let block = mk_exp (Block [string_exp; r]) 13 in
-  let script = mk_exp (Script (false, [mk_exp (NamedFun (true, "f", [], block)) 0])) 0 in
+  let script = mk_exp (Script (false, [mk_exp (Function (true, Some "f", [], block)) 0])) 0 in
   assert_equal script exp  
   
 let test_getter () =
@@ -490,7 +490,7 @@ let test_getter () =
   let zero = mk_exp (Num 0.0) 22 in
   let r = mk_exp (Return (Some zero)) 15 in
   let block = mk_exp (Block [r]) 13 in
-  let getter = mk_exp (AnnonymousFun (false, [], block)) 9 in
+  let getter = mk_exp (FunctionExp(false, None, [], block)) 9 in
   let obj = mk_exp (Obj [PropnameId "y", PropbodyGet, getter]) 4 in
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
@@ -500,7 +500,7 @@ let test_getter () =
 let test_setter () =
   let exp = exp_from_string "a = {set y(val) {}};" in
   let block = mk_exp (Block []) 16 in
-  let setter = mk_exp (AnnonymousFun (false, ["val"], block)) 9 in
+  let setter = mk_exp (FunctionExp(false, None, ["val"], block)) 9 in
   let obj = mk_exp (Obj [PropnameId "y", PropbodySet, setter]) 4 in
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
