@@ -6,7 +6,6 @@ env:
   global:
     - PACKAGE=JS_Parser
   matrix:
-    - OCAML_VERSION=3.12
     - OCAML_VERSION=4.00
     - OCAML_VERSION=4.01
     - OCAML_VERSION=4.02
