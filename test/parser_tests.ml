@@ -2,14 +2,101 @@ open OUnit
 open Parser_syntax
 open Parser_main
 
+(* Equality testing function for expressions, ignoring the character offsets *)
+let rec exp_stx_eq e1 e2 =
+  match (e1.exp_stx, e2.exp_stx) with
+  | (Label (s, e), Label (s', e'))
+  | (Access (e, s), Access (e', s'))
+     -> s = s' && exp_stx_eq e e'
+  | (Unary_op (op, e), Unary_op (op', e'))
+     -> op = op' && exp_stx_eq e e'
+
+  | (Delete e, Delete e')
+  | (Throw e, Throw e')
+     -> exp_stx_eq e e'
+
+  | (While   (e1, e2), While   (e1', e2'))
+  | (Comma   (e1, e2), Comma   (e1', e2'))
+  | (Assign  (e1, e2), Assign  (e1', e2'))
+  | (DoWhile (e1, e2), DoWhile (e1', e2'))
+  | (CAccess (e1, e2), CAccess (e1', e2'))
+  | (With    (e1, e2), With    (e1', e2'))
+     -> exp_stx_eq e1 e1' && exp_stx_eq e2 e2'
+
+  | (BinOp (e1, op, e2), BinOp (e1', op', e2'))
+     -> op = op' && exp_stx_eq e1 e1' && exp_stx_eq e2 e2'
+  | (AssignOp (e1, op, e2), AssignOp (e1', op', e2'))
+     -> op = op' && exp_stx_eq e1 e1' && exp_stx_eq e2 e2'
+
+  | (ForIn (e1, e2, e3), ForIn (e1', e2', e3'))
+  | (ConditionalOp (e1, e2, e3), ConditionalOp (e1', e2', e3'))
+     -> exp_stx_eq e1 e1' && exp_stx_eq e3 e3' && exp_stx_eq e3 e3'
+
+  | (If (e1, e2, o), If (e1', e2', o'))
+      -> exp_stx_eq e1 e1' && exp_stx_eq e2 e2' && opt_exp_eq o o'
+
+  | (VarDec l, VarDec l')
+      -> List.for_all2 (fun (s, o) (s', o') -> s = s' && opt_exp_eq o o') l l'
+
+  | (Call (e, l), Call (e', l'))
+  | (New (e, l), New (e', l'))
+      -> exp_stx_eq e e' && List.for_all2 exp_stx_eq l l'
+
+  | (FunctionExp (b, o, l, e), FunctionExp (b', o', l', e'))
+  | (Function    (b, o, l, e), Function    (b', o', l', e'))
+      -> b = b' && o = o' && l = l' && exp_stx_eq e e'
+
+  | (Obj l, Obj l')
+      -> List.for_all2 (fun (pn, pt, e) (pn', pt', e') -> pn = pn' && pt = pt' && exp_stx_eq e e') l l'
+
+  | (Block l, Block l')
+      -> list_exp_eq l l'
+
+  | (Array l, Array l')
+      -> List.for_all2 opt_exp_eq l l'
+
+  | (Return o, Return o')
+      -> opt_exp_eq o o'
+
+  | (Script (b, l), Script (b', l'))
+      -> b = b' && list_exp_eq l l'
+
+  | (For (o1, o2, o3, e), For (o1', o2', o3', e'))
+      -> opt_exp_eq o1 o1' && opt_exp_eq o2 o2' && opt_exp_eq o3 o3' && exp_stx_eq e e'
+
+  | (Try (e, o, oe), Try (e', o', oe'))
+      -> exp_stx_eq e e' &&
+         BatOption.eq ~eq:(fun (s, e) (s', e') -> s = s' && exp_stx_eq e e') o o' &&
+         opt_exp_eq oe oe'
+
+  | (Switch (e, l), Switch (e', l'))
+      -> exp_stx_eq e e' &&
+         List.for_all2 (fun (c, e) (c', e') -> switch_case_eq c c' && exp_stx_eq e e') l l'
+
+  | (s1, s2) -> s1 = s2
+
+and switch_case_eq c c' =
+  match c, c' with
+  | Case e, Case e' -> exp_stx_eq e e'
+  | c, c' -> c = c'
+
+and opt_exp_eq o o' =
+  BatOption.eq ~eq:exp_stx_eq o o'
+and list_exp_eq l l' =
+  List.for_all2 exp_stx_eq l l'
+
+let assert_equal' = assert_equal ~printer:BatPervasives.dump
+
+let assert_exp_eq = assert_equal' ~cmp:exp_stx_eq
+
 let test_unescape_html () =
-  assert_equal "<>&\"'" (Parser.unescape_html "&lt;&gt;&amp;&quot;&apos;")
+  assert_equal' "<>&\"'" (Parser.unescape_html "&lt;&gt;&amp;&quot;&apos;")
   
 let test_unescape_html_number () =
-  assert_equal "a\009a" (Parser.unescape_html "a&#9;a")
+  assert_equal' "a\009a" (Parser.unescape_html "a&#9;a")
   
 let test_unescape_html_hex () =
-  assert_equal "abb\009abb\010" (Parser.unescape_html "abb&#x9;abb&#xA;")
+  assert_equal' "abb\009abb\010" (Parser.unescape_html "abb&#x9;abb&#xA;")
   
 let add_script e =
   mk_exp (Script(false, [e])) 0
@@ -17,72 +104,72 @@ let add_script e =
 let test_unescape_html_1 () =
   let exp = exp_from_string "var o = \"3 < 2\"" in
   let s = mk_exp (String "3 < 2") 8 in
-  assert_equal (add_script(mk_exp(VarDec ["o", Some s]) 0)) exp
+  assert_exp_eq (add_script(mk_exp(VarDec ["o", Some s]) 0)) exp
     
 let test_var () =
   let exp = exp_from_string "var x" in
-  assert_equal (add_script (mk_exp (VarDec ["x", None]) 0)) exp
+  assert_exp_eq (add_script (mk_exp (VarDec ["x", None]) 0)) exp
   
 let test_var_value () =
   let exp = exp_from_string "var x = 5" in
   let num_5 = mk_exp (Num 5.0) 8 in
-  assert_equal (add_script(mk_exp (VarDec ["x", Some num_5]) 0)) exp
+  assert_exp_eq (add_script(mk_exp (VarDec ["x", Some num_5]) 0)) exp
   
 let test_var_list () =
   let exp = exp_from_string "var x = 5, y = null" in
   let num_5 = mk_exp (Num 5.0) 8 in
   let nul = mk_exp Null 15 in
   let vardec = mk_exp (VarDec [("x", Some num_5);("y", Some nul)]) 0 in
-  assert_equal (add_script vardec) exp
+  assert_exp_eq (add_script vardec) exp
   
 let test_regexp () =
   let exp = exp_from_string "/^\\s+/" in
-  assert_equal (add_script (mk_exp (RegExp ("^\\s+", "")) 0)) exp
+  assert_exp_eq (add_script (mk_exp (RegExp ("^\\s+", "")) 0)) exp
   
 let test_regexp_with_flags () =
   let exp = exp_from_string "/^\\s+/g" in
-  assert_equal (add_script (mk_exp (RegExp ("^\\s+", "g")) 0)) exp
+  assert_exp_eq (add_script (mk_exp (RegExp ("^\\s+", "g")) 0)) exp
   
 let test_not () =
   let exp = exp_from_string "!selector" in
   let selector = mk_exp (Var "selector") 1 in
-  assert_equal (add_script (mk_exp (Unary_op (Not, selector)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Not, selector)) 0)) exp
   
 let test_caccess () =
   let exp = exp_from_string "this[0]" in
   let this = mk_exp This 0 in
   let zero = mk_exp (Num 0.0) 5 in
-  assert_equal (add_script (mk_exp (CAccess (this, zero)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (CAccess (this, zero)) 0)) exp
   
 let test_and () =
   let exp = exp_from_string "a && b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (BinOp (a, Boolean And, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Boolean And, b)) 0)) exp
   
 let test_array_literal () =
   let exp = exp_from_string "[,x,,y]" in
   let x = mk_exp (Var "x") 2 in 
   let y = mk_exp (Var "y") 5 in
-  assert_equal (add_script (mk_exp (Array [None; Some x; None; Some y]) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Array [None; Some x; None; Some y]) 0)) exp
   
 let test_ge () =
   let exp = exp_from_string "1 >= 2" in
   let one = mk_exp (Num 1.0) 0 in
   let two = mk_exp (Num 2.0) 5 in
-  assert_equal (add_script (mk_exp (BinOp (one, Comparison Ge, two)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (one, Comparison Ge, two)) 0)) exp
   
 let test_or () =
   let exp = exp_from_string "a || b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (BinOp (a, Boolean Or, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Boolean Or, b)) 0)) exp
   
 let test_not_triple_eq () =
   let exp = exp_from_string "a !== b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 6 in
-  assert_equal (add_script (mk_exp (BinOp (a, Comparison NotTripleEqual, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Comparison NotTripleEqual, b)) 0)) exp
   
 let test_hook () =
   let exp = exp_from_string "a >= b ? a : b" in
@@ -91,45 +178,45 @@ let test_hook () =
   let ab = mk_exp (BinOp (a, Comparison Ge, b)) 0 in
   let a9 = mk_exp (Var "a") 9 in
   let b13 = mk_exp (Var "b") 13 in
-  assert_equal (add_script (mk_exp (ConditionalOp (ab, a9, b13)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (ConditionalOp (ab, a9, b13)) 0)) exp
   
 let test_instanceof () =
   let exp = exp_from_string "a instanceof b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 13 in
-  assert_equal (add_script (mk_exp (BinOp (a, Comparison InstanceOf, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Comparison InstanceOf, b)) 0)) exp
   
 let test_typeof () =
   let exp = exp_from_string "typeof selector" in
   let selector = mk_exp (Var "selector") 7 in
-  assert_equal (add_script (mk_exp (Unary_op (TypeOf, selector)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (TypeOf, selector)) 0)) exp
   
 let test_pos () =
   let exp = exp_from_string "+(a + 1)" in
   let a = mk_exp (Var "a") 2 in
   let one = mk_exp (Num 1.0) 6 in
   let a1 = mk_exp (BinOp (a, Arith Plus, one)) 2 in
-  assert_equal (add_script (mk_exp (Unary_op (Positive, a1)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Positive, a1)) 0)) exp
   
 let test_dec_pre () =
   let exp = exp_from_string "--a" in
   let a = mk_exp (Var "a") 2 in
-  assert_equal (add_script (mk_exp (Unary_op (Pre_Decr, a)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Pre_Decr, a)) 0)) exp
   
 let test_dec_post () =
   let exp = exp_from_string "a--" in
   let a = mk_exp (Var "a") 0 in
-  assert_equal (add_script (mk_exp (Unary_op (Post_Decr, a)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Post_Decr, a)) 0)) exp
   
 let test_inc_pre () =
   let exp = exp_from_string "++a" in
   let a = mk_exp (Var "a") 2 in
-  assert_equal (add_script (mk_exp (Unary_op (Pre_Incr, a)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Pre_Incr, a)) 0)) exp
   
 let test_inc_post () =
   let exp = exp_from_string "a++" in
   let a = mk_exp (Var "a") 0 in
-  assert_equal (add_script (mk_exp (Unary_op (Post_Incr, a)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Post_Incr, a)) 0)) exp
   
 let test_for () =
   let exp = exp_from_string "for (; a < 5; a++ ) { /** @invariant #cScope = [#lg] */ x = 1 }" in
@@ -144,7 +231,7 @@ let test_for () =
   let assignment = mk_exp (Assign (x, one)) 56 in
   let block = mk_exp (Block [assignment]) 20 in
   let loop = mk_exp_with_annot (For (empty, condition, inc, block)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
-  assert_equal (add_script loop) exp
+  assert_exp_eq (add_script loop) exp
   
 let test_forin () =
   let exp = exp_from_string "for (var prop in oldObj) { obj[prop] = oldObj[prop] }" in
@@ -158,97 +245,97 @@ let test_forin () =
   let ca2 = mk_exp (CAccess (oldObj2, prop2)) 39 in
   let assignment = mk_exp (Assign (ca1, ca2)) 27 in
   let block = mk_exp (Block [assignment]) 25 in
-  assert_equal (add_script (mk_exp (ForIn (varprop, oldObj1, block)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (ForIn (varprop, oldObj1, block)) 0)) exp
   
 let test_assign_add () =
   let exp = exp_from_string "a += b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Plus, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Plus, b)) 0)) exp
   
 let test_assign_sub () =
   let exp = exp_from_string "a -= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Minus, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Minus, b)) 0)) exp
   
 let test_assign_mul () =
   let exp = exp_from_string "a *= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Times, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Times, b)) 0)) exp
   
 let test_assign_div () =
   let exp = exp_from_string "a /= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Div, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Div, b)) 0)) exp
   
 let test_assign_mod () =
   let exp = exp_from_string "a %= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Mod, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Mod, b)) 0)) exp
   
 let test_assign_ursh () =
   let exp = exp_from_string "a >>>= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 7 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Ursh, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Ursh, b)) 0)) exp
   
 let test_assign_lsh () =
   let exp = exp_from_string "a <<= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 6 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Lsh, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Lsh, b)) 0)) exp
   
 let test_assign_rsh () =
   let exp = exp_from_string "a >>= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 6 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Rsh, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Rsh, b)) 0)) exp
   
 let test_assign_bitand () =
   let exp = exp_from_string "a &= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Bitand, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Bitand, b)) 0)) exp
   
 let test_assign_bitor () =
   let exp = exp_from_string "a |= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Bitor, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Bitor, b)) 0)) exp
   
 let test_assign_bitxor () =
   let exp = exp_from_string "a ^= b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (AssignOp (a, Bitxor, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (AssignOp (a, Bitxor, b)) 0)) exp
   
 let test_notequal () =
   let exp = exp_from_string "a != b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (BinOp (a, Comparison NotEqual, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Comparison NotEqual, b)) 0)) exp
   
 let test_gt () =
   let exp = exp_from_string "a > b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 4 in
-  assert_equal (add_script (mk_exp (BinOp (a, Comparison Gt, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Comparison Gt, b)) 0)) exp
   
 let test_in () =
   let exp = exp_from_string "a in b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (BinOp (a, Comparison In, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Comparison In, b)) 0)) exp
   
 let test_comma1 () =
   let exp = exp_from_string "a , b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 4 in
-  assert_equal (add_script (mk_exp (Comma (a, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Comma (a, b)) 0)) exp
   
 let test_comma2 () =
   let exp = exp_from_string "a, b, c" in
@@ -256,70 +343,70 @@ let test_comma2 () =
   let b = mk_exp (Var "b") 3 in
   let c = mk_exp (Var "c") 6 in
   let ab = mk_exp (Comma (a, b)) 0 in
-  assert_equal (add_script (mk_exp (Comma (ab, c)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Comma (ab, c)) 0)) exp
   
 let test_negative () =
   let exp = exp_from_string "-a" in
   let a = mk_exp (Var "a") 1 in
-  assert_equal (add_script (mk_exp (Unary_op (Negative, a)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Negative, a)) 0)) exp
   
 let test_bitnot () =
   let exp = exp_from_string "~a" in
   let a = mk_exp (Var "a") 1 in
-  assert_equal (add_script (mk_exp (Unary_op (Bitnot, a)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Bitnot, a)) 0)) exp
   
 let test_void () =
   let exp = exp_from_string "void a" in
   let a = mk_exp (Var "a") 5 in
-  assert_equal (add_script (mk_exp (Unary_op (Void, a)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Unary_op (Void, a)) 0)) exp
   
 let test_mod () =
   let exp = exp_from_string "a % b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 4 in
-  assert_equal (add_script (mk_exp (BinOp (a, Arith Mod, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Arith Mod, b)) 0)) exp
   
 let test_ursh () =
   let exp = exp_from_string "a >>> b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 6 in
-  assert_equal (add_script (mk_exp (BinOp (a, Arith Ursh, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Arith Ursh, b)) 0)) exp
   
 let test_lsh () =
   let exp = exp_from_string "a << b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (BinOp (a, Arith Lsh, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Arith Lsh, b)) 0)) exp
   
 let test_rsh () =
   let exp = exp_from_string "a >> b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 5 in
-  assert_equal (add_script (mk_exp (BinOp (a, Arith Rsh, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Arith Rsh, b)) 0)) exp
   
 let test_bitand () =
   let exp = exp_from_string "a & b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 4 in
-  assert_equal (add_script (mk_exp (BinOp (a, Arith Bitand, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Arith Bitand, b)) 0)) exp
   
 let test_bitor () =
   let exp = exp_from_string "a | b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 4 in
-  assert_equal (add_script (mk_exp (BinOp (a, Arith Bitor, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Arith Bitor, b)) 0)) exp
   
 let test_bitxor () =
   let exp = exp_from_string "a ^ b" in
   let a = mk_exp (Var "a") 0 in
   let b = mk_exp (Var "b") 4 in
-  assert_equal (add_script (mk_exp (BinOp (a, Arith Bitxor, b)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (BinOp (a, Arith Bitxor, b)) 0)) exp
   
 let test_return () =
   let exp = exp_from_string "function f() {return}" in
   let r = mk_exp (Return None) 14 in
   let block = mk_exp (Block [r]) 13 in
-  assert_equal (add_script (mk_exp (NamedFun (false, "f", [], block)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Function (false, Some "f", [], block)) 0)) exp
   
 let test_return_exp () =
   let exp = exp_from_string "function f() {return g()}" in
@@ -327,7 +414,7 @@ let test_return_exp () =
   let gcall = mk_exp (Call (g, [])) 21 in
   let r = mk_exp (Return (Some gcall)) 14 in
   let block = mk_exp (Block [r]) 13 in
-  assert_equal (add_script (mk_exp (NamedFun (false, "f", [], block)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Function (false, Some "f", [], block)) 0)) exp
   
 let test_do_while () =
   let exp = exp_from_string "do { /** @invariant #cScope = [#lg] */ a = 1 } while (a < 5)" in
@@ -339,12 +426,12 @@ let test_do_while () =
   let assignment = mk_exp (Assign (a, one)) 39 in
   let body = mk_exp (Block [assignment]) 3 in
   let loop = mk_exp_with_annot (DoWhile (body, condition)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
-  assert_equal (add_script loop) exp
+  assert_exp_eq (add_script loop) exp
   
 let test_delete () =
   let exp = exp_from_string "delete a" in
   let a = mk_exp (Var "a") 7 in
-  assert_equal (add_script (mk_exp (Delete a) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Delete a) 0)) exp
   
 let test_continue () =
   let exp = exp_from_string "while (a > 5) {/** @invariant #cScope = [#lg] */ a++; continue}" in
@@ -355,7 +442,7 @@ let test_continue () =
   let app = mk_exp (Unary_op (Post_Incr, a)) 49 in
   let cont = mk_exp (Continue None) 54 in
   let body = mk_exp (Block [app; cont]) 14 in
-  assert_equal (add_script (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}])) exp 
+  assert_exp_eq (add_script (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}])) exp
   
 let test_continue_label () =
   let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; continue test}" in
@@ -367,7 +454,7 @@ let test_continue_label () =
   let cont = mk_exp (Continue (Some "test")) 60 in
   let body = mk_exp (Block [app; cont]) 20 in
   let loop = mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
-  assert_equal (add_script (mk_exp (Label ("test", loop)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Label ("test", loop)) 0)) exp
   
 let test_break () =
   let exp = exp_from_string "while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break}" in
@@ -378,7 +465,7 @@ let test_break () =
   let app = mk_exp (Unary_op (Post_Incr, a)) 49 in
   let cont = mk_exp (Break None) 54 in
   let body = mk_exp (Block [app; cont]) 14 in
-  assert_equal (add_script (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}])) exp 
+  assert_exp_eq (add_script (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}])) exp
   
 let test_break_label () =
   let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break test}" in
@@ -390,7 +477,7 @@ let test_break_label () =
   let cont = mk_exp (Break (Some "test")) 60 in
   let body = mk_exp (Block [app; cont]) 20 in
   let loop = mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
-  assert_equal (add_script (mk_exp (Label ("test", loop)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Label ("test", loop)) 0)) exp
   
 let test_get_invariant () =
   let xml = " <WHILE pos=\"0\">
@@ -409,7 +496,7 @@ let test_get_invariant () =
 						    </BLOCK>
 						  </WHILE>" in
   let xml = Xml.parse_string xml in
-  assert_equal [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] (Parser.get_invariant xml)
+  assert_equal' [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] (Parser.get_invariant xml)
   
 let test_try_catch () =
   let exp = exp_from_string "try {a} catch (b) {c}" in
@@ -417,7 +504,7 @@ let test_try_catch () =
   let ablock = mk_exp (Block [a]) 4 in
   let c = mk_exp (Var "c") 19 in
   let cblock = mk_exp (Block [c]) 18 in
-  assert_equal (add_script (mk_exp (Try (ablock, Some ("b", cblock), None)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Try (ablock, Some ("b", cblock), None)) 0)) exp
   
 let test_try_catch_finally () =
   let exp = exp_from_string "try {a} catch (b) {c} finally {d}" in
@@ -427,7 +514,7 @@ let test_try_catch_finally () =
   let cblock = mk_exp (Block [c]) 18 in
   let d = mk_exp (Var "d") 31 in
   let dblock = mk_exp (Block [d]) 30 in
-  assert_equal (add_script (mk_exp (Try (ablock, Some ("b", cblock), Some dblock)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Try (ablock, Some ("b", cblock), Some dblock)) 0)) exp
   
 let test_try_finally () =
   let exp = exp_from_string "try {a} finally {d}" in
@@ -435,7 +522,7 @@ let test_try_finally () =
   let ablock = mk_exp (Block [a]) 4 in
   let d = mk_exp (Var "d") 17 in
   let dblock = mk_exp (Block [d]) 16 in
-  assert_equal (add_script (mk_exp (Try (ablock, None, Some dblock)) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Try (ablock, None, Some dblock)) 0)) exp
   
 let test_switch () =
   let exp = exp_from_string "switch (a) { case 1 : b; break; default : d; case 2 : c }" in
@@ -449,23 +536,23 @@ let test_switch () =
   let two = mk_exp (Num 2.0) 50 in
   let c = mk_exp (Var "c") 54 in
   let block3 = mk_exp (Block [c]) 45 in
-  assert_equal (add_script (mk_exp (Switch (a, [(Case one, block1); (DefaultCase, block2); (Case two, block3)])) 0)) exp
+  assert_exp_eq (add_script (mk_exp (Switch (a, [(Case one, block1); (DefaultCase, block2); (Case two, block3)])) 0)) exp
   
 let test_debugger () =
   let exp = exp_from_string "debugger" in
-  assert_equal (add_script (mk_exp Debugger 0)) exp
+  assert_exp_eq (add_script (mk_exp Debugger 0)) exp
   
 let test_top_annotations () =
   let exp = exp_from_string "/** @topensures #cScope = [#lg] */ debugger" in
-  assert_equal (mk_exp_with_annot (Script (false, [mk_exp Debugger 35])) 0 [{annot_type = TopEnsures; annot_formula = "#cScope = [#lg]"}]) exp
+  assert_exp_eq (mk_exp_with_annot (Script (false, [mk_exp Debugger 35])) 0 [{annot_type = TopEnsures; annot_formula = "#cScope = [#lg]"}]) exp
   
 let test_script_strict () =
   let exp = exp_from_string "'use strict'; function f() {return}" in
   let string_exp = mk_exp (String "use strict") 0 in
   let r = mk_exp (Return None) 28 in
   let block = mk_exp (Block [r]) 27 in
-  let script = mk_exp (Script (true, [string_exp; mk_exp (NamedFun (true, "f", [], block)) 14])) 0 in
-  assert_equal script exp  
+  let script = mk_exp (Script (true, [string_exp; mk_exp (Function (true, Some "f", [], block)) 14])) 0 in
+  assert_exp_eq script exp
   
 let test_script_not_strict () =
   let exp = exp_from_string "{'use strict'}; function f() {return}" in
@@ -474,38 +561,38 @@ let test_script_not_strict () =
   let r = mk_exp (Return None) 30 in
   let block = mk_exp (Block [r]) 29 in
   let empty = mk_exp Skip 14 in
-  let script = mk_exp (Script (false, [block_strict; empty; mk_exp (NamedFun (false, "f", [], block)) 16])) 0 in
-  assert_equal script exp 
+  let script = mk_exp (Script (false, [block_strict; empty; mk_exp (Function (false, Some "f", [], block)) 16])) 0 in
+  assert_exp_eq script exp
   
 let test_fun_strict () =
   let exp = exp_from_string "function f() {'use strict'; return}" in
   let string_exp = mk_exp (String "use strict") 14 in
   let r = mk_exp (Return None) 28 in
   let block = mk_exp (Block [string_exp; r]) 13 in
-  let script = mk_exp (Script (false, [mk_exp (NamedFun (true, "f", [], block)) 0])) 0 in
-  assert_equal script exp  
+  let script = mk_exp (Script (false, [mk_exp (Function (true, Some "f", [], block)) 0])) 0 in
+  assert_exp_eq script exp
   
 let test_getter () =
   let exp = exp_from_string "a = {get y() { return 0;}};" in
   let zero = mk_exp (Num 0.0) 22 in
   let r = mk_exp (Return (Some zero)) 15 in
   let block = mk_exp (Block [r]) 13 in
-  let getter = mk_exp (AnonymousFun (false, [], block)) 9 in
+  let getter = mk_exp (FunctionExp(false, None, [], block)) 9 in
   let obj = mk_exp (Obj [PropnameId "y", PropbodyGet, getter]) 4 in
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
   let script = mk_exp (Script (false, [assign])) 0 in
-  assert_equal script exp  
+  assert_exp_eq script exp
   
 let test_setter () =
   let exp = exp_from_string "a = {set y(val) {}};" in
   let block = mk_exp (Block []) 16 in
-  let setter = mk_exp (AnonymousFun (false, ["val"], block)) 9 in
+  let setter = mk_exp (FunctionExp(false, None, ["val"], block)) 9 in
   let obj = mk_exp (Obj [PropnameId "y", PropbodySet, setter]) 4 in
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
   let script = mk_exp (Script (false, [assign])) 0 in
-  assert_equal script exp
+  assert_exp_eq script exp
   
 let test_obj_init () =
   let exp = exp_from_string "a = {1 : b, \"abc\" : c, name : d};" in
@@ -516,18 +603,18 @@ let test_obj_init () =
   let a = mk_exp (Var "a") 0 in
   let assign = mk_exp (Assign (a, obj)) 0 in  
   let script = mk_exp (Script (false, [assign])) 0 in
-  assert_equal script exp  
+  assert_exp_eq script exp
   
 let test_fun_annot () =
   let exp = exp_from_string "/** @topensureserr A @ensureserr B */ function f() {'use strict'; return}" in
   let string_exp = mk_exp (String "use strict") 52 in
   let r = mk_exp (Return None) 66 in
   let block = mk_exp (Block [string_exp; r]) 51 in
-  let f = mk_exp_with_annot (NamedFun (true, "f", [], block)) 38 
+  let f = mk_exp_with_annot (Function (true, Some "f", [], block)) 38
     [{annot_type = EnsuresErr; annot_formula = "B"}] in
   let script = mk_exp_with_annot (Script (false, [f])) 0 
     [{annot_type = TopEnsuresErr; annot_formula = "A"}] in
-  assert_equal script exp  
+  assert_exp_eq script exp
   
 (* TODO: tests for object initializer, unnamed function expression *)
 
@@ -607,14 +694,11 @@ let suite = "Testing_Parser" >:::
    "test_obj_init" >:: test_obj_init;
    "test_fun_annot" >:: test_fun_annot;
   ]
-  
-  let arguments () =
-    let usage_msg="Usage: -jsparser <path>" in
-    Arg.parse
-      ["-jsparser", Arg.String(fun f -> js_to_xml_parser := f), "path to js_parser.jar"]
-      (fun s -> Format.eprintf "WARNING: Ignored argument %s.@." s)
-      usage_msg
-  
-  let _ = 
-    arguments (); 
-    run_test_tt_main suite
+
+let arg_specs = [
+  "-json", Arg.Unit(fun () -> Parser_main.use_json := true), "test json parser";
+  "-jsparser", Arg.String(fun f -> js_to_xml_parser := f), "path to js_parser.jar"
+]
+
+let _ =
+  run_test_tt_main ~arg_specs suite

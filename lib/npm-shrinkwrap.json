@@ -1,0 +1,11 @@
+{
+  "name": "js_parser",
+  "version": "0.2.0",
+  "dependencies": {
+    "esprima": {
+      "version": "1.2.5",
+      "from": "resource-reasoning/esprima#jscert",
+      "resolved": "git://github.com/resource-reasoning/esprima.git#7796274e6d2d9cade83ab1b9e5954cfadbd574e6"
+    }
+  }
+}

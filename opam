@@ -2,7 +2,11 @@ opam-version: "1.2"
 name: "JS_Parser"
 version: "~unknown"
 maintainer: "Thomas Wood <thomas.wood09@imperial.ac.uk>"
-authors: ["Daiva Naudziuniene <d.naudziuniene11@imperial.ac.uk>" "Thomas Wood <thomas.wood09@imperial.ac.uk>"]
+authors: [
+  "Daiva Naudziuniene <d.naudziuniene11@imperial.ac.uk>"
+  "Conrad Watt <conrad.watt12@imperial.ac.uk>"
+  "Thomas Wood <thomas.wood09@imperial.ac.uk>"
+]
 homepage: "https://github.com/resource-reasoning/JS_Parser"
 bug-reports: "https://github.com/resource-reasoning/JS_Parser/issues"
 license: "TBC"
