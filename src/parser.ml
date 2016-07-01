@@ -666,12 +666,13 @@ xml_to_exp' xml fn_force_exp =
             let child1, child2 = get_xml_two_children obj in
             (propname_element child1, PropbodyVal, xml_to_exp child2) 
           (* TODO: Have a flag for the EcmaScript version *)
+          (* Getters and setters use function expressions (true term for xml_to_exp') *)
           | Element ("GET", attrs, children) ->
             let child1, child2 = get_xml_two_children obj in
-            (propname_element child1, PropbodyGet, xml_to_exp child2)
+            (propname_element child1, PropbodyGet, xml_to_exp' child2 true)
           | Element ("SET", attrs, children) ->
             let child1, child2 = get_xml_two_children obj in
-            (propname_element child1, PropbodySet, xml_to_exp child2)
+            (propname_element child1, PropbodySet, xml_to_exp' child2 true)
           | _ -> raise Parser_ObjectLit
       ) (remove_annotation_elements objl)
       in (mk_exp (Obj l) (get_offset attrs))
