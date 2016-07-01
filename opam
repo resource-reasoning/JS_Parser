@@ -21,5 +21,6 @@ depends: [
   "ocamlfind" {build}
   "batteries" {build}
   "xml-light" {build}
+  "yojson" {build}
   "ounit" {test}
 ]
