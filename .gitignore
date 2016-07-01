@@ -2,4 +2,3 @@ _build
 parser_tests.byte
 parser_tests.native
 *.cma
-lib/node_modules
