@@ -89,6 +89,19 @@ let assert_equal' = assert_equal ~printer:BatPervasives.dump
 
 let assert_exp_eq = assert_equal' ~cmp:exp_stx_eq
 
+let skip_testing_annots () =
+  skip_if !use_json "JSON parser doesn't support annotations."
+
+let add_script e =
+  mk_exp (Script(false, [e])) 0
+
+let rm_node e =
+  match e.exp_stx with
+  | Script (_, [e]) | Label (_, e) -> e
+  | _ -> assert_failure "Could not find a matching Script or Label tag."
+
+(** * Tests begin here * **)
+
 let test_unescape_html () =
   assert_equal' "<>&\"'" (Parser.unescape_html "&lt;&gt;&amp;&quot;&apos;")
   
@@ -97,9 +110,6 @@ let test_unescape_html_number () =
   
 let test_unescape_html_hex () =
   assert_equal' "abb\009abb\010" (Parser.unescape_html "abb&#x9;abb&#xA;")
-  
-let add_script e =
-  mk_exp (Script(false, [e])) 0
   
 let test_unescape_html_1 () =
   let exp = exp_from_string "var o = \"3 < 2\"" in
@@ -219,19 +229,24 @@ let test_inc_post () =
   assert_exp_eq (add_script (mk_exp (Unary_op (Post_Incr, a)) 0)) exp
   
 let test_for () =
-  let exp = exp_from_string "for (; a < 5; a++ ) { /** @invariant #cScope = [#lg] */ x = 1 }" in
+  let exp = exp_from_string "for (; a < 5; a++ ) { x = 1 }" in
   let empty = None in
-  let a = mk_exp (Var "a") 7 in
-  let five = mk_exp (Num 5.0) 11 in
-  let condition = Some (mk_exp (BinOp (a, Comparison Lt, five)) 7) in
-  let a = mk_exp (Var "a") 14 in
-  let inc = Some (mk_exp (Unary_op (Post_Incr, a)) 14) in
-  let one = mk_exp (Num 1.0) 60 in
-  let x = mk_exp (Var "x") 56 in
-  let assignment = mk_exp (Assign (x, one)) 56 in
-  let block = mk_exp (Block [assignment]) 20 in
-  let loop = mk_exp_with_annot (For (empty, condition, inc, block)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  let a = mk_exp (Var "a") 0 in
+  let five = mk_exp (Num 5.0) 0 in
+  let condition = Some (mk_exp (BinOp (a, Comparison Lt, five)) 0) in
+  let a = mk_exp (Var "a") 0 in
+  let inc = Some (mk_exp (Unary_op (Post_Incr, a)) 0) in
+  let one = mk_exp (Num 1.0) 0 in
+  let x = mk_exp (Var "x") 0 in
+  let assignment = mk_exp (Assign (x, one)) 0 in
+  let block = mk_exp (Block [assignment]) 0 in
+  let loop = mk_exp (For (empty, condition, inc, block)) 0 in
   assert_exp_eq (add_script loop) exp
+
+let test_for_annot () =
+  skip_testing_annots ();
+  let exp = exp_from_string "for (; a < 5; a++ ) { /** @invariant #cScope = [#lg] */ x = 1 }" in
+  assert_equal' (rm_node exp).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
   
 let test_forin () =
   let exp = exp_from_string "for (var prop in oldObj) { obj[prop] = oldObj[prop] }" in
@@ -417,16 +432,21 @@ let test_return_exp () =
   assert_exp_eq (add_script (mk_exp (Function (false, Some "f", [], block)) 0)) exp
   
 let test_do_while () =
-  let exp = exp_from_string "do { /** @invariant #cScope = [#lg] */ a = 1 } while (a < 5)" in
-  let a = mk_exp (Var "a") 54 in
-  let five = mk_exp (Num 5.0) 58 in
-  let condition = mk_exp (BinOp (a, Comparison Lt, five)) 54 in
-  let a = mk_exp (Var "a") 39 in
-  let one = mk_exp (Num 1.0) 43 in
-  let assignment = mk_exp (Assign (a, one)) 39 in
-  let body = mk_exp (Block [assignment]) 3 in
-  let loop = mk_exp_with_annot (DoWhile (body, condition)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  let exp = exp_from_string "do { a = 1 } while (a < 5)" in
+  let a = mk_exp (Var "a") 0 in
+  let five = mk_exp (Num 5.0) 0 in
+  let condition = mk_exp (BinOp (a, Comparison Lt, five)) 0 in
+  let a = mk_exp (Var "a") 0 in
+  let one = mk_exp (Num 1.0) 0 in
+  let assignment = mk_exp (Assign (a, one)) 0 in
+  let body = mk_exp (Block [assignment]) 0 in
+  let loop = mk_exp (DoWhile (body, condition)) 0 in
   assert_exp_eq (add_script loop) exp
+
+let test_do_while_annot () =
+  skip_testing_annots ();
+  let exp = exp_from_string "do { /** @invariant #cScope = [#lg] */ a = 1 } while (a < 5)" in
+  assert_equal' (rm_node exp).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
   
 let test_delete () =
   let exp = exp_from_string "delete a" in
@@ -434,51 +454,71 @@ let test_delete () =
   assert_exp_eq (add_script (mk_exp (Delete a) 0)) exp
   
 let test_continue () =
+  let exp = exp_from_string "while (a > 5) {a++; continue}" in
+  let a = mk_exp (Var "a") 0 in
+  let five = mk_exp (Num 5.0) 0 in
+  let condition = mk_exp (BinOp (a, Comparison Gt, five)) 0 in
+  let a = mk_exp (Var "a") 0 in
+  let app = mk_exp (Unary_op (Post_Incr, a)) 0 in
+  let cont = mk_exp (Continue None) 0 in
+  let body = mk_exp (Block [app; cont]) 0 in
+  assert_exp_eq (add_script (mk_exp (While (condition, body)) 0)) exp
+
+let test_continue_annot () =
+  skip_testing_annots ();
   let exp = exp_from_string "while (a > 5) {/** @invariant #cScope = [#lg] */ a++; continue}" in
-  let a = mk_exp (Var "a") 7 in
-  let five = mk_exp (Num 5.0) 11 in
-  let condition = mk_exp (BinOp (a, Comparison Gt, five)) 7 in
-  let a = mk_exp (Var "a") 49 in
-  let app = mk_exp (Unary_op (Post_Incr, a)) 49 in
-  let cont = mk_exp (Continue None) 54 in
-  let body = mk_exp (Block [app; cont]) 14 in
-  assert_exp_eq (add_script (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}])) exp
-  
+  assert_equal' (rm_node exp).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+
 let test_continue_label () =
+  let exp = exp_from_string "test: while (a > 5) {a++; continue test}" in
+  let a = mk_exp (Var "a") 0 in
+  let five = mk_exp (Num 5.0) 0 in
+  let condition = mk_exp (BinOp (a, Comparison Gt, five)) 0 in
+  let a = mk_exp (Var "a") 0 in
+  let app = mk_exp (Unary_op (Post_Incr, a)) 0 in
+  let cont = mk_exp (Continue (Some "test")) 0 in
+  let body = mk_exp (Block [app; cont]) 0 in
+  let loop = mk_exp (While (condition, body)) 0 in
+  assert_exp_eq (add_script (mk_exp (Label ("test", loop)) 0)) exp
+
+let test_continue_label_annot () =
+  skip_testing_annots ();
   let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; continue test}" in
-  let a = mk_exp (Var "a") 13 in
-  let five = mk_exp (Num 5.0) 17 in
-  let condition = mk_exp (BinOp (a, Comparison Gt, five)) 13 in
-  let a = mk_exp (Var "a") 55 in
-  let app = mk_exp (Unary_op (Post_Incr, a)) 55 in
-  let cont = mk_exp (Continue (Some "test")) 60 in
-  let body = mk_exp (Block [app; cont]) 20 in
-  let loop = mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
-  assert_exp_eq (add_script (mk_exp (Label ("test", loop)) 0)) exp
-  
+  assert_equal' (rm_node (rm_node exp)).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+
 let test_break () =
+  let exp = exp_from_string "while (a > 5) {a++; break}" in
+  let a = mk_exp (Var "a") 0 in
+  let five = mk_exp (Num 5.0) 0 in
+  let condition = mk_exp (BinOp (a, Comparison Gt, five)) 0 in
+  let a = mk_exp (Var "a") 0 in
+  let app = mk_exp (Unary_op (Post_Incr, a)) 0 in
+  let cont = mk_exp (Break None) 0 in
+  let body = mk_exp (Block [app; cont]) 0 in
+  assert_exp_eq (add_script (mk_exp (While (condition, body)) 0)) exp
+
+let test_break_annot () =
+  skip_testing_annots ();
   let exp = exp_from_string "while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break}" in
-  let a = mk_exp (Var "a") 7 in
-  let five = mk_exp (Num 5.0) 11 in
-  let condition = mk_exp (BinOp (a, Comparison Gt, five)) 7 in
-  let a = mk_exp (Var "a") 49 in
-  let app = mk_exp (Unary_op (Post_Incr, a)) 49 in
-  let cont = mk_exp (Break None) 54 in
-  let body = mk_exp (Block [app; cont]) 14 in
-  assert_exp_eq (add_script (mk_exp_with_annot (While (condition, body)) 0 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}])) exp
-  
+  assert_equal' (rm_node exp).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+
 let test_break_label () =
-  let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break test}" in
-  let a = mk_exp (Var "a") 13 in
-  let five = mk_exp (Num 5.0) 17 in
-  let condition = mk_exp (BinOp (a, Comparison Gt, five)) 13 in
-  let a = mk_exp (Var "a") 55 in
-  let app = mk_exp (Unary_op (Post_Incr, a)) 55 in
-  let cont = mk_exp (Break (Some "test")) 60 in
-  let body = mk_exp (Block [app; cont]) 20 in
-  let loop = mk_exp_with_annot (While (condition, body)) 6 [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] in
+  let exp = exp_from_string "test: while (a > 5) {a++; break test}" in
+  let a = mk_exp (Var "a") 0 in
+  let five = mk_exp (Num 5.0) 0 in
+  let condition = mk_exp (BinOp (a, Comparison Gt, five)) 0 in
+  let a = mk_exp (Var "a") 0 in
+  let app = mk_exp (Unary_op (Post_Incr, a)) 0 in
+  let cont = mk_exp (Break (Some "test")) 0 in
+  let body = mk_exp (Block [app; cont]) 0 in
+  let loop = mk_exp (While (condition, body)) 0 in
   assert_exp_eq (add_script (mk_exp (Label ("test", loop)) 0)) exp
-  
+
+let test_break_label_annot () =
+  skip_testing_annots ();
+  let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break test}" in
+  assert_equal' (rm_node (rm_node exp)).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
+
 let test_get_invariant () =
   let xml = " <WHILE pos=\"0\">
 						    <GT pos=\"7\">
@@ -543,8 +583,9 @@ let test_debugger () =
   assert_exp_eq (add_script (mk_exp Debugger 0)) exp
   
 let test_top_annotations () =
+  skip_testing_annots ();
   let exp = exp_from_string "/** @topensures #cScope = [#lg] */ debugger" in
-  assert_exp_eq (mk_exp_with_annot (Script (false, [mk_exp Debugger 35])) 0 [{annot_type = TopEnsures; annot_formula = "#cScope = [#lg]"}]) exp
+  assert_equal' (mk_exp_with_annot (Script (false, [mk_exp Debugger 35])) 0 [{annot_type = TopEnsures; annot_formula = "#cScope = [#lg]"}]) exp
   
 let test_script_strict () =
   let exp = exp_from_string "'use strict'; function f() {return}" in
@@ -606,6 +647,7 @@ let test_obj_init () =
   assert_exp_eq script exp
   
 let test_fun_annot () =
+  skip_testing_annots ();
   let exp = exp_from_string "/** @topensureserr A @ensureserr B */ function f() {'use strict'; return}" in
   let string_exp = mk_exp (String "use strict") 52 in
   let r = mk_exp (Return None) 66 in
@@ -614,7 +656,7 @@ let test_fun_annot () =
     [{annot_type = EnsuresErr; annot_formula = "B"}] in
   let script = mk_exp_with_annot (Script (false, [f])) 0 
     [{annot_type = TopEnsuresErr; annot_formula = "A"}] in
-  assert_exp_eq script exp
+  assert_equal' script exp
   
 (* TODO: tests for object initializer, unnamed function expression *)
 
@@ -644,6 +686,7 @@ let suite = "Testing_Parser" >:::
    "test_inc_pre" >:: test_inc_pre;
    "test_inc_post" >:: test_inc_post;
    "test_for" >:: test_for;
+   "test_for_annot" >:: test_for_annot;
    "test_forin" >:: test_forin;
    "test_mod" >:: test_mod;
    "test_ursh" >:: test_ursh;
@@ -674,11 +717,16 @@ let suite = "Testing_Parser" >:::
    "test_return" >:: test_return;
    "test_return_exp" >:: test_return_exp;
    "test_do_while" >:: test_do_while;
+   "test_do_while_annot" >:: test_do_while_annot;
    "test_delete" >:: test_delete;
    "test_continue" >:: test_continue;
+   "test_continue_annot" >:: test_continue_annot;
    "test_continue_label" >:: test_continue_label;
+   "test_continue_label_annot" >:: test_continue_label_annot;
    "test_break" >:: test_break;
+   "test_break_annot" >:: test_break_annot;
    "test_break_label" >:: test_break_label;
+   "test_break_label_annot" >:: test_break_label_annot;
    "test_get_invariant" >:: test_get_invariant;
    "test_try_catch" >:: test_try_catch;
    "test_try_catch_finally" >:: test_try_catch_finally;
@@ -696,7 +744,7 @@ let suite = "Testing_Parser" >:::
   ]
 
 let arg_specs = [
-  "-json", Arg.Unit(fun () -> Parser_main.use_json := true), "test json parser";
+  "-json", Arg.Unit(fun () -> use_json := true), "test json parser";
   "-jsparser", Arg.String(fun f -> js_to_xml_parser := f), "path to js_parser.jar"
 ]
 
