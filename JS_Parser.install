@@ -1,0 +1,13 @@
+lib: [
+  "JS_Parser.cma"
+  "JS_Parser.cmxa"
+  "src/META"
+]
+share: [
+  "lib/COPYING-js_parser.jar"
+  "lib/js_parser.jar"
+  "lib/run_esprima.js"
+  "lib/node_modules/esprima/LICENSE.BSD" { "node_modules/esprima/LICENSE.BSD" }
+  "lib/node_modules/esprima/esprima.js" { "node_modules/esprima/esprima.js" }
+  "lib/node_modules/esprima/package.json" { "node_modules/esprima/package.json" }
+]
