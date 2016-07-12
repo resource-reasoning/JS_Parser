@@ -12,16 +12,18 @@ homepage: "https://github.com/resource-reasoning/JS_Parser"
 bug-reports: "https://github.com/resource-reasoning/JS_Parser/issues"
 license: "TBC"
 dev-repo: "https://github.com/resource-reasoning/JS_Parser.git"
+libraries: ["JS_Parser"]
+
 build: [[make]]
 build-test: [
   [make "test_all"]
 ]
 # install target uses JS_Parser.install automatically
 depends: [
-  "ocamlfind" {build}
-  "batteries" {build}
-  "xml-light" {build}
-  "yojson" {build}
+  "ocamlfind"
+  "batteries"
+  "xml-light"
+  "yojson"
   "ounit" {test}
 ]
 substs: [

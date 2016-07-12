@@ -4,21 +4,37 @@ open Parser_syntax
 open Unix
 open Yojson.Safe
 
-(* Poorly named, used as path to either parser backend *)
-let js_to_xml_parser = ref ""
 let verbose = ref false
 let use_json = ref false
 let from_stdin = ref false
 
+let xml_parser_path = ref ""
+let json_parser_path = ref ""
+
+let init ?path () =
+  try
+    let libdir = (match path with
+      | None -> Findlib.init (); Findlib.package_property [] "JS_Parser" "share"
+      | Some s -> s) in
+    xml_parser_path := Filename.concat libdir "js_parser.jar";
+    json_parser_path := Filename.concat libdir "run_esprima.js";
+    let _ = Unix.stat !xml_parser_path in
+    ()
+  with
+    | Findlib.No_such_package _   ->
+        raise (Parser.ParserFailure "JS_Parser not installed. Please supply parser path.")
+    | Unix.Unix_error (err, _, f) ->
+        raise (Parser.ParserFailure (Printf.sprintf "Could not find parser at %s (%s)" f (Unix.error_message err)))
+
 let js_to_xml (filename : string) : string =
-  match Unix.system ("java -jar " ^ !js_to_xml_parser ^ " " ^ (Filename.quote filename)) with
+  match Unix.system ("java -jar " ^ !xml_parser_path ^ " " ^ (Filename.quote filename)) with
     | Unix.WEXITED _ -> String.sub filename 0 (String.length filename - 3) ^ ".xml"
     | _ -> raise JS_To_XML_parser_failure
 
 let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) : string =
   let force_strict = (if (f) then " -force_strict" else "") in
   let init = (if (i) then " -builtin_init" else "") in
-  match Unix.system ("node " ^ !js_to_xml_parser ^ " " ^ (Filename.quote filename) ^ force_strict ^ init) with
+  match Unix.system ("node " ^ !json_parser_path ^ " " ^ (Filename.quote filename) ^ force_strict ^ init) with
     | Unix.WEXITED n -> 
         (if(n <> 0) then raise (Xml.File_not_found filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
     | _ -> raise JS_To_XML_parser_failure

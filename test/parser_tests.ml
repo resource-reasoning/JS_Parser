@@ -744,9 +744,9 @@ let suite = "Testing_Parser" >:::
   ]
 
 let arg_specs = [
-  "-json", Arg.Unit(fun () -> use_json := true), "test json parser";
-  "-jsparser", Arg.String(fun f -> js_to_xml_parser := f), "path to js_parser.jar"
+  "-json", Arg.Set use_json, "test json parser";
 ]
 
 let _ =
+  init ~path:"lib" ();
   run_test_tt_main ~arg_specs suite

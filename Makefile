@@ -1,6 +1,4 @@
 FLAGS=-use-ocamlfind -verbose 1
-JS_PARSER_JAR=./lib/js_parser.jar
-JS_PARSER_JSON=./lib/run_esprima.js
 
 build: src/* JS_Parser.itarget
 	ocamlbuild ${FLAGS} JS_Parser.otarget
@@ -12,16 +10,16 @@ clean:
 	ocamlbuild ${FLAGS} -clean
 
 test_byte: build_test
-	./parser_tests.byte -jsparser ${JS_PARSER_JAR}
+	./parser_tests.byte
 
 test_json: build_test
-	./parser_tests.byte -json -jsparser ${JS_PARSER_JSON}
+	./parser_tests.byte -json
 
 test_native: build_test
-	./parser_tests.native -jsparser ${JS_PARSER_JAR}
+	./parser_tests.native
 
 test_json_native: build_test
-	./parser_tests.native -json -jsparser ${JS_PARSER_JSON}
+	./parser_tests.native -json
 
 test_all: test test_native test_json_native
 test: test_byte test_json
