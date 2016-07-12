@@ -25,5 +25,5 @@ depends: [
   "ounit" {test}
 ]
 substs: [
-  "src/META.in"
+  "src/META"
 ]
