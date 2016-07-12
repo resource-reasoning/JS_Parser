@@ -14,7 +14,7 @@ license: "TBC"
 dev-repo: "https://github.com/resource-reasoning/JS_Parser.git"
 build: [[make]]
 build-test: [
-  [make "test"]
+  [make "test_all"]
 ]
 # install target uses JS_Parser.install automatically
 depends: [
