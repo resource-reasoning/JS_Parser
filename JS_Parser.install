@@ -1,6 +1,15 @@
 lib: [
-  "JS_Parser.cma"
-  "JS_Parser.cmxa"
+  "_build/src/parser.cmi"
+  "_build/src/parser_main.cmi"
+  "_build/src/parser_syntax.cmi"
+  "_build/src/pretty_print.cmi"
+  "_build/src/parser.cmx"
+  "_build/src/parser_main.cmx"
+  "_build/src/parser_syntax.cmx"
+  "_build/src/pretty_print.cmx"
+  "_build/src/JS_Parser.cma"
+  "_build/src/JS_Parser.cmxa"
+  "_build/src/JS_Parser.a"
   "src/META"
 ]
 share: [

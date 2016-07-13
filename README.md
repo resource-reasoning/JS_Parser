@@ -4,8 +4,14 @@ This is a JavaScript Parser Wrapper for OCaml that uses swappable backends.
 
 ## Dependencies
 It is recommended to use OPAM to install dependencies for this package
-Execute the following line from this directory.
-```shell
+Execute the following line to install the development version of JS_Parser in opam:
+```sh
+opam pin add JS_Parser https://github.com/resource-reasoning/JS_Parser.git
+```
+
+Or, if you need to develop the parser, then clone the repository and then execute
+this line from the repository directory:
+```sh
 opam pin add .
 ```
 

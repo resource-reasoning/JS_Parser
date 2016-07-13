@@ -1,7 +1,7 @@
 FLAGS=-use-ocamlfind -verbose 1
 
-build: src/* JS_Parser.itarget
-	ocamlbuild ${FLAGS} JS_Parser.otarget
+build: src/*
+	ocamlbuild ${FLAGS} src/JS_Parser.cma src/JS_Parser.cmxa
 
 build_test: src/* test/*
 	ocamlbuild ${FLAGS} test/parser_tests.byte test/parser_tests.native
