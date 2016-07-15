@@ -14,10 +14,10 @@ let json_parser_path = ref ""
 let init ?path () =
   try
     let libdir = (match path with
-      | None -> Findlib.init (); Findlib.package_property [] "JS_Parser" "share"
+      | None -> Findlib.init (); Findlib.package_directory "JS_Parser"
       | Some s -> s) in
-    xml_parser_path := Filename.concat libdir "js_parser.jar";
-    json_parser_path := Filename.concat libdir "run_esprima.js";
+    xml_parser_path := Filename.concat libdir "runtime/js_parser.jar";
+    json_parser_path := Filename.concat libdir "runtime/run_esprima.js";
     let _ = Unix.stat !xml_parser_path in
     ()
   with

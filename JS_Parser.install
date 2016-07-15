@@ -11,12 +11,10 @@ lib: [
   "_build/src/JS_Parser.cmxa"
   "_build/src/JS_Parser.a"
   "src/META"
-]
-share: [
-  "lib/COPYING-js_parser.jar"
-  "lib/js_parser.jar"
-  "lib/run_esprima.js"
-  "lib/node_modules/esprima/LICENSE.BSD" { "node_modules/esprima/LICENSE.BSD" }
-  "lib/node_modules/esprima/esprima.js" { "node_modules/esprima/esprima.js" }
-  "lib/node_modules/esprima/package.json" { "node_modules/esprima/package.json" }
+  "lib/COPYING-js_parser.jar"             { "runtime/COPYING-js_parser.jar" }
+  "lib/js_parser.jar"                     { "runtime/js_parser.jar" }
+  "lib/run_esprima.js"                    { "runtime/run_esprima.js" }
+  "lib/node_modules/esprima/LICENSE.BSD"  { "runtime/node_modules/esprima/LICENSE.BSD" }
+  "lib/node_modules/esprima/esprima.js"   { "runtime/node_modules/esprima/esprima.js" }
+  "lib/node_modules/esprima/package.json" { "runtime/node_modules/esprima/package.json" }
 ]
