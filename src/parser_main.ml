@@ -18,6 +18,7 @@ let init ?path () =
       | Some s -> s) in
     xml_parser_path := Filename.concat libdir "js_parser.jar";
     json_parser_path := Filename.concat libdir "run_esprima.js";
+	Parser.doctrine_path := Filename.concat libdir "run_doctrine.js";
     let _ = Unix.stat !xml_parser_path in
     ()
   with
@@ -35,7 +36,7 @@ let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) :
   let force_strict = (if (f) then " -force_strict" else "") in
   let init = (if (i) then " -builtin_init" else "") in
   match Unix.system ("node " ^ !json_parser_path ^ " " ^ (Filename.quote filename) ^ force_strict ^ init) with
-    | Unix.WEXITED n -> 
+    | Unix.WEXITED n ->
         (if(n <> 0) then raise (Xml.File_not_found filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
     | _ -> raise JS_To_XML_parser_failure
 
@@ -52,9 +53,9 @@ let exp_from_stdin_xml =
       let expression = xml_to_exp data in
       add_strictness false expression
     with
-        | Xml.Error error -> 
-            Printf.printf "Xml Parsing error occurred in line %d : %s \n" 
-              (Xml.line (snd error)) (Xml.error_msg (fst error)); 
+        | Xml.Error error ->
+            Printf.printf "Xml Parsing error occurred in line %d : %s \n"
+              (Xml.line (snd error)) (Xml.error_msg (fst error));
             raise Parser.XmlParserException
 
 let exp_from_stdin =
@@ -67,21 +68,22 @@ let exp_from_stdin =
 let exp_from_file_json ?force_strict:(f = false) ?init:(i = false) file =
   let js_file = js_to_json ~force_strict:f ~init:i file in
   let data = Yojson.Safe.from_file js_file in
+  Printf.printf "JSON:\n%s\n" (Yojson.Safe.to_string data);
   let expression = json_to_exp data in
   add_strictness f expression
 
 let exp_from_file_xml file =
   try
-    let xml_file = js_to_xml file in 
+    let xml_file = js_to_xml file in
     let data = Xml.parse_file xml_file in
     if (!verbose) then print_string (Xml.to_string_fmt data);
     let expression = xml_to_exp data in
     if (!verbose) then print_string (string_of_exp true expression);
     add_strictness false expression
-  with 
-    | Xml.Error error -> 
+  with
+    | Xml.Error error ->
         Printf.eprintf "Xml Parsing error occurred in line %d : %s \n"
-          (Xml.line (snd error)) (Xml.error_msg (fst error)); 
+          (Xml.line (snd error)) (Xml.error_msg (fst error));
         raise Parser.XmlParserException
     | Xml.File_not_found f -> raise (Parser.ParserFailure (Printf.sprintf "XML File not found: %s" f))
     | JS_To_XML_parser_failure -> raise JS_To_XML_parser_failure
@@ -101,7 +103,7 @@ let exp_from_string ?force_strict:(f = false) s =
   close_out out;
   exp_from_file ~force_strict:f file
 
-let exp_from_main ?force_strict:(str = false) file = 
+let exp_from_main ?force_strict:(str = false) file =
   fun() ->
     if(!from_stdin) then
       exp_from_stdin()

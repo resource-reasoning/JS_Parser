@@ -3,3 +3,5 @@ parser_tests.byte
 parser_tests.native
 *.cma
 *.cmxa
+.DS_Store
+doctrine.json

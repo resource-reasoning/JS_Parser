@@ -30,10 +30,10 @@ type arith_op =
   | Bitxor
 
 type bool_op =
-  | And 
+  | And
   | Or
 
-type bin_op = 
+type bin_op =
   | Comparison of comparison_op
   | Arith of arith_op
   | Boolean of bool_op
@@ -49,7 +49,7 @@ type unary_op =
   | Post_Incr
   | Bitnot
   | Void
-  
+
 type var = string
 
 type annotation_type =
@@ -63,33 +63,33 @@ type annotation_type =
   | Codename
   | PredDefn
 
-type annotation = 
-  { 
+type annotation =
+  {
     annot_type : annotation_type;
     annot_formula : string
   }
-  
+
 let is_top_spec annot : bool =
-  annot.annot_type = TopRequires || 
-  annot.annot_type = TopEnsures || 
+  annot.annot_type = TopRequires ||
+  annot.annot_type = TopEnsures ||
   annot.annot_type = TopEnsuresErr ||
   annot.annot_type = PredDefn
-  
+
 let is_function_spec annot : bool =
-  annot.annot_type = Requires || 
-  annot.annot_type = Ensures || 
-  annot.annot_type = EnsuresErr || 
-  annot.annot_type = Codename || 
+  annot.annot_type = Requires ||
+  annot.annot_type = Ensures ||
+  annot.annot_type = EnsuresErr ||
+  annot.annot_type = Codename ||
   annot.annot_type = PredDefn
-  
+
 let is_invariant annot : bool =
-  annot.annot_type = Invariant 
-  
+  annot.annot_type = Invariant
+
 type propname =
   | PropnameId of string
   | PropnameString of string
   | PropnameNum of float
-  
+
 type proptype =
   | PropbodyVal
   | PropbodyGet
@@ -140,39 +140,36 @@ and exp_syntax =
 and switch_case =
   | Case of exp
   | DefaultCase
-  
-let mk_exp_with_annot s o annots =
+
+let mk_exp s o annots =
   { exp_offset = o; exp_stx = s; exp_annot = annots }
 
-let mk_exp s o =
-  mk_exp_with_annot s o []
-  
 let is_directive exp =
-  match exp.exp_stx with 
+  match exp.exp_stx with
     | String s -> true
     | _ -> false
-  
-let get_directives exp = 
+
+let get_directives exp =
     match exp.exp_stx with
     | Script (_, stmts)
     | Block stmts ->
-      let (_, directives) = List.fold_left (fun (is_in_directive, directives) e -> 
+      let (_, directives) = List.fold_left (fun (is_in_directive, directives) e ->
         if (not is_in_directive) then
           (false, directives)
-        else if (is_directive e) then 
-          (true, (match e.exp_stx with 
+        else if (is_directive e) then
+          (true, (match e.exp_stx with
             | String s -> s
             | _ -> raise CannotHappen) :: directives)
         else (false, directives)
       ) (true, []) stmts in directives
     | _ -> []
 
-let is_in_strict_mode exp = 
+let is_in_strict_mode exp =
   List.mem "use strict" (get_directives exp)
-  
+
 let rec add_strictness parent_strict exp =
   let f = add_strictness parent_strict in
-  let fop e = match e with 
+  let fop e = match e with
     | None -> None
     | Some e -> Some (f e) in
   match exp.exp_stx with
@@ -195,10 +192,10 @@ let rec add_strictness parent_strict exp =
     | Call (e1, e2s) -> {exp with exp_stx = Call (f e1, List.map f e2s)}
     | Assign (e1, e2) -> {exp with exp_stx = Assign (f e1, f e2)}
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
-    | FunctionExp (_, n, xs, e) -> 
+    | FunctionExp (_, n, xs, e) ->
       let strict = parent_strict || is_in_strict_mode e in
       {exp with exp_stx = FunctionExp (strict, n, xs, add_strictness strict e)}
-    | Function (_, n, xs, e) -> 
+    | Function (_, n, xs, e) ->
       let strict = parent_strict || is_in_strict_mode e in
       {exp with exp_stx = Function (strict, n, xs, add_strictness strict e)}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, List.map f e2s)}
@@ -215,7 +212,7 @@ let rec add_strictness parent_strict exp =
     | Break _ -> exp
     | Continue _ -> exp
     | Try (e1, e2, e3) -> {exp with exp_stx = Try (f e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), fop e3)}
-    | Switch (e1, e2s) -> 
+    | Switch (e1, e2s) ->
       {exp with exp_stx = Switch (f e1, List.map (
         fun (case, e) ->
           match case with
@@ -225,6 +222,6 @@ let rec add_strictness parent_strict exp =
     | Debugger -> exp
     | ConditionalOp (e1, e2, e3) -> {exp with exp_stx = ConditionalOp (f e1, f e2, f e3)}
     | Block es -> {exp with exp_stx = Block (List.map f es)}
-    | Script (_, es) -> 
+    | Script (_, es) ->
       let strict = is_in_strict_mode exp in
       {exp with exp_stx = Script (strict, List.map (add_strictness strict) es)}

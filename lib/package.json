@@ -12,5 +12,8 @@
   "repository": "github:resource-reasoning/JS_Parser",
   "dependencies": {
     "esprima": "github:resource-reasoning/esprima#jscert"
+  },
+  "devDependencies": {
+    "doctrine": "^1.5.0"
   }
 }
