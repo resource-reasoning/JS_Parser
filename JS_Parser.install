@@ -11,10 +11,27 @@ lib: [
   "_build/src/JS_Parser.cmxa"
   "_build/src/JS_Parser.a"
   "src/META"
-  "lib/COPYING-js_parser.jar"             { "runtime/COPYING-js_parser.jar" }
-  "lib/js_parser.jar"                     { "runtime/js_parser.jar" }
-  "lib/run_esprima.js"                    { "runtime/run_esprima.js" }
-  "lib/node_modules/esprima/LICENSE.BSD"  { "runtime/node_modules/esprima/LICENSE.BSD" }
-  "lib/node_modules/esprima/esprima.js"   { "runtime/node_modules/esprima/esprima.js" }
-  "lib/node_modules/esprima/package.json" { "runtime/node_modules/esprima/package.json" }
+  "lib/COPYING-js_parser.jar"                 { "runtime/COPYING-js_parser.jar" }
+  "lib/js_parser.jar"                         { "runtime/js_parser.jar" }
+  "lib/run_esprima.js"                        { "runtime/run_esprima.js" }
+  "lib/run_doctrine.js"                       { "runtime/run_doctrine.js" }
+  "lib/node_modules/esprima/LICENSE.BSD"      { "runtime/node_modules/esprima/LICENSE.BSD" }
+  "lib/node_modules/esprima/esprima.js"       { "runtime/node_modules/esprima/esprima.js" }
+  "lib/node_modules/esprima/package.json"     { "runtime/node_modules/esprima/package.json" }
+  "lib/node_modules/doctrine/LICENSE.BSD"     { "runtime/node_modules/doctrine/LICENSE.BSD" }
+  "lib/node_modules/doctrine/lib/doctrine.js" { "runtime/node_modules/doctrine/lib/doctrine.js" }
+  "lib/node_modules/doctrine/lib/typed.js"    { "runtime/node_modules/doctrine/lib/utility.js" }
+  "lib/node_modules/doctrine/lib/utility.js"  { "runtime/node_modules/doctrine/lib/doctrine.js" }
+  "lib/node_modules/doctrine/package.json"    { "runtime/node_modules/doctrine/package.json" }
+  "lib/node_modules/esutils/LICENSE.BSD"      { "runtime/node_modules/esutils/LICENSE.BSD" }
+  "lib/node_modules/esutils/lib/ast.js"       { "runtime/node_modules/esutils/lib/ast.js" }
+  "lib/node_modules/esutils/lib/code.js"      { "runtime/node_modules/esutils/lib/code.js" }
+  "lib/node_modules/esutils/lib/keyword.js"   { "runtime/node_modules/esutils/lib/keyword.js" }
+  "lib/node_modules/esutils/lib/utils.js"     { "runtime/node_modules/esutils/lib/utils.js" }
+  "lib/node_modules/esutils/package.json"     { "runtime/node_modules/esutils/package.json" }
+  "lib/node_modules/isarray/LICENSE.BSD"      { "runtime/node_modules/isarray/LICENSE.BSD" }
+  "lib/node_modules/isarray/component.json"   { "runtime/node_modules/isarray/component.json" }
+  "lib/node_modules/isarray/package.json"     { "runtime/node_modules/isarray/package.json" }
+  "lib/node_modules/isarray/index.js"         { "runtime/node_modules/isarray/index.js" }
+  "lib/node_modules/isarray/test.js"          { "runtime/node_modules/isarray/test.js" }
 ]

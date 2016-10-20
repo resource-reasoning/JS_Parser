@@ -66,10 +66,10 @@ let exp_from_stdin =
       exp_from_stdin_xml()
 
 let exp_from_file_json ?force_strict:(f = false) ?init:(i = false) file =
-  let js_file = js_to_json ~force_strict:f ~init:i file in
-  let data = Yojson.Safe.from_file js_file in
-  let expression = json_to_exp data in
-  add_strictness f expression
+	let js_file = js_to_json ~force_strict:f ~init:i file in
+	let data = Yojson.Safe.from_file js_file in
+	let expression = json_to_exp data in
+  	add_strictness f expression
 
 let exp_from_file_xml file =
   try

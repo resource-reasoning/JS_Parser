@@ -115,9 +115,9 @@ let get_annot attrs : annotation =
     | "toprequires" -> {annot_type = TopRequires; annot_formula = f}
     | "topensures" -> {annot_type = TopEnsures; annot_formula = f}
     | "topensureserr" -> {annot_type = TopEnsuresErr; annot_formula = f}
-    | "requires" -> {annot_type = Requires; annot_formula = f}
-    | "ensures" -> {annot_type = Ensures; annot_formula = f}
-    | "ensureserr" -> {annot_type = EnsuresErr; annot_formula = f}
+    | "pre" -> {annot_type = Requires; annot_formula = f}
+    | "post" -> {annot_type = Ensures; annot_formula = f}
+    | "posterr" -> {annot_type = EnsuresErr; annot_formula = f}
     | "invariant" -> {annot_type = Invariant; annot_formula = f}
     | "codename" -> {annot_type = Codename; annot_formula = f}
     | "preddefn" -> {annot_type = PredDefn; annot_formula = f}
@@ -269,31 +269,20 @@ let get_json_ident_name ident =
 let process_annotation annot =
 	let atype = get_json_string "title" annot in
 	let atype = (match atype with
-		| "toprequire" -> TopRequires
-		| "topensure" -> TopEnsures
-		| "topensureerr" -> TopEnsuresErr
-		| "require" -> Requires
-		| "ensure" -> Ensures
-		| "ensureerr" -> EnsuresErr
+		| "toprequires" -> TopRequires
+		| "topensures" -> TopEnsures
+		| "topensureserr" -> TopEnsuresErr
+		| "pre" -> Requires
+		| "post" -> Ensures
+		| "posterr" -> EnsuresErr
 		| "invariant" -> Invariant
 		| "codename" -> Codename
 		| "preddefn" -> PredDefn) in
 	let adesc = get_json_string "description" annot in
 	{ annot_type = atype; annot_formula = adesc }
 
-let string_of_annot annot =
-match annot with
-  | TopRequires -> "toprequire"
-  | TopEnsures -> "topensure"
-  | TopEnsuresErr -> "toprequire"
-  | Requires -> "require"
-  | Ensures -> "ensure"
-  | EnsuresErr -> "ensureerr"
-  | Invariant -> "invariant"
-  | Codename -> "codename"
-  | PredDefn -> "preddefn"
-
 let get_esprima_annotations json =
+	Printf.printf "IN GET_ESPRIMA_ANNOTATIONS\n";
 	let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
 	let actualComments = List.map (fun x -> "\"/**\n" ^ (get_json_string "value" x) ^ "*/\"") leadingComments in
 	let doctrinise x =
@@ -322,6 +311,7 @@ let get_esprima_annotations json =
 let rec json_to_exp json : exp =
   let json_type = get_json_type json in
   let annotations = get_esprima_annotations json in
+  Printf.printf "%s annotated with: \n%s\n\n" json_type (Pretty_print.string_of_annots annotations);
   match json_type with
     | "Program" ->
       let children = get_json_list "body" json in

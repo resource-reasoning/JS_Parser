@@ -56,25 +56,25 @@ let string_of_var x = x
 
 let string_of_vars xs =
   String.concat "," xs
-  
+
 let string_of_annot_type atype =
   match atype with
     | TopRequires -> "@toprequires"
     | TopEnsures -> "@topensures"
-    | TopEnsuresErr -> "@topensureserr" 
-    | Requires -> "@requires"
-    | Ensures -> "@ensures"
-    | EnsuresErr -> "@ensureserr"
+    | TopEnsuresErr -> "@topensureserr"
+    | Requires -> "@pre"
+    | Ensures -> "@post"
+    | EnsuresErr -> "@posterr"
     | Invariant -> "@invariant"
     | Codename -> "@codename"
     | PredDefn -> "@preddefn"
 
 let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (annot.annot_formula)
 
-let string_of_annots annots = 
+let string_of_annots annots =
   let annot_string = (String.concat "\n" (map string_of_annot annots)) in
   if annot_string <> "" then (Printf.sprintf "/** %s */" annot_string) else ""
-  
+
 let string_of_propname pn =
   match pn with
     | PropnameId id -> id
@@ -85,7 +85,7 @@ let rec string_of_exp with_annot exp =
   let annot_string = if with_annot then (string_of_annots exp.exp_annot) else "" in
   Printf.sprintf "%s%s" (if annot_string <> "" then annot_string ^ "\n" else "")
   (string_of_exp_syntax_1 exp.exp_stx with_annot)
-  
+
 and string_of_var_in_dec with_annot (x, v) =
   match v with
     | None -> x
@@ -94,7 +94,7 @@ and string_of_var_in_dec with_annot (x, v) =
 
 and string_of_exp_syntax_1 expstx with_annot =
   let f = string_of_exp with_annot in
-  let fop e = match e with 
+  let fop e = match e with
     | None -> ""
     | Some e -> f e in
   let string_op s = match s with
@@ -115,7 +115,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | This -> "this"
     | Delete e -> Printf.sprintf "delete %s" (f e)
     | Comma (e1, e2) -> Printf.sprintf "%s , %s" (f e1) (f e2)
-    | Unary_op (op, e) -> 
+    | Unary_op (op, e) ->
       begin match op with
         | Post_Decr
         | Post_Incr -> Printf.sprintf "%s %s" (f e) (string_of_unary_op op)
@@ -129,14 +129,14 @@ and string_of_exp_syntax_1 expstx with_annot =
     | FunctionExp (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
     | Function (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
     | New (e1, e2s) -> Printf.sprintf "new (%s)(%s)" (f e1) (String.concat "," (map f e2s))
-    | Obj l -> Printf.sprintf "{%s}" 
-      (String.concat "; " (map (fun (x, p, e) -> 
-        match p with 
-          | PropbodyVal -> Printf.sprintf "%s : %s" (string_of_propname x) (f e) 
+    | Obj l -> Printf.sprintf "{%s}"
+      (String.concat "; " (map (fun (x, p, e) ->
+        match p with
+          | PropbodyVal -> Printf.sprintf "%s : %s" (string_of_propname x) (f e)
           | PropbodyGet -> Printf.sprintf "get %s %s" (string_of_propname x) (f e)
           | PropbodySet -> Printf.sprintf "set %s %s" (string_of_propname x) (f e))
       l))
-    | Array es -> Printf.sprintf "[%s]" 
+    | Array es -> Printf.sprintf "[%s]"
       (String.concat ", " (map (fun e -> match e with None -> "" | Some e -> Printf.sprintf "%s" (f e)) es))
     | CAccess (e1, e2) -> Printf.sprintf "(%s)[%s]" (f e1) (f e2)
     | With (e1, e2) -> Printf.sprintf "with (%s){\n%s\n}" (f e1) (f e2)
@@ -155,8 +155,8 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Switch (e1, e2s) -> Printf.sprintf "switch (%s) {\n%s\n}" (f e1) (String.concat "\n" (map (string_of_case with_annot) e2s))
     | Debugger -> "debugger"
     | ConditionalOp (e1, e2, e3) -> Printf.sprintf "((%s) ? (%s) : (%s))" (f e1) (f e2) (f e3)
-    | Block es -> Printf.sprintf "{ %s }" (String.concat ";\n" (map f es))  
-    | Script (_, es) -> Printf.sprintf "%s" (String.concat ";\n" (map f es))  
+    | Block es -> Printf.sprintf "{ %s }" (String.concat ";\n" (map f es))
+    | Script (_, es) -> Printf.sprintf "%s" (String.concat ";\n" (map f es))
 and string_of_catch_finally with_annot catch finally =
   (match catch with
     | None -> ""
@@ -169,6 +169,6 @@ and string_of_case with_annot (case, exp) =
     | Case e -> Printf.sprintf "case %s:" (string_of_exp with_annot e)
     | DefaultCase -> "default:" in
   Printf.sprintf "%s\n %s \n" label (string_of_exp with_annot exp)
-  
+
 let string_of_exp_syntax expstx =
   string_of_exp_syntax_1 expstx false

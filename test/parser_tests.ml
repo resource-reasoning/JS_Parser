@@ -652,17 +652,7 @@ let test_obj_init () =
 
 let test_fun_annot () =
   skip_testing_annots ();
-  let exp = exp_from_string
-  "
-  /*
-  	@require [[ (l, \"@proto\" -> \$\$null) ]]
-	@ensure B
-
-	@require C
-	@ensure D
-*/
-  function fun () {return 41}
-  " in
+  let exp = exp_from_string " /* @pre something @post something */ var x = 5;" in
   let string_exp = mk_exp (String "use strict") 52 in
   let r = mk_exp (Return None) 66 in
   let block = mk_exp (Block [string_exp; r]) 51 in
