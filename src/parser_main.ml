@@ -68,7 +68,6 @@ let exp_from_stdin =
 let exp_from_file_json ?force_strict:(f = false) ?init:(i = false) file =
   let js_file = js_to_json ~force_strict:f ~init:i file in
   let data = Yojson.Safe.from_file js_file in
-  Printf.printf "JSON:\n%s\n" (Yojson.Safe.to_string data);
   let expression = json_to_exp data in
   add_strictness f expression
 

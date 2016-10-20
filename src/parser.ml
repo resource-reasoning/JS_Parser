@@ -269,17 +269,29 @@ let get_json_ident_name ident =
 let process_annotation annot =
 	let atype = get_json_string "title" annot in
 	let atype = (match atype with
-		| "TopRequire" -> TopRequires
-		| "TopEnsure" -> TopEnsures
-		| "TopEnsureErr" -> TopEnsuresErr
-		| "Require" -> Requires
-		| "Ensure" -> Ensures
-		| "EnsureErr" -> EnsuresErr
-		| "Invariant" -> Invariant
-		| "Codename" -> Codename
-		| "Pred" -> PredDefn) in
+		| "toprequire" -> TopRequires
+		| "topensure" -> TopEnsures
+		| "topensureerr" -> TopEnsuresErr
+		| "require" -> Requires
+		| "ensure" -> Ensures
+		| "ensureerr" -> EnsuresErr
+		| "invariant" -> Invariant
+		| "codename" -> Codename
+		| "preddefn" -> PredDefn) in
 	let adesc = get_json_string "description" annot in
-	{ annot_type = atype; annot_formula = adesc}
+	{ annot_type = atype; annot_formula = adesc }
+
+let string_of_annot annot =
+match annot with
+  | TopRequires -> "toprequire"
+  | TopEnsures -> "topensure"
+  | TopEnsuresErr -> "toprequire"
+  | Requires -> "require"
+  | Ensures -> "ensure"
+  | EnsuresErr -> "ensureerr"
+  | Invariant -> "invariant"
+  | Codename -> "codename"
+  | PredDefn -> "preddefn"
 
 let get_esprima_annotations json =
 	let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
@@ -298,14 +310,18 @@ let get_esprima_annotations json =
 		(fun ac x ->
 			ac @ [ process_annotation x ]) [] annots in
 		ac @ annots) [] actualComments in
+	(* Printing
+	if (List.length annotations > 0)
+	then begin
+		Printf.printf "Found the following annotations:\n";
+		List.iter (fun x -> Printf.printf "\t%s : %s\n" (string_of_annot x.annot_type) x.annot_formula) annotations
+	end; *)
 	annotations
 
 
 let rec json_to_exp json : exp =
   let json_type = get_json_type json in
-  Printf.printf "Type: %s\n" json_type;
   let annotations = get_esprima_annotations json in
-  Printf.printf "Length: %d\n" (List.length annotations);
   match json_type with
     | "Program" ->
       let children = get_json_list "body" json in

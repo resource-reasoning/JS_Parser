@@ -655,11 +655,11 @@ let test_fun_annot () =
   let exp = exp_from_string
   "
   /*
-  	@Require [[ (l, \"@proto\" -> \$\$null) ]]
-	@Ensure B
+  	@require [[ (l, \"@proto\" -> \$\$null) ]]
+	@ensure B
 
-	@Require C
-	@Ensure D
+	@require C
+	@ensure D
 */
   function fun () {return 41}
   " in
