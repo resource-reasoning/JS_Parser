@@ -29,9 +29,7 @@ lib: [
   "lib/node_modules/esutils/lib/keyword.js"   { "runtime/node_modules/esutils/lib/keyword.js" }
   "lib/node_modules/esutils/lib/utils.js"     { "runtime/node_modules/esutils/lib/utils.js" }
   "lib/node_modules/esutils/package.json"     { "runtime/node_modules/esutils/package.json" }
-  "lib/node_modules/isarray/LICENSE.BSD"      { "runtime/node_modules/isarray/LICENSE.BSD" }
   "lib/node_modules/isarray/component.json"   { "runtime/node_modules/isarray/component.json" }
   "lib/node_modules/isarray/package.json"     { "runtime/node_modules/isarray/package.json" }
   "lib/node_modules/isarray/index.js"         { "runtime/node_modules/isarray/index.js" }
-  "lib/node_modules/isarray/test.js"          { "runtime/node_modules/isarray/test.js" }
 ]

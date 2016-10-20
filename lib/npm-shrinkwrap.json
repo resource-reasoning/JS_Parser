@@ -2,10 +2,25 @@
   "name": "js_parser",
   "version": "0.2.0",
   "dependencies": {
+    "doctrine": {
+      "version": "1.5.0",
+      "from": "doctrine@*",
+      "resolved": "https://registry.npmjs.org/doctrine/-/doctrine-1.5.0.tgz"
+    },
     "esprima": {
       "version": "1.2.5",
       "from": "resource-reasoning/esprima#jscert",
       "resolved": "git://github.com/resource-reasoning/esprima.git#7796274e6d2d9cade83ab1b9e5954cfadbd574e6"
+    },
+    "esutils": {
+      "version": "2.0.2",
+      "from": "esutils@>=2.0.2 <3.0.0",
+      "resolved": "https://registry.npmjs.org/esutils/-/esutils-2.0.2.tgz"
+    },
+    "isarray": {
+      "version": "1.0.0",
+      "from": "isarray@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz"
     }
   }
 }

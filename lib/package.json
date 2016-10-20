@@ -11,9 +11,7 @@
   "license": "BSD-3-Clause",
   "repository": "github:resource-reasoning/JS_Parser",
   "dependencies": {
+    "doctrine": "^1.5.0",
     "esprima": "github:resource-reasoning/esprima#jscert"
-  },
-  "devDependencies": {
-    "doctrine": "^1.5.0"
   }
 }
