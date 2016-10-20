@@ -13,13 +13,13 @@ test_byte: build_test
 	./parser_tests.byte
 
 test_json: build_test
-	./parser_tests.byte -json
+	./parser_tests.byte -json true
 
 test_native: build_test
 	./parser_tests.native
 
 test_json_native: build_test
-	./parser_tests.native -json
+	./parser_tests.native -json true
 
 test_all: test test_native test_json_native
 test: test_byte test_json
