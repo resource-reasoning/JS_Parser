@@ -1,4 +1,5 @@
 # JavaScript Parser
+[![Build Status](https://travis-ci.org/resource-reasoning/JS_Parser.svg?branch=master)](https://travis-ci.org/resource-reasoning/JS_Parser)
 
 This is a JavaScript Parser Wrapper for OCaml that uses swappable backends.
 
