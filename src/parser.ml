@@ -282,7 +282,6 @@ let process_annotation annot =
 	{ annot_type = atype; annot_formula = adesc }
 
 let get_esprima_annotations json =
-	Printf.printf "IN GET_ESPRIMA_ANNOTATIONS\n";
 	let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
 	let actualComments = List.map (fun x -> "\"/**\n" ^ (get_json_string "value" x) ^ "*/\"") leadingComments in
 	let doctrinise x =
@@ -311,7 +310,6 @@ let get_esprima_annotations json =
 let rec json_to_exp json : exp =
   let json_type = get_json_type json in
   let annotations = get_esprima_annotations json in
-  Printf.printf "%s annotated with: \n%s\n\n" json_type (Pretty_print.string_of_annots annotations);
   match json_type with
     | "Program" ->
       let children = get_json_list "body" json in
