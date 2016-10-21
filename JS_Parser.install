@@ -20,8 +20,8 @@ lib: [
   "lib/node_modules/esprima/package.json"     { "runtime/node_modules/esprima/package.json" }
   "lib/node_modules/doctrine/LICENSE.BSD"     { "runtime/node_modules/doctrine/LICENSE.BSD" }
   "lib/node_modules/doctrine/lib/doctrine.js" { "runtime/node_modules/doctrine/lib/doctrine.js" }
-  "lib/node_modules/doctrine/lib/typed.js"    { "runtime/node_modules/doctrine/lib/utility.js" }
-  "lib/node_modules/doctrine/lib/utility.js"  { "runtime/node_modules/doctrine/lib/doctrine.js" }
+  "lib/node_modules/doctrine/lib/typed.js"    { "runtime/node_modules/doctrine/lib/typed.js" }
+  "lib/node_modules/doctrine/lib/utility.js"  { "runtime/node_modules/doctrine/lib/utility.js" }
   "lib/node_modules/doctrine/package.json"    { "runtime/node_modules/doctrine/package.json" }
   "lib/node_modules/esutils/LICENSE.BSD"      { "runtime/node_modules/esutils/LICENSE.BSD" }
   "lib/node_modules/esutils/lib/ast.js"       { "runtime/node_modules/esutils/lib/ast.js" }
