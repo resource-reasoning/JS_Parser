@@ -115,6 +115,12 @@ let get_annot attrs : annotation =
     | "toprequires" -> {annot_type = TopRequires; annot_formula = f}
     | "topensures" -> {annot_type = TopEnsures; annot_formula = f}
     | "topensureserr" -> {annot_type = TopEnsuresErr; annot_formula = f}
+
+    (* Compatibility with Closure Parser *)
+    | "requires" -> {annot_type = Requires; annot_formula = f}
+    | "ensures" -> {annot_type = Ensures; annot_formula = f}
+    | "ensureserr" -> {annot_type = EnsuresErr; annot_formula = f}
+
     | "pre" -> {annot_type = Requires; annot_formula = f}
     | "post" -> {annot_type = Ensures; annot_formula = f}
     | "posterr" -> {annot_type = EnsuresErr; annot_formula = f}
@@ -272,6 +278,12 @@ let process_annotation annot =
 		| "toprequires" -> TopRequires
 		| "topensures" -> TopEnsures
 		| "topensureserr" -> TopEnsuresErr
+
+    (* Compatibility with Closure Parser *)
+    | "requires" -> Requires
+    | "ensures" -> Ensures
+    | "ensureserr" -> EnsuresErr
+
 		| "pre" -> Requires
 		| "post" -> Ensures
 		| "posterr" -> EnsuresErr

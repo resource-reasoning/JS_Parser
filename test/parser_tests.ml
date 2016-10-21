@@ -93,8 +93,8 @@ let assert_equal' = assert_equal ~printer:BatPervasives.dump
 
 let assert_exp_eq = assert_equal' ~cmp:exp_stx_eq
 
-let skip_testing_annots () = ()
-  (* skip_if !use_json "JSON parser doesn't support annotations." *)
+let skip_testing_annots () =
+  skip_if !use_json "JSON parser doesn't support annotations."
 
 let add_script e =
   mk_exp (Script(false, [e])) 0
@@ -652,7 +652,7 @@ let test_obj_init test_ctx =
 
 let test_fun_annot test_ctx =
   skip_testing_annots ();
-  let exp = exp_from_string " /** @pre something \n @post something */ var x = 5;" in
+  let exp = exp_from_string "/** @topensureserr A @ensureserr B */ function f() {'use strict'; return}" in
   let string_exp = mk_exp (String "use strict") 52 in
   let r = mk_exp (Return None) 66 in
   let block = mk_exp (Block [string_exp; r]) 51 in
@@ -665,9 +665,7 @@ let test_fun_annot test_ctx =
 (* TODO: tests for object initializer, unnamed function expression *)
 
 let suite = "Testing_Parser" >:::
-  [
-(**
-   "test_unescape_html" >:: test_unescape_html;
+  ["test_unescape_html" >:: test_unescape_html;
    "test_unescape_html_number" >:: test_unescape_html_number;
    "test_unescape_html_hex" >:: test_unescape_html_hex;
    "test_unescape_html_1" >:: test_unescape_html_1;
@@ -745,7 +743,7 @@ let suite = "Testing_Parser" >:::
    "test_fun_strict" >:: test_fun_strict;
    "test_getter" >:: test_getter;
    "test_setter" >:: test_setter;
-   "test_obj_init" >:: test_obj_init; *)
+   "test_obj_init" >:: test_obj_init;
    "test_fun_annot" >:: test_fun_annot;
   ]
 
