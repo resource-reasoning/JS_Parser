@@ -652,7 +652,7 @@ let test_obj_init test_ctx =
 
 let test_fun_annot test_ctx =
   skip_testing_annots ();
-  let exp = exp_from_string " /* @pre something @post something */ var x = 5;" in
+  let exp = exp_from_string " /** @pre something \n @post something */ var x = 5;" in
   let string_exp = mk_exp (String "use strict") 52 in
   let r = mk_exp (Return None) 66 in
   let block = mk_exp (Block [string_exp; r]) 51 in

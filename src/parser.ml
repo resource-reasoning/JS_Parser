@@ -302,7 +302,7 @@ let get_esprima_annotations json =
 	if (List.length annotations > 0)
 	then begin
 		Printf.printf "Found the following annotations:\n";
-		List.iter (fun x -> Printf.printf "\t%s : %s\n" (string_of_annot x.annot_type) x.annot_formula) annotations
+		List.iter (fun x -> Printf.printf "\t%s : %s\n" (Pretty_print.string_of_annot_type x.annot_type) x.annot_formula) annotations
 	end; *)
 	annotations
 
