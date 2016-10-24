@@ -1,6 +1,6 @@
 opam-version: "1.2"
 name: "JS_Parser"
-version: "dev"
+version: "0.1.0"
 maintainer: "Thomas Wood <thomas.wood09@imperial.ac.uk>"
 authors: [
   "Daiva Naudziuniene <d.naudziuniene11@imperial.ac.uk>"
