@@ -33,25 +33,3 @@ lib: [
   "lib/node_modules/isarray/package.json"     { "runtime/node_modules/isarray/package.json" }
   "lib/node_modules/isarray/index.js"         { "runtime/node_modules/isarray/index.js" }
 ]
-doc: [
-  "JS_Parser.docdir/Parser.html"
-  "JS_Parser.docdir/Parser_main.html"
-  "JS_Parser.docdir/Parser_syntax.html"
-  "JS_Parser.docdir/Pretty_print.html"
-  "JS_Parser.docdir/index.html"
-  "JS_Parser.docdir/index_attributes.html"
-  "JS_Parser.docdir/index_class_types.html"
-  "JS_Parser.docdir/index_classes.html"
-  "JS_Parser.docdir/index_exceptions.html"
-  "JS_Parser.docdir/index_extensions.html"
-  "JS_Parser.docdir/index_methods.html"
-  "JS_Parser.docdir/index_module_types.html"
-  "JS_Parser.docdir/index_modules.html"
-  "JS_Parser.docdir/index_types.html"
-  "JS_Parser.docdir/index_values.html"
-  "JS_Parser.docdir/style.css"
-  "JS_Parser.docdir/type_Parser.html"
-  "JS_Parser.docdir/type_Parser_main.html"
-  "JS_Parser.docdir/type_Parser_syntax.html"
-  "JS_Parser.docdir/type_Pretty_print.html"
-]
