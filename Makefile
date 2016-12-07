@@ -6,6 +6,13 @@ build: src/*
 build_test: src/* test/*
 	ocamlbuild ${FLAGS} test/parser_tests.byte test/parser_tests.native
 
+init:
+	opam pin -yn add JS_Parser .
+	opam instal -y JS_Parser --deps-only -t
+
+install:
+	opam install -y JS_Parser
+
 clean:
 	ocamlbuild ${FLAGS} -clean
 
@@ -27,5 +34,5 @@ test_json_native: build_test
 test_all: test test_native test_json_native
 test: test_byte test_json
 
-.PHONY: build clean doc
+.PHONY: build init install clean doc
 .PHONY: test test_all test_byte test_native test_json test_json_native
