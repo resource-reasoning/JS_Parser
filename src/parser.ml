@@ -476,20 +476,20 @@ let rec json_to_exp json : exp =
     | "ObjectExpression" ->
       let l = map (fun obj ->
         let key = json_propname_element (get_json_field "key" obj) in
-		let leadingComments = try (get_json_list "leadingComments" obj) with _ -> [] in
-		let obj = (match obj with
-			| `Assoc (contents : (string * json) list) ->
-			   let (enriched_contents : (string * json) list)=
-			   	List.map (fun (k, v) : (string * json) ->
-				(match k with
-				 | "value" -> (match (v : json) with
-				   | `Assoc (lst : (string * json) list) ->
-				   	 let (new_contents : json) = `List leadingComments in
-					   (k, `Assoc (("leadingComments", new_contents) :: lst))
-				   | _ -> raise (Failure "Unexpected non-assoc."))
-				 | _ -> (k, v))) contents in
-			  `Assoc enriched_contents
-			| _ -> raise (Failure "Unexpected non-assoc.")) in
+        let leadingComments = try (get_json_list "leadingComments" obj) with _ -> [] in
+        let obj = (match obj with
+          | `Assoc (contents : (string * json) list) ->
+            let (enriched_contents : (string * json) list)=
+              List.map (fun ((k, v) : (string * json)) ->
+                (match k with
+                  | "value" -> (match (v : json) with
+                    | `Assoc (lst : (string * json) list) ->
+                      let (new_contents : json) = `List leadingComments in
+                      (k, `Assoc (("leadingComments", new_contents) :: lst))
+                    | _ -> raise (Failure "Unexpected non-assoc."))
+                  | _ -> (k, v))) contents in
+            `Assoc enriched_contents
+          | _ -> raise (Failure "Unexpected non-assoc.")) in
         let value = json_to_exp (get_json_field "value" obj) in
         match (get_json_string "kind" obj) with
           | "init" -> (key, PropbodyVal, value)
