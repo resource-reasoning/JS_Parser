@@ -650,9 +650,8 @@ let test_obj_init test_ctx =
   let script = mk_exp (Script (false, [assign])) 0 in
   assert_exp_eq script exp
 
-let test_fun_annot test_ctx =
-  skip_testing_annots ();
-  let exp = exp_from_string "/** @topensureserr A @ensureserr B */ function f() {'use strict'; return}" in
+(* let test_fun_annot test_ctx =
+  let exp = exp_from_file "test.js" in
   let string_exp = mk_exp (String "use strict") 52 in
   let r = mk_exp (Return None) 66 in
   let block = mk_exp (Block [string_exp; r]) 51 in
@@ -660,7 +659,7 @@ let test_fun_annot test_ctx =
     [{annot_type = EnsuresErr; annot_formula = "B"}] in
   let script = mk_exp_with_annot (Script (false, [f])) 0
     [{annot_type = TopEnsuresErr; annot_formula = "A"}] in
-  assert_equal' script exp
+  assert_equal' script exp *)
 
 (* TODO: tests for object initializer, unnamed function expression *)
 
@@ -744,10 +743,10 @@ let suite = "Testing_Parser" >:::
    "test_getter" >:: test_getter;
    "test_setter" >:: test_setter;
    "test_obj_init" >:: test_obj_init;
-   "test_fun_annot" >:: test_fun_annot;
+   (* "test_fun_annot" >:: test_fun_annot; *)
   ]
 
-let json = Conf.make_bool "json" false "test json parser"
+let json = Conf.make_bool "json" true "test json parser"
 
 let decorator test test_ctx =
   use_json := json test_ctx;

@@ -26,6 +26,11 @@ exception More_Than_One_Finally
 exception CannotHappen
 exception Empty_list
 
+let burn_to_disk path data =
+	let oc = open_out path in
+		output_string oc data;
+		close_out oc
+
 let unescape_html s =
   Str.global_substitute
     (Str.regexp "&lt;\\|&gt;\\|&amp;\\|&quot;\\|&apos;\\|&#[0-9]*;\\|&#x[0-9a-fA-F]*;")
@@ -279,10 +284,10 @@ let process_annotation annot =
 		| "topensures" -> TopEnsures
 		| "topensureserr" -> TopEnsuresErr
 
-    (* Compatibility with Closure Parser *)
-    | "requires" -> Requires
-    | "ensures" -> Ensures
-    | "ensureserr" -> EnsuresErr
+	    (* Compatibility with Closure Parser *)
+	    | "requires" -> Requires
+	    | "ensures" -> Ensures
+	    | "ensureserr" -> EnsuresErr
 
 		| "pre" -> Requires
 		| "post" -> Ensures
@@ -295,9 +300,13 @@ let process_annotation annot =
 
 let get_esprima_annotations json =
 	let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
-	let actualComments = List.map (fun x -> "\"/**\n" ^ (get_json_string "value" x) ^ "*/\"") leadingComments in
+	let actualComments = List.map (fun x -> "/* " ^ (get_json_string "value" x) ^ " */") leadingComments in
+	(* Printf.printf ("\nNumber of comments: %d\n") (List.length actualComments);
+	List.iter (fun x -> Printf.printf "%s\n" x) actualComments; *)
 	let doctrinise x =
-		(match Unix.system ("node " ^ !doctrine_path ^ " " ^ x ^ " " ^ !doctrine_file) with
+		let file = "temp.temp" in
+		burn_to_disk file x;
+		(match Unix.system ("node " ^ !doctrine_path ^ " " ^ file ^ " " ^ !doctrine_file) with
     	| Unix.WEXITED n ->
         	(if (n <> 0) then raise JS_To_XML_parser_failure)
     	| _ -> raise JS_To_XML_parser_failure) in
@@ -313,7 +322,7 @@ let get_esprima_annotations json =
 	(* Printing
 	if (List.length annotations > 0)
 	then begin
-		Printf.printf "Found the following annotations:\n";
+		Printf.printf "\nFound the following annotations:\n";
 		List.iter (fun x -> Printf.printf "\t%s : %s\n" (Pretty_print.string_of_annot_type x.annot_type) x.annot_formula) annotations
 	end; *)
 	annotations
@@ -457,9 +466,30 @@ let rec json_to_exp json : exp =
     | "ArrayExpression" ->
       let members = get_json_list "elements" json in
       json_parse_array_literal members (get_json_offset json) annotations
+
+(* let get_json_field field_name json =
+  match json with
+    | `Assoc contents ->
+        snd (List.find (fun (str, _) -> (str = field_name)) contents)
+    | _ -> print_string field_name; raise Empty_list *)
+
     | "ObjectExpression" ->
       let l = map (fun obj ->
         let key = json_propname_element (get_json_field "key" obj) in
+		let leadingComments = try (get_json_list "leadingComments" obj) with _ -> [] in
+		let obj = (match obj with
+			| `Assoc (contents : (string * json) list) ->
+			   let (enriched_contents : (string * json) list)=
+			   	List.map (fun (k, v) : (string * json) ->
+				(match k with
+				 | "value" -> (match (v : json) with
+				   | `Assoc (lst : (string * json) list) ->
+				   	 let (new_contents : json) = `List leadingComments in
+					   (k, `Assoc (("leadingComments", new_contents) :: lst))
+				   | _ -> raise (Failure "Unexpected non-assoc."))
+				 | _ -> (k, v))) contents in
+			  `Assoc enriched_contents
+			| _ -> raise (Failure "Unexpected non-assoc.")) in
         let value = json_to_exp (get_json_field "value" obj) in
         match (get_json_string "kind" obj) with
           | "init" -> (key, PropbodyVal, value)
@@ -549,7 +579,7 @@ json_parse_literal lit =
     | `Float(f)    -> Num(f)
     | `Int(i)      -> Num(float_of_int(i))
     | `Intlit(s)   -> Num(float_of_string(s))
-    | `Null        -> if(raw = "null") then Null else Num(infinity) (*This is a very bad workaround*)
+    | `Null        -> if (raw = "null") then Null else Num(infinity) (*This is a very bad workaround*)
     | `String(str) -> String(str)
     | `Assoc([]) -> json_parse_regexp(raw) (*This is a regexp*)
     | _ -> raise InvalidArgument
