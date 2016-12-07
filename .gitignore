@@ -5,3 +5,4 @@ parser_tests.native
 *.cmxa
 .DS_Store
 doctrine.json
+JS_Parser.docdir

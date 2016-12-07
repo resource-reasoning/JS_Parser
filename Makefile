@@ -9,6 +9,9 @@ build_test: src/* test/*
 clean:
 	ocamlbuild ${FLAGS} -clean
 
+doc:
+	ocamlbuild ${FLAGS} src/JS_Parser.docdir/index.html
+
 test_byte: build_test
 	./parser_tests.byte
 
@@ -24,5 +27,5 @@ test_json_native: build_test
 test_all: test test_native test_json_native
 test: test_byte test_json
 
-.PHONY: build clean
+.PHONY: build clean doc
 .PHONY: test test_all test_byte test_native test_json test_json_native
