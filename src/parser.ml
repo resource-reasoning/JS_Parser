@@ -126,6 +126,8 @@ let get_annot attrs : annotation =
     | "ensures" -> {annot_type = Ensures; annot_formula = f}
     | "ensureserr" -> {annot_type = EnsuresErr; annot_formula = f}
 
+	| "id" -> {annot_type = Id; annot_formula = f}
+	| "rec" -> {annot_type = Rec; annot_formula = f}
     | "pre" -> {annot_type = Requires; annot_formula = f}
     | "post" -> {annot_type = Ensures; annot_formula = f}
     | "posterr" -> {annot_type = EnsuresErr; annot_formula = f}

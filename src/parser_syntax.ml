@@ -62,6 +62,8 @@ type annotation_type =
   | Invariant
   | Codename
   | PredDefn
+  | Id
+  | Rec
 
 type annotation =
   {
