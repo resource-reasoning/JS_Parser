@@ -291,6 +291,8 @@ let process_annotation annot =
 	    | "ensures" -> Ensures
 	    | "ensureserr" -> EnsuresErr
 
+		| "id" -> Id
+		| "rec" -> Rec
 		| "pre" -> Requires
 		| "post" -> Ensures
 		| "posterr" -> EnsuresErr
