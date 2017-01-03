@@ -26,10 +26,17 @@ exception More_Than_One_Finally
 exception CannotHappen
 exception Empty_list
 
+
+(* ******************** 
+   *      COMMON      *
+   ******************** *)
+
 let burn_to_disk path data =
 	let oc = open_out path in
 		output_string oc data;
 		close_out oc
+		
+let flat_map f l = flatten (map f l)
 
 let unescape_html s =
   Str.global_substitute
@@ -60,187 +67,10 @@ let unescape_html s =
           else assert false)
     s
 
-let flat_map f l = flatten (map f l)
-
-let get_attr attrs attr_name =
-  let _, value = List.find (fun (name, value) -> name = attr_name) attrs in unescape_html value
-
-let get_offset attrs : int =
-  int_of_string (get_attr attrs "pos")
-
-let get_value attrs : string =
-  get_attr attrs "value"
-
-let get_flags attrs : string =
-  try
-    get_attr attrs "flags"
-  with Not_found -> ""
-
-let get_label_name xml : string =
-  match xml with
-    | Element ("LABEL", attrs, _) -> get_attr attrs "name"
-    | _ -> raise Parser_Xml_To_Label_Name
-
-let string_element xml : string =
-  match xml with
-    | Element ("STRING", attrs, _) -> get_value attrs
-    | _ -> raise Parser_Xml_To_String
-
-let name_element xml : string =
-  match xml with
-    | Element ("NAME", attrs, _) -> get_value attrs
-    | Element (el, _, _) -> raise (Parser_Name_Element el)
-    | _ -> raise (Parser_Name_Element "")
-
-let propname_element xml : propname =
-  match xml with
-    | Element ("NAME", attrs, _) -> PropnameId (get_value attrs)
-    | Element ("STRING", attrs, _) -> PropnameString (get_value attrs)
-    | Element ("NUMBER", attrs, _) -> PropnameNum (float_of_string (get_value attrs))
-    | Element (el, _, _) -> raise (Parser_Name_Element el)
-    | _ -> raise (Parser_Name_Element "")
-
-let remove_annotation_elements children =
-  filter (fun child ->
-    match child with
-      | Element ("ANNOTATION", _, _) -> false
-      | _ -> true
-  ) children
-
-let rec xml_to_vars xml : string list =
-  match xml with
-    | Element ("PARAM_LIST", _, children) ->
-      map name_element (remove_annotation_elements children)
-    | _ -> raise Parser_Param_List
-
-let get_annot attrs : annotation =
-  let atype = get_attr attrs "type" in
-  let f = get_attr attrs "formula" in
-  match atype with
-    | "toprequires" -> {annot_type = TopRequires; annot_formula = f}
-    | "topensures" -> {annot_type = TopEnsures; annot_formula = f}
-    | "topensureserr" -> {annot_type = TopEnsuresErr; annot_formula = f}
-
-    (* Compatibility with Closure Parser *)
-    | "requires" -> {annot_type = Requires; annot_formula = f}
-    | "ensures" -> {annot_type = Ensures; annot_formula = f}
-    | "ensureserr" -> {annot_type = EnsuresErr; annot_formula = f}
-
-	| "id" -> {annot_type = Id; annot_formula = f}
-	| "rec" -> {annot_type = Rec; annot_formula = f}
-    | "pre" -> {annot_type = Requires; annot_formula = f}
-    | "post" -> {annot_type = Ensures; annot_formula = f}
-    | "posterr" -> {annot_type = EnsuresErr; annot_formula = f}
-    | "invariant" -> {annot_type = Invariant; annot_formula = f}
-    | "codename" -> {annot_type = Codename; annot_formula = f}
-    | "preddefn" -> {annot_type = PredDefn; annot_formula = f}
-    | annot -> raise (Unknown_Annotation annot)
-
-type dec_inc_pos =
-  | DI_PRE
-  | DI_POST
-
-let get_dec_inc_pos attrs : dec_inc_pos =
-  let pos = get_attr attrs "incdec_pos" in
-  match pos with
-    | "pre" -> DI_PRE
-    | "post" -> DI_POST
-    | _ -> raise Unknown_Dec_Inc_Position
-
-let rec get_program_spec_inner (f : xml) =
-  match f with
-    | Element ("FUNCTION", _, children) ->
-      let not_block = filter (fun child ->
-        match child with
-          | Element ("BLOCK", _, _) -> false
-          | _ -> true
-      ) children in
-      flat_map get_program_spec_inner not_block
-    | Element ("ANNOTATION", attrs, []) ->
-      let annot = get_annot attrs in
-      if is_top_spec annot then [annot] else []
-    | Element (_, _, children) -> flat_map get_program_spec_inner children
-    | _ -> []
-
-let get_program_spec (f : xml) =
-  match f with
-    | Element ("SCRIPT", _, children) ->
-      flat_map (fun child -> get_program_spec_inner child) children
-    | _ -> raise InvalidArgument
-
-let get_annotations children =
-  flat_map (fun child ->
-    match child with
-      | Element ("ANNOTATION", attrs, []) -> [get_annot attrs]
-      | _ -> []
-   ) children
-
-let get_function_spec (f : xml) =
-  match f with
-    | Element ("FUNCTION", _, children) -> List.filter is_function_spec (get_annotations children)
-    | _ -> raise InvalidArgument
-
-let rec get_invariant_inner (w : xml) =
-  match w with
-    | Element ("WHILE", _, _) -> []
-    | Element ("FOR", _, _) -> []
-    | Element ("DO", _, _) -> []
-    | Element ("ANNOTATION", attrs, []) ->
-      let annot = get_annot attrs in
-      if is_invariant annot then [annot] else []
-    | Element (_, _, children) -> flat_map (fun child -> get_invariant_inner child) children
-    | PCData _ -> []
-
-let rec get_invariant (w : xml) =
-  match w with
-    | Element ("WHILE", _, children)
-    | Element ("FOR", _, children)
-    | Element ("DO", _, children) ->
-      flat_map (fun child -> get_invariant_inner child) children
-    | _ -> raise InvalidArgument
-
-let get_xml_child xml =
-  match xml with
-    | Element (tag, attrs, children) ->
-		  begin match (remove_annotation_elements children) with
-		    | [child1] -> child1
-		    | _ -> raise (Parser_Unknown_Tag (tag, (get_offset attrs)))
-		  end
-    | _ -> raise CannotHappen
-
-let get_xml_two_children xml =
-  match xml with
-    | Element (tag, attrs, children) ->
-      begin match (remove_annotation_elements children) with
-        | [child1; child2] -> child1, child2
-        | _ -> raise (Parser_Unknown_Tag (tag, (get_offset attrs)))
-      end
-    | _ -> raise CannotHappen
-
-let get_xml_three_children xml =
-  match xml with
-    | Element (tag, attrs, children) ->
-      begin match (remove_annotation_elements children) with
-        | [child1; child2; child3] -> child1, child2, child3
-        | _ -> raise (Parser_Unknown_Tag (tag, (get_offset attrs)))
-      end
-    | _ -> raise CannotHappen
-
-let split_last stmts =
-  match stmts with
-    | [] -> raise Empty_list
-    | hd :: tl ->
-      let rec aux l acc = function
-          | [] -> l, rev acc
-          | hd :: tl -> aux hd (l::acc) tl
-      in aux hd [] tl
-
-let mapi f l =
-  let rec aux i = function
-    | [] -> []
-    | hd :: tl -> (f i hd) :: (aux (i + 1) tl)
-  in aux 0 l
-
+(* ******************** 
+   *       JSON       *
+   ******************** *)
+	
 let get_json_field field_name json =
   match json with
     | `Assoc contents ->
@@ -259,7 +89,6 @@ let get_json_offset json =
        | _ -> raise CannotHappen
   )  with
   | Not_found -> 0
-
 
 let get_json_list field json =
   match get_json_field field json with
@@ -282,23 +111,27 @@ let get_json_ident_name ident =
 let process_annotation annot =
 	let atype = get_json_string "title" annot in
 	let atype = (match atype with
+	
+		(* Compatibility with Closure Parser *)
+		| "requires" -> Requires
+		| "ensures" -> Ensures
+		| "ensureserr" -> EnsuresErr
+		
 		| "toprequires" -> TopRequires
 		| "topensures" -> TopEnsures
 		| "topensureserr" -> TopEnsuresErr
-
-	    (* Compatibility with Closure Parser *)
-	    | "requires" -> Requires
-	    | "ensures" -> Ensures
-	    | "ensureserr" -> EnsuresErr
-
-		| "id" -> Id
-		| "rec" -> Rec
 		| "pre" -> Requires
 		| "post" -> Ensures
 		| "posterr" -> EnsuresErr
-		| "invariant" -> Invariant
+		| "id" -> Id
+		| "rec" -> Rec
 		| "codename" -> Codename
-		| "preddefn" -> PredDefn) in
+		| "pred" -> Pred
+		| "fold" -> Fold
+		| "unfold" -> Unfold
+		| "invariant" -> Invariant
+		| annot -> raise (Unknown_Annotation annot)) in
+	
 	let adesc = get_json_string "description" annot in
 	{ annot_type = atype; annot_formula = adesc }
 
@@ -323,14 +156,13 @@ let get_esprima_annotations json =
 		(fun ac x ->
 			ac @ [ process_annotation x ]) [] annots in
 		ac @ annots) [] actualComments in
-	(* Printing
+	(* Printing 
 	if (List.length annotations > 0)
 	then begin
 		Printf.printf "\nFound the following annotations:\n";
-		List.iter (fun x -> Printf.printf "\t%s : %s\n" (Pretty_print.string_of_annot_type x.annot_type) x.annot_formula) annotations
+		List.iter (fun x -> Printf.printf "%s : %s\n\n" (Pretty_print.string_of_annot_type x.annot_type) x.annot_formula) annotations
 	end; *)
 	annotations
-
 
 let rec json_to_exp json : exp =
   let json_type = get_json_type json in
@@ -702,6 +534,195 @@ json_nest_sequence expressions off annotations =
       let init = mk_exp (Comma (json_to_exp fst, json_to_exp snd)) off [] in
       let seq = List.fold_left (fun acc e -> mk_exp (Comma (acc, json_to_exp e)) off []) init rest in
 	  { seq with exp_annot = annotations }
+    | _ -> raise CannotHappen
+
+
+
+
+
+(* ******************* 
+   *       XML       *
+   ******************* *)
+
+let is_top_spec annot : bool =
+  annot.annot_type = TopRequires ||
+  annot.annot_type = TopEnsures ||
+  annot.annot_type = TopEnsuresErr
+
+let is_function_spec annot : bool =
+  annot.annot_type = Requires ||
+  annot.annot_type = Ensures ||
+  annot.annot_type = EnsuresErr ||
+  annot.annot_type = Codename ||
+	annot.annot_type = Pred
+
+let is_invariant annot : bool =
+  annot.annot_type = Invariant
+
+let get_attr attrs attr_name =
+  let _, value = List.find (fun (name, value) -> name = attr_name) attrs in unescape_html value
+
+let get_offset attrs : int =
+  int_of_string (get_attr attrs "pos")
+
+let get_value attrs : string =
+  get_attr attrs "value"
+
+let get_flags attrs : string =
+  try
+    get_attr attrs "flags"
+  with Not_found -> ""
+
+let get_annot attrs : annotation =
+  let atype = get_attr attrs "type" in
+  let f = get_attr attrs "formula" in
+  match atype with
+	(* Compatibility with Closure Parser *)
+	| "requires" -> {annot_type = Requires; annot_formula = f}
+	| "ensures" -> {annot_type = Ensures; annot_formula = f}
+	| "ensureserr" -> {annot_type = EnsuresErr; annot_formula = f}
+
+	| "toprequires" -> {annot_type = TopRequires; annot_formula = f}
+	| "topensures" -> {annot_type = TopEnsures; annot_formula = f}
+	| "topensureserr" -> {annot_type = TopEnsuresErr; annot_formula = f}
+	
+	| "pre" -> {annot_type = Requires; annot_formula = f}
+	| "post" -> {annot_type = Ensures; annot_formula = f}
+	| "posterr" -> {annot_type = EnsuresErr; annot_formula = f}
+	| "id" -> {annot_type = Id; annot_formula = f}
+	| "rec" -> {annot_type = Rec; annot_formula = f}
+	| "codename" -> {annot_type = Codename; annot_formula = f}
+	| "pred" -> {annot_type = Pred; annot_formula = f}
+	| "fold" -> {annot_type = Fold; annot_formula = f}
+	| "unfold" -> {annot_type = Unfold; annot_formula = f}
+	| "invariant" -> {annot_type = Invariant; annot_formula = f}
+	| annot -> raise (Unknown_Annotation annot)
+
+type dec_inc_pos =
+  | DI_PRE
+  | DI_POST
+
+let get_dec_inc_pos attrs : dec_inc_pos =
+  let pos = get_attr attrs "incdec_pos" in
+  match pos with
+    | "pre" -> DI_PRE
+    | "post" -> DI_POST
+    | _ -> raise Unknown_Dec_Inc_Position
+
+let get_label_name xml : string =
+  match xml with
+    | Element ("LABEL", attrs, _) -> get_attr attrs "name"
+    | _ -> raise Parser_Xml_To_Label_Name
+
+let string_element xml : string =
+  match xml with
+    | Element ("STRING", attrs, _) -> get_value attrs
+    | _ -> raise Parser_Xml_To_String
+
+let name_element xml : string =
+  match xml with
+    | Element ("NAME", attrs, _) -> get_value attrs
+    | Element (el, _, _) -> raise (Parser_Name_Element el)
+    | _ -> raise (Parser_Name_Element "")
+
+let propname_element xml : propname =
+  match xml with
+    | Element ("NAME", attrs, _) -> PropnameId (get_value attrs)
+    | Element ("STRING", attrs, _) -> PropnameString (get_value attrs)
+    | Element ("NUMBER", attrs, _) -> PropnameNum (float_of_string (get_value attrs))
+    | Element (el, _, _) -> raise (Parser_Name_Element el)
+    | _ -> raise (Parser_Name_Element "")
+
+let remove_annotation_elements children =
+  filter (fun child ->
+    match child with
+      | Element ("ANNOTATION", _, _) -> false
+      | _ -> true
+  ) children
+
+let rec xml_to_vars xml : string list =
+  match xml with
+    | Element ("PARAM_LIST", _, children) ->
+      map name_element (remove_annotation_elements children)
+    | _ -> raise Parser_Param_List
+
+let rec get_program_spec_inner (f : xml) =
+  match f with
+    | Element ("FUNCTION", _, children) ->
+      let not_block = filter (fun child ->
+        match child with
+          | Element ("BLOCK", _, _) -> false
+          | _ -> true
+      ) children in
+      flat_map get_program_spec_inner not_block
+    | Element ("ANNOTATION", attrs, []) ->
+      let annot = get_annot attrs in
+      if is_top_spec annot then [annot] else []
+    | Element (_, _, children) -> flat_map get_program_spec_inner children
+    | _ -> []
+
+let get_program_spec (f : xml) =
+  match f with
+    | Element ("SCRIPT", _, children) ->
+      flat_map (fun child -> get_program_spec_inner child) children
+    | _ -> raise InvalidArgument
+
+let get_annotations children =
+  flat_map (fun child ->
+    match child with
+      | Element ("ANNOTATION", attrs, []) -> [get_annot attrs]
+      | _ -> []
+   ) children
+
+let get_function_spec (f : xml) =
+  match f with
+    | Element ("FUNCTION", _, children) -> List.filter is_function_spec (get_annotations children)
+    | _ -> raise InvalidArgument
+
+let rec get_invariant_inner (w : xml) =
+  match w with
+    | Element ("WHILE", _, _) -> []
+    | Element ("FOR", _, _) -> []
+    | Element ("DO", _, _) -> []
+    | Element ("ANNOTATION", attrs, []) ->
+      let annot = get_annot attrs in
+      if is_invariant annot then [annot] else []
+    | Element (_, _, children) -> flat_map (fun child -> get_invariant_inner child) children
+    | PCData _ -> []
+
+let rec get_invariant (w : xml) =
+  match w with
+    | Element ("WHILE", _, children)
+    | Element ("FOR", _, children)
+    | Element ("DO", _, children) ->
+      flat_map (fun child -> get_invariant_inner child) children
+    | _ -> raise InvalidArgument
+
+let get_xml_child xml =
+  match xml with
+    | Element (tag, attrs, children) ->
+		  begin match (remove_annotation_elements children) with
+		    | [child1] -> child1
+		    | _ -> raise (Parser_Unknown_Tag (tag, (get_offset attrs)))
+		  end
+    | _ -> raise CannotHappen
+
+let get_xml_two_children xml =
+  match xml with
+    | Element (tag, attrs, children) ->
+      begin match (remove_annotation_elements children) with
+        | [child1; child2] -> child1, child2
+        | _ -> raise (Parser_Unknown_Tag (tag, (get_offset attrs)))
+      end
+    | _ -> raise CannotHappen
+
+let get_xml_three_children xml =
+  match xml with
+    | Element (tag, attrs, children) ->
+      begin match (remove_annotation_elements children) with
+        | [child1; child2; child3] -> child1, child2, child3
+        | _ -> raise (Parser_Unknown_Tag (tag, (get_offset attrs)))
+      end
     | _ -> raise CannotHappen
 
 let rec xml_to_exp xml : exp =

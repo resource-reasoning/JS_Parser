@@ -59,17 +59,19 @@ let string_of_vars xs =
 
 let string_of_annot_type atype =
   match atype with
-    | TopRequires -> "@toprequires"
-    | TopEnsures -> "@topensures"
-    | TopEnsuresErr -> "@topensureserr"
-    | Requires -> "@pre"
-    | Ensures -> "@post"
-    | EnsuresErr -> "@posterr"
-    | Invariant -> "@invariant"
-    | Codename -> "@codename"
-    | PredDefn -> "@preddefn"
+	| TopRequires -> "@toprequires"
+	| TopEnsures -> "@topensures"
+	| TopEnsuresErr -> "@topensureserr"
+	| Requires -> "@pre"
+	| Ensures -> "@post"
+	| EnsuresErr -> "@posterr"
 	| Id -> "@id"
 	| Rec -> "@rec"
+	| Codename -> "@codename"
+	| Pred -> "@pred"
+	| Fold -> "@fold"
+	| Unfold -> "@unfold"
+	| Invariant -> "@invariant"
 
 let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (annot.annot_formula)
 

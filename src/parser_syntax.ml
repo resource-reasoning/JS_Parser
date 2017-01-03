@@ -53,39 +53,26 @@ type unary_op =
 type var = string
 
 type annotation_type =
-  | TopRequires
+  | TopRequires   
   | TopEnsures
   | TopEnsuresErr
   | Requires
   | Ensures
   | EnsuresErr
-  | Invariant
-  | Codename
-  | PredDefn
   | Id
   | Rec
+  | Codename
+  | Pred
+	| Fold
+	| Unfold
+  | Invariant
+
 
 type annotation =
   {
     annot_type : annotation_type;
     annot_formula : string
   }
-
-let is_top_spec annot : bool =
-  annot.annot_type = TopRequires ||
-  annot.annot_type = TopEnsures ||
-  annot.annot_type = TopEnsuresErr ||
-  annot.annot_type = PredDefn
-
-let is_function_spec annot : bool =
-  annot.annot_type = Requires ||
-  annot.annot_type = Ensures ||
-  annot.annot_type = EnsuresErr ||
-  annot.annot_type = Codename ||
-  annot.annot_type = PredDefn
-
-let is_invariant annot : bool =
-  annot.annot_type = Invariant
 
 type propname =
   | PropnameId of string
