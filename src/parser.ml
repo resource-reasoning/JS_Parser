@@ -199,8 +199,24 @@ let rec json_to_exp json : exp =
             let vars = map (json_var_declaration offset) children in
             mk_exp (VarDec vars) offset annotations
       end
+			
     | "ExpressionStatement" ->
-      json_to_exp (get_json_field "expression" json)
+			(* Get the leading comments *)
+			let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
+			(* Get the body of the expression *)
+			let jfexp = get_json_field "expression" json in
+			let jfexp = (match jfexp with
+	      | `Assoc (contents : (string * json) list) ->
+					let ylCom, nlCom = List.partition (fun (k, _) -> k = "leadingComments") contents in
+					let newLeadingComments = (match ylCom with
+					  | [] -> leadingComments
+					  | [ (_, `List innerLeadingComments) ] -> leadingComments @ innerLeadingComments
+					  | _ -> raise (Failure "JSON with two fields of the same name.")) in
+					let enriched_contents = nlCom @ [ "leadingComments", `List newLeadingComments ] in
+	        `Assoc enriched_contents
+	      | _ -> raise (Failure "Unexpected non-assoc.")) in
+      json_to_exp jfexp
+			
     | "IfStatement" ->
       let offset = get_json_offset json in
       let test = json_to_exp (get_json_field "test" json) in
