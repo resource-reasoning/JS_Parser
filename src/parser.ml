@@ -130,6 +130,9 @@ let process_annotation annot =
 		| "fold" -> Fold
 		| "unfold" -> Unfold
 		| "invariant" -> Invariant
+		| "spec" -> Spec
+		| "topspec" -> TopSpec
+		| "onlyspec" -> OnlySpec
 		| annot -> raise (Unknown_Annotation annot)) in
 	
 	let adesc = get_json_string "description" annot in

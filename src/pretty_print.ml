@@ -72,6 +72,9 @@ let string_of_annot_type atype =
 	| Fold -> "@fold"
 	| Unfold -> "@unfold"
 	| Invariant -> "@invariant"
+	| Spec -> "@spec"
+	| TopSpec -> "@topspec"
+	| OnlySpec -> "@onlyspec"
 
 let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (annot.annot_formula)
 

@@ -66,6 +66,9 @@ type annotation_type =
 	| Fold
 	| Unfold
   | Invariant
+	| Spec
+	| TopSpec
+	| OnlySpec
 
 
 type annotation =
