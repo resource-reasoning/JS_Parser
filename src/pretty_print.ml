@@ -71,6 +71,7 @@ let string_of_annot_type atype =
 	| Pred -> "@pred"
 	| Fold -> "@fold"
 	| Unfold -> "@unfold"
+	| RecUnfold -> "@recunfold"
 	| Invariant -> "@invariant"
 	| Spec -> "@spec"
 	| TopSpec -> "@topspec"

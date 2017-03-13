@@ -65,6 +65,7 @@ type annotation_type =
   | Pred
 	| Fold
 	| Unfold
+	| RecUnfold
   | Invariant
 	| Spec
 	| TopSpec

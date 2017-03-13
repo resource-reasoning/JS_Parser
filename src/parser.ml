@@ -129,6 +129,7 @@ let process_annotation annot =
 		| "pred" -> Pred
 		| "fold" -> Fold
 		| "unfold" -> Unfold
+		| "recunfold" -> RecUnfold
 		| "invariant" -> Invariant
 		| "spec" -> Spec
 		| "topspec" -> TopSpec
@@ -614,6 +615,7 @@ let get_annot attrs : annotation =
 	| "pred" -> {annot_type = Pred; annot_formula = f}
 	| "fold" -> {annot_type = Fold; annot_formula = f}
 	| "unfold" -> {annot_type = Unfold; annot_formula = f}
+	| "recunfold" -> {annot_type = RecUnfold; annot_formula = f}
 	| "invariant" -> {annot_type = Invariant; annot_formula = f}
 	| annot -> raise (Unknown_Annotation annot)
 
