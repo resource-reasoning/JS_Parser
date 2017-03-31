@@ -70,6 +70,7 @@ type annotation_type =
 	| Spec
 	| TopSpec
 	| OnlySpec
+  | CallSpec
 
 
 type annotation =

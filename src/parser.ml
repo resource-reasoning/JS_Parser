@@ -134,6 +134,7 @@ let process_annotation annot =
 		| "spec" -> Spec
 		| "topspec" -> TopSpec
 		| "onlyspec" -> OnlySpec
+    | "callspec" -> CallSpec
 		| annot -> raise (Unknown_Annotation annot)) in
 	
 	let adesc = get_json_string "description" annot in

@@ -76,6 +76,7 @@ let string_of_annot_type atype =
 	| Spec -> "@spec"
 	| TopSpec -> "@topspec"
 	| OnlySpec -> "@onlyspec"
+  | CallSpec -> "@callspec"
 
 let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (annot.annot_formula)
 
