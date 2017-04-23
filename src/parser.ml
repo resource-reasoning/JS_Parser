@@ -131,6 +131,7 @@ let process_annotation annot =
 		| "unfold" -> Unfold
 		| "recunfold" -> RecUnfold
 		| "invariant" -> Invariant
+    | "assert" -> Assert
 		| "spec" -> Spec
 		| "topspec" -> TopSpec
 		| "onlyspec" -> OnlySpec
@@ -580,6 +581,9 @@ let is_function_spec annot : bool =
 let is_invariant annot : bool =
   annot.annot_type = Invariant
 
+let is_assert annot : bool = 
+  annot.annot_type = Assert
+
 let get_attr attrs attr_name =
   let _, value = List.find (fun (name, value) -> name = attr_name) attrs in unescape_html value
 
@@ -618,6 +622,7 @@ let get_annot attrs : annotation =
 	| "unfold" -> {annot_type = Unfold; annot_formula = f}
 	| "recunfold" -> {annot_type = RecUnfold; annot_formula = f}
 	| "invariant" -> {annot_type = Invariant; annot_formula = f}
+  | "assert" -> {annot_type = Assert; annot_formula = f}
 	| annot -> raise (Unknown_Annotation annot)
 
 type dec_inc_pos =
