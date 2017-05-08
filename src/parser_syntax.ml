@@ -68,6 +68,7 @@ type annotation_type =
 	| RecUnfold
   | Invariant
   | Assert
+	| Flash
 	| Spec
 	| TopSpec
 	| OnlySpec

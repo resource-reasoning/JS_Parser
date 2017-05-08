@@ -132,6 +132,7 @@ let process_annotation annot =
 		| "recunfold" -> RecUnfold
 		| "invariant" -> Invariant
     | "assert" -> Assert
+		| "flash" -> Flash
 		| "spec" -> Spec
 		| "topspec" -> TopSpec
 		| "onlyspec" -> OnlySpec
@@ -620,6 +621,7 @@ let get_annot attrs : annotation =
 	| "pred" -> {annot_type = Pred; annot_formula = f}
 	| "fold" -> {annot_type = Fold; annot_formula = f}
 	| "unfold" -> {annot_type = Unfold; annot_formula = f}
+	| "flash" -> {annot_type = Flash; annot_formula = f}
 	| "recunfold" -> {annot_type = RecUnfold; annot_formula = f}
 	| "invariant" -> {annot_type = Invariant; annot_formula = f}
   | "assert" -> {annot_type = Assert; annot_formula = f}
