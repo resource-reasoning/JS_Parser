@@ -66,19 +66,10 @@ let string_of_annot_type atype =
 	| Ensures -> "@post"
 	| EnsuresErr -> "@posterr"
 	| Id -> "@id"
-	| Rec -> "@rec"
-	| Codename -> "@codename"
 	| Pred -> "@pred"
-	| Fold -> "@fold"
-	| Unfold -> "@unfold"
-	| Assert -> "@assert"
-	| Flash -> "@flash"
-	| RecUnfold -> "@recunfold"
 	| Invariant -> "@invariant"
-	| Spec -> "@spec"
-	| TopSpec -> "@topspec"
 	| OnlySpec -> "@onlyspec"
-  | CallSpec -> "@callspec"
+	| Tactic -> "@tactic"
 
 let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (annot.annot_formula)
 

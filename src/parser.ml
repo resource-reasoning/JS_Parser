@@ -124,19 +124,10 @@ let process_annotation annot =
 		| "post" -> Ensures
 		| "posterr" -> EnsuresErr
 		| "id" -> Id
-		| "rec" -> Rec
-		| "codename" -> Codename
 		| "pred" -> Pred
-		| "fold" -> Fold
-		| "unfold" -> Unfold
-		| "recunfold" -> RecUnfold
-		| "invariant" -> Invariant
-    | "assert" -> Assert
-		| "flash" -> Flash
-		| "spec" -> Spec
-		| "topspec" -> TopSpec
 		| "onlyspec" -> OnlySpec
-    | "callspec" -> CallSpec
+		| "invariant" -> Invariant
+		| "tactic" -> Tactic
 		| annot -> raise (Unknown_Annotation annot)) in
 	
 	let adesc = get_json_string "description" annot in
@@ -576,14 +567,10 @@ let is_function_spec annot : bool =
   annot.annot_type = Requires ||
   annot.annot_type = Ensures ||
   annot.annot_type = EnsuresErr ||
-  annot.annot_type = Codename ||
 	annot.annot_type = Pred
 
 let is_invariant annot : bool =
   annot.annot_type = Invariant
-
-let is_assert annot : bool = 
-  annot.annot_type = Assert
 
 let get_attr attrs attr_name =
   let _, value = List.find (fun (name, value) -> name = attr_name) attrs in unescape_html value
@@ -616,15 +603,10 @@ let get_annot attrs : annotation =
 	| "post" -> {annot_type = Ensures; annot_formula = f}
 	| "posterr" -> {annot_type = EnsuresErr; annot_formula = f}
 	| "id" -> {annot_type = Id; annot_formula = f}
-	| "rec" -> {annot_type = Rec; annot_formula = f}
-	| "codename" -> {annot_type = Codename; annot_formula = f}
 	| "pred" -> {annot_type = Pred; annot_formula = f}
-	| "fold" -> {annot_type = Fold; annot_formula = f}
-	| "unfold" -> {annot_type = Unfold; annot_formula = f}
-	| "flash" -> {annot_type = Flash; annot_formula = f}
-	| "recunfold" -> {annot_type = RecUnfold; annot_formula = f}
+	| "onlyspec" -> {annot_type = OnlySpec; annot_formula = f}
 	| "invariant" -> {annot_type = Invariant; annot_formula = f}
-  | "assert" -> {annot_type = Assert; annot_formula = f}
+  | "tactic" -> {annot_type = Tactic; annot_formula = f}
 	| annot -> raise (Unknown_Annotation annot)
 
 type dec_inc_pos =

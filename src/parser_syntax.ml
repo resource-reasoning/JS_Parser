@@ -53,26 +53,27 @@ type unary_op =
 type var = string
 
 type annotation_type =
-  | TopRequires   
-  | TopEnsures
-  | TopEnsuresErr
-  | Requires
-  | Ensures
-  | EnsuresErr
-  | Id
-  | Rec
-  | Codename
-  | Pred
-	| Fold
-	| Unfold
-	| RecUnfold
-  | Invariant
-  | Assert
-	| Flash
-	| Spec
-	| TopSpec
-	| OnlySpec
-  | CallSpec
+  | TopRequires   (* Precondition of global  *)
+  | TopEnsures    (* Normal postcondition of global *)
+  | TopEnsuresErr (* Error postcondition of global *)
+  | Requires      (* Precondition of function *)
+  | Ensures       (* Normal postcondition of function *)
+  | EnsuresErr    (* Error postcondition of function *)
+  | Id            (* Function identifier *)
+  | Pred          (* Predicate *)
+  | OnlySpec      (* Specification without function body *)
+	| Invariant     (* Invariant *)
+	| Tactic        (* General tactic: fold, unfold, recursive unfold, assert, flash, callspec, and many more to come... *)
+
+	(*
+		| Fold
+		| Unfold
+		| RecUnfold
+	  | Invariant
+	  | Assert
+		| Flash 
+	  | CallSpec 
+	*)
 
 
 type annotation =
