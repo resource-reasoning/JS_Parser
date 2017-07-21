@@ -66,6 +66,7 @@ let string_of_annot_type atype =
 	| Ensures -> "@post"
 	| EnsuresErr -> "@posterr"
 	| Id -> "@id"
+	| Codename -> "@codename"
 	| Pred -> "@pred"
 	| Invariant -> "@invariant"
 	| OnlySpec -> "@onlyspec"

@@ -60,6 +60,7 @@ type annotation_type =
   | Ensures       (* Normal postcondition of function *)
   | EnsuresErr    (* Error postcondition of function *)
   | Id            (* Function identifier *)
+	| Codename      (* Codename *)
   | Pred          (* Predicate *)
   | OnlySpec      (* Specification without function body *)
 	| Invariant     (* Invariant *)

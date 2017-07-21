@@ -128,6 +128,7 @@ let process_annotation annot =
 		| "onlyspec" -> OnlySpec
 		| "invariant" -> Invariant
 		| "tactic" -> Tactic
+		| "codename" -> Codename
 		| annot -> raise (Unknown_Annotation annot)) in
 	
 	let adesc = get_json_string "description" annot in
@@ -606,6 +607,7 @@ let get_annot attrs : annotation =
 	| "pred" -> {annot_type = Pred; annot_formula = f}
 	| "onlyspec" -> {annot_type = OnlySpec; annot_formula = f}
 	| "invariant" -> {annot_type = Invariant; annot_formula = f}
+	| "codename" -> {annot_type = Codename; annot_formula = f}
   | "tactic" -> {annot_type = Tactic; annot_formula = f}
 	| annot -> raise (Unknown_Annotation annot)
 
