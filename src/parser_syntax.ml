@@ -64,18 +64,8 @@ type annotation_type =
   | Pred          (* Predicate *)
   | OnlySpec      (* Specification without function body *)
 	| Invariant     (* Invariant *)
+	| Lemma         (* Lemma *)
 	| Tactic        (* General tactic: fold, unfold, recursive unfold, assert, flash, callspec, and many more to come... *)
-
-	(*
-		| Fold
-		| Unfold
-		| RecUnfold
-	  | Invariant
-	  | Assert
-		| Flash 
-	  | CallSpec 
-	*)
-
 
 type annotation =
   {

@@ -71,6 +71,7 @@ let string_of_annot_type atype =
 	| Invariant -> "@invariant"
 	| OnlySpec -> "@onlyspec"
 	| Tactic -> "@tactic"
+	| Lemma -> "@lemma"
 
 let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (annot.annot_formula)
 

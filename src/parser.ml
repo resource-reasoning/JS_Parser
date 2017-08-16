@@ -127,6 +127,7 @@ let process_annotation annot =
 		| "pred" -> Pred
 		| "onlyspec" -> OnlySpec
 		| "invariant" -> Invariant
+		| "lemma" -> Lemma
 		| "tactic" -> Tactic
 		| "codename" -> Codename
 		| annot -> raise (Unknown_Annotation annot)) in
@@ -609,6 +610,7 @@ let get_annot attrs : annotation =
 	| "invariant" -> {annot_type = Invariant; annot_formula = f}
 	| "codename" -> {annot_type = Codename; annot_formula = f}
   | "tactic" -> {annot_type = Tactic; annot_formula = f}
+	| "lemma" -> {annot_type = Lemma; annot_formula = f}
 	| annot -> raise (Unknown_Annotation annot)
 
 type dec_inc_pos =
