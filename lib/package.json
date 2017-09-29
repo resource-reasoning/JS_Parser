@@ -12,6 +12,7 @@
   "repository": "github:resource-reasoning/JS_Parser",
   "dependencies": {
     "doctrine": "^1.5.0",
-    "esprima": "github:resource-reasoning/esprima#jscert"
+    "esprima": "github:resource-reasoning/esprima#jscert",
+    "get-stdin": "^5.0.1"
   }
 }
