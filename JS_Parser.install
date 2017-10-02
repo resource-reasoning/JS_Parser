@@ -32,4 +32,8 @@ lib: [
   "lib/node_modules/isarray/component.json"   { "runtime/node_modules/isarray/component.json" }
   "lib/node_modules/isarray/package.json"     { "runtime/node_modules/isarray/package.json" }
   "lib/node_modules/isarray/index.js"         { "runtime/node_modules/isarray/index.js" }
+  "lib/node_modules/get-stdin/index.js"       { "lib/node_modules/get-stdin/index.js" }
+  "lib/node_modules/get-stdin/license"        { "lib/node_modules/get-stdin/license" }
+  "lib/node_modules/get-stdin/package.json"   { "lib/node_modules/get-stdin/package.json" }
+
 ]
