@@ -31,11 +31,6 @@ exception Empty_list
    *      COMMON      *
    ******************** *)
 
-let burn_to_disk path data =
-	let oc = open_out path in
-		output_string oc data;
-		close_out oc
-		
 let flat_map f l = flatten (map f l)
 
 let unescape_html s =
@@ -141,16 +136,17 @@ let get_esprima_annotations json =
 	(* Printf.printf ("\nNumber of comments: %d\n") (List.length actualComments);
 	List.iter (fun x -> Printf.printf "%s\n" x) actualComments; *)
 	let doctrinise x =
-		let file = "temp.temp" in
-		burn_to_disk file x;
-		(match Unix.system ("node " ^ !doctrine_path ^ " " ^ file ^ " " ^ !doctrine_file) with
+                let (input, output) = Unix.open_process ("node " ^ !doctrine_path) in
+                output_string output x;
+                close_out output;
+                let data = Yojson.Safe.from_channel input in
+                (match Unix.close_process (input, output) with
     	| Unix.WEXITED n ->
-        	(if (n <> 0) then raise JS_To_XML_parser_failure)
+        	(if (n <> 0) then raise JS_To_XML_parser_failure else data)
     	| _ -> raise JS_To_XML_parser_failure) in
 	let annotations = List.fold_left
 	(fun ac x ->
-		doctrinise x;
-		let data = Yojson.Safe.from_file !doctrine_file in
+		let data = doctrinise x in
 		let annots = get_json_list "tags" data in
 		let annots = List.fold_left
 		(fun ac x ->
