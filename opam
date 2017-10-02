@@ -19,7 +19,7 @@ build-test: [[make "test_all"]]
 build-doc: [[make "doc"]]
 # install target uses JS_Parser.install automatically
 
-available: [ocaml-version >= "4.04.0"]
+available: [ocaml-version >= "4.02.3"]
 depends: [
   "ocamlfind"
   "batteries"
