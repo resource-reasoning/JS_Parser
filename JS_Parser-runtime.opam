@@ -17,6 +17,10 @@ libraries: ["JS_Parser-runtime"]
 build: []
 # install target uses JS_Parser-runtime.install automatically
 
+depends: [
+  "findlib"
+]
+
 substs: [
   "src/META-runtime"
 ]
