@@ -1,5 +1,5 @@
 description = ""
-requires = "findlib, batteries, xml-light, yojson"
+requires = "findlib, batteries, xml-light, yojson, JS_Parser-runtime"
 version = "%{version}%"
 archive(byte) = "JS_Parser.cma"
 archive(native) = "JS_Parser.cmxa"

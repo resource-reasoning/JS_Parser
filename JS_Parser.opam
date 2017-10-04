@@ -1,0 +1,34 @@
+opam-version: "1.2"
+name: "JS_Parser"
+version: "dev"
+maintainer: "Thomas Wood <thomas.wood09@imperial.ac.uk>"
+authors: [
+  "Daiva Naudziuniene <d.naudziuniene11@imperial.ac.uk>"
+  "Conrad Watt <conrad.watt12@imperial.ac.uk>"
+  "Thomas Wood <thomas.wood09@imperial.ac.uk>"
+  "Petar Maksimovic <p.maksimovic@imperial.ac.uk>"
+]
+homepage: "https://github.com/resource-reasoning/JS_Parser"
+bug-reports: "https://github.com/resource-reasoning/JS_Parser/issues"
+license: "TBC"
+dev-repo: "https://github.com/resource-reasoning/JS_Parser.git"
+libraries: ["JS_Parser"]
+
+build: [[make]]
+build-test: [[make "test_all"]]
+build-doc: [[make "doc"]]
+# install target uses JS_Parser.install automatically
+
+available: [ocaml-version >= "4.02.3"]
+depends: [
+  "ocamlfind"
+  "batteries"
+  "xml-light"
+  "yojson"
+  "JS_Parser-runtime"
+  "ounit" {test}
+]
+
+substs: [
+  "src/META"
+]

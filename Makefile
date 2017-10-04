@@ -7,8 +7,9 @@ build_test: src/* test/*
 	ocamlbuild ${FLAGS} test/parser_tests.byte test/parser_tests.native
 
 init:
+	opam pin -yn add JS_Parser-runtime .
 	opam pin -yn add JS_Parser .
-	opam instal -y JS_Parser --deps-only -t
+	opam install -y JS_Parser --deps-only -t
 
 install:
 	opam install -y JS_Parser
