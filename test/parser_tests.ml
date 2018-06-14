@@ -94,7 +94,7 @@ let assert_equal' = assert_equal ~printer:BatPervasives.dump
 let assert_exp_eq = assert_equal' ~cmp:exp_stx_eq
 
 let skip_testing_annots () =
-  skip_if !use_json "JSON parser doesn't support annotations."
+  skip_if true "JSON parser doesn't support annotations."
 
 let add_script e =
   mk_exp (Script(false, [e])) 0
@@ -105,20 +105,6 @@ let rm_node e =
   | _ -> assert_failure "Could not find a matching Script or Label tag."
 
 (** * Tests begin here * **)
-
-let test_unescape_html test_ctx =
-  assert_equal' "<>&\"'" (Parser.unescape_html "&lt;&gt;&amp;&quot;&apos;")
-
-let test_unescape_html_number test_ctx =
-  assert_equal' "a\009a" (Parser.unescape_html "a&#9;a")
-
-let test_unescape_html_hex test_ctx =
-  assert_equal' "abb\009abb\010" (Parser.unescape_html "abb&#x9;abb&#xA;")
-
-let test_unescape_html_1 test_ctx =
-  let exp = exp_from_string "var o = \"3 < 2\"" in
-  let s = mk_exp (String "3 < 2") 8 in
-  assert_exp_eq (add_script(mk_exp(VarDec ["o", Some s]) 0)) exp
 
 let test_var test_ctx =
   let exp = exp_from_string "var x" in
@@ -523,25 +509,6 @@ let test_break_label_annot test_ctx =
   let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break test}" in
   assert_equal' (rm_node (rm_node exp)).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
 
-let test_get_invariant test_ctx =
-  let xml = " <WHILE pos=\"0\">
-						    <GT pos=\"7\">
-						      <NAME pos=\"7\" value=\"a\"/>
-						      <NUMBER pos=\"11\" value=\"5.0\"/>
-						    </GT>
-						    <BLOCK pos=\"14\">
-						      <EXPR_RESULT pos=\"49\">
-						        <INC decpos=\"post\" pos=\"49\">
-						          <ANNOTATION formula=\"#cScope = [#lg]\" pos=\"49\" type=\"invariant\"/>
-						          <NAME pos=\"49\" value=\"a\"/>
-						        </INC>
-						      </EXPR_RESULT>
-						      <CONTINUE pos=\"54\"/>
-						    </BLOCK>
-						  </WHILE>" in
-  let xml = Xml.parse_string xml in
-  assert_equal' [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}] (Parser.get_invariant xml)
-
 let test_try_catch test_ctx =
   let exp = exp_from_string "try {a} catch (b) {c}" in
   let a = mk_exp (Var "a") 5 in
@@ -664,10 +631,7 @@ let test_obj_init test_ctx =
 (* TODO: tests for object initializer, unnamed function expression *)
 
 let suite = "Testing_Parser" >:::
-  ["test_unescape_html" >:: test_unescape_html;
-   "test_unescape_html_number" >:: test_unescape_html_number;
-   "test_unescape_html_hex" >:: test_unescape_html_hex;
-   "test_unescape_html_1" >:: test_unescape_html_1;
+  [
    "test var" >:: test_var;
    "test var with assignment" >:: test_var_value;
    "test var list" >:: test_var_list;
@@ -730,7 +694,6 @@ let suite = "Testing_Parser" >:::
    "test_break_annot" >:: test_break_annot;
    "test_break_label" >:: test_break_label;
    "test_break_label_annot" >:: test_break_label_annot;
-   "test_get_invariant" >:: test_get_invariant;
    "test_try_catch" >:: test_try_catch;
    "test_try_catch_finally" >:: test_try_catch_finally;
    "test_try_finally" >:: test_try_finally;
@@ -749,7 +712,6 @@ let suite = "Testing_Parser" >:::
 let json = Conf.make_bool "json" true "test json parser"
 
 let decorator test test_ctx =
-  use_json := json test_ctx;
   test test_ctx
 
 let _ =
