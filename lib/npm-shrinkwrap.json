@@ -4,30 +4,8 @@
   "lockfileVersion": 1,
   "requires": true,
   "dependencies": {
-    "doctrine": {
-      "version": "https://registry.npmjs.org/doctrine/-/doctrine-1.5.0.tgz",
-      "integrity": "sha1-N53Ocw9hZvds76TmcHoVmwLFpvo=",
-      "requires": {
-        "esutils": "https://registry.npmjs.org/esutils/-/esutils-2.0.2.tgz",
-        "isarray": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz"
-      }
-    },
     "esprima": {
-      "version": "git://github.com/resource-reasoning/esprima.git#7796274e6d2d9cade83ab1b9e5954cfadbd574e6",
-      "integrity": "sha1-Y2RQnc/4rbdJSwybbOGYR+4dpMI="
-    },
-    "esutils": {
-      "version": "https://registry.npmjs.org/esutils/-/esutils-2.0.2.tgz",
-      "integrity": "sha1-Cr9PHKpbyx96nYrMbepPqqBLrJs="
-    },
-    "get-stdin": {
-      "version": "5.0.1",
-      "resolved": "https://registry.npmjs.org/get-stdin/-/get-stdin-5.0.1.tgz",
-      "integrity": "sha1-Ei4WFZHiH/TFJTAwVpPyDmOTo5g="
-    },
-    "isarray": {
-      "version": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
-      "integrity": "sha1-u5NdSFgsuhaMBoNJV6VKPgcSTxE="
+      "version": "git://github.com/resource-reasoning/esprima.git#7796274e6d2d9cade83ab1b9e5954cfadbd574e6"
     }
   }
 }

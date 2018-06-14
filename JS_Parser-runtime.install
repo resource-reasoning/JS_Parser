@@ -1,27 +1,7 @@
 lib: [
-  "src/META-runtime"                { "META" }
-  "lib/COPYING-js_parser.jar"                 { "COPYING-js_parser.jar" }
-  "lib/js_parser.jar"                         { "js_parser.jar" }
+  "src/META-runtime"                          { "META" }
   "lib/run_esprima.js"                        { "run_esprima.js" }
-  "lib/run_doctrine.js"                       { "run_doctrine.js" }
   "lib/node_modules/esprima/LICENSE.BSD"      { "node_modules/esprima/LICENSE.BSD" }
   "lib/node_modules/esprima/esprima.js"       { "node_modules/esprima/esprima.js" }
   "lib/node_modules/esprima/package.json"     { "node_modules/esprima/package.json" }
-  "lib/node_modules/doctrine/LICENSE.BSD"     { "node_modules/doctrine/LICENSE.BSD" }
-  "lib/node_modules/doctrine/lib/doctrine.js" { "node_modules/doctrine/lib/doctrine.js" }
-  "lib/node_modules/doctrine/lib/typed.js"    { "node_modules/doctrine/lib/typed.js" }
-  "lib/node_modules/doctrine/lib/utility.js"  { "node_modules/doctrine/lib/utility.js" }
-  "lib/node_modules/doctrine/package.json"    { "node_modules/doctrine/package.json" }
-  "lib/node_modules/esutils/LICENSE.BSD"      { "node_modules/esutils/LICENSE.BSD" }
-  "lib/node_modules/esutils/lib/ast.js"       { "node_modules/esutils/lib/ast.js" }
-  "lib/node_modules/esutils/lib/code.js"      { "node_modules/esutils/lib/code.js" }
-  "lib/node_modules/esutils/lib/keyword.js"   { "node_modules/esutils/lib/keyword.js" }
-  "lib/node_modules/esutils/lib/utils.js"     { "node_modules/esutils/lib/utils.js" }
-  "lib/node_modules/esutils/package.json"     { "node_modules/esutils/package.json" }
-  "lib/node_modules/isarray/component.json"   { "node_modules/isarray/component.json" }
-  "lib/node_modules/isarray/package.json"     { "node_modules/isarray/package.json" }
-  "lib/node_modules/isarray/index.js"         { "node_modules/isarray/index.js" }
-  "lib/node_modules/get-stdin/index.js"       { "node_modules/get-stdin/index.js" }
-  "lib/node_modules/get-stdin/license"        { "node_modules/get-stdin/license" }
-  "lib/node_modules/get-stdin/package.json"   { "node_modules/get-stdin/package.json" }
 ]

@@ -117,7 +117,7 @@ let get_esprima_annotations json =
         (a, d)
     ) annot_pairs in 
 
-  if (annot_pairs <> []) then Printf.printf "Annotations:\n%s\n%!" (String.concat "\n" (List.map (fun (a, d) -> a ^ " " ^ d) annot_pairs));
+  (* if (annot_pairs <> []) then Printf.printf "Annotations:\n%s\n%!" (String.concat "\n" (List.map (fun (a, d) -> a ^ " " ^ d) annot_pairs)); *)
 
   List.map (fun (atype, adesc) -> process_annotation atype adesc) annot_pairs
 
