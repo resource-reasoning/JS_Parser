@@ -716,5 +716,4 @@ let decorator test test_ctx =
 
 let _ =
   init ~path:"lib" ();
-  (* run_test_tt_main (OUnitTest.test_decorate decorator suite) *)
-  Parser_main.exp_from_file ~force_strict:true "IdGenerator.js"
+  run_test_tt_main (OUnitTest.test_decorate decorator suite);

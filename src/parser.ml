@@ -87,12 +87,20 @@ let process_annotation atype adesc =
 	
 	{ annot_type = atype; annot_formula = adesc }
 
+let deal_with_whitespace (s : string) = 
+  let renl = Str.regexp "\n"    in let s : string = Str.global_replace renl " " s in
+  let retb = Str.regexp "[\t]+" in let s : string = Str.global_replace retb " " s in
+  let resp = Str.regexp "[ ]+"  in let s : string = Str.global_replace resp " " s in
+    s
+
 let get_esprima_annotations json =
 	let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
 
   let comments    : string                        = String.concat "\n" (List.map (fun x -> get_json_string "value" x) leadingComments) in 
-  let comments    : string list                   = String.split_on_char '@' comments in 
-  let comments    : string list                   = List.filter (fun x -> String.trim x <> "") comments in 
+  let comments    : string list                   = List.map deal_with_whitespace (List.map String.trim (String.split_on_char '@' comments)) in 
+  let comments    : string list                   = List.filter (fun x -> x <> "") comments in 
+
+
   let spaces      : int option list               = List.map (fun x -> try Some (String.index x ' ') with _ -> None) comments in 
   let annot_pairs : (string * string) option list = List.map2 (fun c i -> 
       BatOption.map (fun i -> String.trim (String.sub c 0 i), String.trim (String.sub c i (String.length c - i))) i
@@ -106,13 +114,10 @@ let get_esprima_annotations json =
   let annot_pairs : (string * string) list = List.map (fun (a, d) -> 
       let len = String.length d in 
       let d : string = if (String.sub d (len - 1) 1) = "*" then String.trim (String.sub d 0 (len - 1)) else d in 
-      let renl = Str.regexp "\n"    in let d : string = Str.global_replace renl " " d in
-      let retb = Str.regexp "[\t]+" in let d : string = Str.global_replace retb " " d in
-      let resp = Str.regexp "[ ]+"  in let d : string = Str.global_replace resp " " d in
         (a, d)
     ) annot_pairs in 
 
-  (* if (annot_pairs <> []) then Printf.printf "Annotations:\n%s\n%!" (String.concat "\n" (List.map (fun (a, d) -> a ^ " " ^ d) annot_pairs)); *)
+  if (annot_pairs <> []) then Printf.printf "Annotations:\n%s\n%!" (String.concat "\n" (List.map (fun (a, d) -> a ^ " " ^ d) annot_pairs));
 
   List.map (fun (atype, adesc) -> process_annotation atype adesc) annot_pairs
 
