@@ -98,10 +98,21 @@ let get_esprima_annotations json =
       BatOption.map (fun i -> String.trim (String.sub c 0 i), String.trim (String.sub c i (String.length c - i))) i
     ) comments spaces in 
   let annot_pairs : (string * string) list = List.map BatOption.get (List.filter (fun x -> x <> None) annot_pairs) in 
-  let annot_pairs : (string * string) list = List.filter (fun (a, _) -> 
+  let annot_pairs : (string * string) list = List.filter (fun (a, d) -> 
     a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||  
     a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      || 
     a = "invariant" || a = "lemma"   || a = "tactic"     || a = "codename") annot_pairs in 
+
+  let annot_pairs : (string * string) list = List.map (fun (a, d) -> 
+      let len = String.length d in 
+      let d : string = if (String.sub d (len - 1) 1) = "*" then String.trim (String.sub d 0 (len - 1)) else d in 
+      let renl = Str.regexp "\n"    in let d : string = Str.global_replace renl " " d in
+      let retb = Str.regexp "[\t]+" in let d : string = Str.global_replace retb " " d in
+      let resp = Str.regexp "[ ]+"  in let d : string = Str.global_replace resp " " d in
+        (a, d)
+    ) annot_pairs in 
+
+  (* if (annot_pairs <> []) then Printf.printf "Annotations:\n%s\n%!" (String.concat "\n" (List.map (fun (a, d) -> a ^ " " ^ d) annot_pairs)); *)
 
   List.map (fun (atype, adesc) -> process_annotation atype adesc) annot_pairs
 
