@@ -25,9 +25,10 @@ let init ?path () =
 let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) : string =
   let force_strict = (if (f) then " -force_strict" else "") in
   let init = (if (i) then " -builtin_init" else "") in
-  match Unix.system ("node " ^ !json_parser_path ^ " " ^ (Filename.quote filename) ^ force_strict ^ init) with
+  let cmd = "node " ^ !json_parser_path ^ " " ^ (Filename.quote filename) ^ force_strict ^ init in 
+  match Unix.system cmd with
     | Unix.WEXITED n ->
-        (if (n <> 0) then raise (Xml.File_not_found filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
+        if (n <> 0) then raise (Failure (Printf.sprintf "Error %d: %s" n filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
     | _ -> raise (ParserFailure "Parser exited in an unacceptable manner.")
 
 let exp_from_stdin =
@@ -37,14 +38,10 @@ let exp_from_stdin =
     add_strictness false expression
 
 let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
+  let start_time = Sys.time() in 
 	let js_file = js_to_json ~force_strict:f ~init:i file in
-  Printf.printf "Parsed js file.\n%!";
 	let data = Yojson.Safe.from_file js_file in
-  Printf.printf "Parsed json from js file.\n%!";
-	(* Printf.printf "JSON:\n%s" (Yojson.Safe.pretty_to_string data); *)
 	let expression = json_to_exp data in
-  Printf.printf "Converted json to AST.\n%!";
-	(* Printf.printf "EXP:\n%s" (string_of_exp true expression); *)
   	add_strictness f expression
 
 let exp_from_string ?force_strict:(f = false) s =

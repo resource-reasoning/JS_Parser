@@ -1,4 +1,3 @@
-open Xml
 open Parser_syntax
 open List
 open Yojson.Safe
@@ -21,22 +20,16 @@ exception More_Than_One_Finally
 exception CannotHappen
 exception Empty_list
 
-let time = ref 0.
-
 (* ******************** 
    *       JSON       *
    ******************** *)
 	
 let get_json_field field_name json =
-  let start_time = Sys.time() in 
   let result = match json with
     | `Assoc contents ->
         snd (List.find (fun (str, _) -> (str = field_name)) contents)
     | _ -> print_string field_name; raise Empty_list
   in 
-    let end_time = Sys.time() in
-    time := !time +. end_time -. start_time;
-    Printf.printf "GJF: %f\n%!" !time;
     result
 
 let get_json_type json =
@@ -70,11 +63,9 @@ let get_json_bool field json =
 let get_json_ident_name ident =
   get_json_string "name" ident
 
-let process_annotation annot =
-	let atype = get_json_string "title" annot in
+let process_annotation atype adesc =
 	let atype = (match atype with
 	
-		(* Compatibility with Closure Parser *)
 		| "requires" -> Requires
 		| "ensures" -> Ensures
 		| "ensureserr" -> EnsuresErr
@@ -94,44 +85,40 @@ let process_annotation annot =
 		| "codename" -> Codename
 		| annot -> raise (Unknown_Annotation annot)) in
 	
-	let adesc = get_json_string "description" annot in
 	{ annot_type = atype; annot_formula = adesc }
 
 let get_esprima_annotations json =
 	let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
-	let actualComments = List.map (fun x -> "/* " ^ (get_json_string "value" x) ^ " */") leadingComments in
-	(* Printf.printf ("\nNumber of comments: %d\n") (List.length actualComments);
-	List.iter (fun x -> Printf.printf "%s\n" x) actualComments; *)
-	let doctrinise x =
-                let (input, output) = Unix.open_process ("node " ^ !doctrine_path) in
-                output_string output x;
-                close_out output;
-                let data = Yojson.Safe.from_channel input in
-                (match Unix.close_process (input, output) with
-    	| Unix.WEXITED n ->
-        	(if (n <> 0) then raise (ParserFailure "Doctrine failed.") else data)
-    	| _ -> raise (ParserFailure "Doctrine failed.")) in
-	let annotations = List.fold_left
-	(fun ac x ->
-		let data = doctrinise x in
-		let annots = get_json_list "tags" data in
-		let annots = List.fold_left
-		(fun ac x ->
-			ac @ [ process_annotation x ]) [] annots in
-		ac @ annots) [] actualComments in
-	annotations
+
+  let comments    : string                        = String.concat "\n" (List.map (fun x -> get_json_string "value" x) leadingComments) in 
+  let comments    : string list                   = String.split_on_char '@' comments in 
+  let comments    : string list                   = List.filter (fun x -> String.trim x <> "") comments in 
+  let spaces      : int option list               = List.map (fun x -> try Some (String.index x ' ') with _ -> None) comments in 
+  let annot_pairs : (string * string) option list = List.map2 (fun c i -> 
+      BatOption.map (fun i -> String.trim (String.sub c 0 i), String.trim (String.sub c i (String.length c - i))) i
+    ) comments spaces in 
+  let annot_pairs : (string * string) list = List.map BatOption.get (List.filter (fun x -> x <> None) annot_pairs) in 
+  let annot_pairs : (string * string) list = List.filter (fun (a, _) -> 
+    a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||  
+    a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      || 
+    a = "invariant" || a = "lemma"   || a = "tactic"     || a = "codename") annot_pairs in 
+
+  List.map (fun (atype, adesc) -> process_annotation atype adesc) annot_pairs
 
 let rec json_to_exp json : exp =
   let json_type = get_json_type json in
   let annotations = get_esprima_annotations json in
   match json_type with
+
     | "Program" ->
       let children = get_json_list "body" json in
       let stmts = map json_to_exp children in
       mk_exp (Script (false, stmts)) (get_json_offset json) annotations
+
     | "BlockStatement" ->
       let children = get_json_list "body" json in
       json_mk_block_exp children (get_json_offset json) annotations
+
     | "FunctionExpression" ->
       let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
@@ -140,6 +127,7 @@ let rec json_to_exp json : exp =
         | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body)) (get_json_offset json) annotations
         | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
       end
+
     | "FunctionDeclaration" ->
       let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
@@ -148,6 +136,7 @@ let rec json_to_exp json : exp =
         | `Null -> mk_exp (Function (false,None,fn_params,fn_body)) (get_json_offset json) annotations
         | ident -> mk_exp (Function (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
       end
+
     | "VariableDeclaration" ->
       let offset = (get_json_offset json) in
       begin match (get_json_list "declarations" json) with

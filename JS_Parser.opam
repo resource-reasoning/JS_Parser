@@ -23,7 +23,6 @@ available: [ocaml-version >= "4.02.3"]
 depends: [
   "ocamlfind"
   "batteries"
-  "xml-light"
   "yojson"
   "JS_Parser-runtime"
   "ounit" {test}
