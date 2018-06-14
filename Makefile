@@ -1,4 +1,4 @@
-FLAGS=-use-ocamlfind -verbose 1
+FLAGS=-use-ocamlfind 
 
 build: src/*
 	ocamlbuild ${FLAGS} src/JS_Parser.cma src/JS_Parser.cmxa

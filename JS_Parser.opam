@@ -22,7 +22,6 @@ build-doc: [[make "doc"]]
 available: [ocaml-version >= "4.02.3"]
 depends: [
   "ocamlfind"
-  "batteries"
   "yojson"
   "JS_Parser-runtime"
   "ounit" {test}

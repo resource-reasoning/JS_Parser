@@ -70,7 +70,10 @@ let rec exp_stx_eq e1 e2 =
 
   | (Try (e, o, oe), Try (e', o', oe'))
       -> exp_stx_eq e e' &&
-         BatOption.eq ~eq:(fun (s, e) (s', e') -> s = s' && exp_stx_eq e e') o o' &&
+          (match o, o' with 
+          | None, None      -> true 
+          | Some (s, e), Some (s', e') -> s = s' && exp_stx_eq e e'
+          | _, _            -> false) &&
          opt_exp_eq oe oe'
 
   | (Switch (e, l), Switch (e', l'))
@@ -85,16 +88,17 @@ and switch_case_eq c c' =
   | c, c' -> c = c'
 
 and opt_exp_eq o o' =
-  BatOption.eq ~eq:exp_stx_eq o o'
+  (match o, o' with 
+  | None, None      -> true 
+  | Some o, Some o' -> exp_stx_eq o o'
+  | _, _            -> false)
+
 and list_exp_eq l l' =
   List.for_all2 exp_stx_eq l l'
 
-let assert_equal' = assert_equal ~printer:BatPervasives.dump
+let assert_equal' = assert_equal
 
 let assert_exp_eq = assert_equal' ~cmp:exp_stx_eq
-
-let skip_testing_annots () =
-  skip_if true "JSON parser doesn't support annotations."
 
 let add_script e =
   mk_exp (Script(false, [e])) 0
@@ -232,11 +236,6 @@ let test_for test_ctx =
   let block = mk_exp (Block [assignment]) 0 in
   let loop = mk_exp (For (empty, condition, inc, block)) 0 in
   assert_exp_eq (add_script loop) exp
-
-let test_for_annot test_ctx =
-  skip_testing_annots ();
-  let exp = exp_from_string "for (; a < 5; a++ ) { /** @invariant #cScope = [#lg] */ x = 1 }" in
-  assert_equal' (rm_node exp).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
 
 let test_forin test_ctx =
   let exp = exp_from_string "for (var prop in oldObj) { obj[prop] = oldObj[prop] }" in
@@ -433,11 +432,6 @@ let test_do_while test_ctx =
   let loop = mk_exp (DoWhile (body, condition)) 0 in
   assert_exp_eq (add_script loop) exp
 
-let test_do_while_annot test_ctx =
-  skip_testing_annots ();
-  let exp = exp_from_string "do { /** @invariant #cScope = [#lg] */ a = 1 } while (a < 5)" in
-  assert_equal' (rm_node exp).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
-
 let test_delete test_ctx =
   let exp = exp_from_string "delete a" in
   let a = mk_exp (Var "a") 7 in
@@ -454,11 +448,6 @@ let test_continue test_ctx =
   let body = mk_exp (Block [app; cont]) 0 in
   assert_exp_eq (add_script (mk_exp (While (condition, body)) 0)) exp
 
-let test_continue_annot test_ctx =
-  skip_testing_annots ();
-  let exp = exp_from_string "while (a > 5) {/** @invariant #cScope = [#lg] */ a++; continue}" in
-  assert_equal' (rm_node exp).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
-
 let test_continue_label test_ctx =
   let exp = exp_from_string "test: while (a > 5) {a++; continue test}" in
   let a = mk_exp (Var "a") 0 in
@@ -471,11 +460,6 @@ let test_continue_label test_ctx =
   let loop = mk_exp (While (condition, body)) 0 in
   assert_exp_eq (add_script (mk_exp (Label ("test", loop)) 0)) exp
 
-let test_continue_label_annot test_ctx =
-  skip_testing_annots ();
-  let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; continue test}" in
-  assert_equal' (rm_node (rm_node exp)).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
-
 let test_break test_ctx =
   let exp = exp_from_string "while (a > 5) {a++; break}" in
   let a = mk_exp (Var "a") 0 in
@@ -486,11 +470,6 @@ let test_break test_ctx =
   let cont = mk_exp (Break None) 0 in
   let body = mk_exp (Block [app; cont]) 0 in
   assert_exp_eq (add_script (mk_exp (While (condition, body)) 0)) exp
-
-let test_break_annot test_ctx =
-  skip_testing_annots ();
-  let exp = exp_from_string "while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break}" in
-  assert_equal' (rm_node exp).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
 
 let test_break_label test_ctx =
   let exp = exp_from_string "test: while (a > 5) {a++; break test}" in
@@ -503,11 +482,6 @@ let test_break_label test_ctx =
   let body = mk_exp (Block [app; cont]) 0 in
   let loop = mk_exp (While (condition, body)) 0 in
   assert_exp_eq (add_script (mk_exp (Label ("test", loop)) 0)) exp
-
-let test_break_label_annot test_ctx =
-  skip_testing_annots ();
-  let exp = exp_from_string "test: while (a > 5) {/** @invariant #cScope = [#lg] */ a++; break test}" in
-  assert_equal' (rm_node (rm_node exp)).exp_annot [{annot_type = Invariant; annot_formula = "#cScope = [#lg]"}]
 
 let test_try_catch test_ctx =
   let exp = exp_from_string "try {a} catch (b) {c}" in
@@ -552,11 +526,6 @@ let test_switch test_ctx =
 let test_debugger test_ctx =
   let exp = exp_from_string "debugger" in
   assert_exp_eq (add_script (mk_exp Debugger 0)) exp
-
-let test_top_annotations test_ctx =
-  skip_testing_annots ();
-  let exp = exp_from_string "/** @topensures #cScope = [#lg] */ debugger" in
-  assert_equal' (mk_exp_with_annot (Script (false, [mk_exp Debugger 35])) 0 [{annot_type = TopEnsures; annot_formula = "#cScope = [#lg]"}]) exp
 
 let test_script_strict test_ctx =
   let exp = exp_from_string "'use strict'; function f() {return}" in
@@ -653,7 +622,6 @@ let suite = "Testing_Parser" >:::
    "test_inc_pre" >:: test_inc_pre;
    "test_inc_post" >:: test_inc_post;
    "test_for" >:: test_for;
-   "test_for_annot" >:: test_for_annot;
    "test_forin" >:: test_forin;
    "test_mod" >:: test_mod;
    "test_ursh" >:: test_ursh;
@@ -684,22 +652,16 @@ let suite = "Testing_Parser" >:::
    "test_return" >:: test_return;
    "test_return_exp" >:: test_return_exp;
    "test_do_while" >:: test_do_while;
-   "test_do_while_annot" >:: test_do_while_annot;
    "test_delete" >:: test_delete;
    "test_continue" >:: test_continue;
-   "test_continue_annot" >:: test_continue_annot;
    "test_continue_label" >:: test_continue_label;
-   "test_continue_label_annot" >:: test_continue_label_annot;
    "test_break" >:: test_break;
-   "test_break_annot" >:: test_break_annot;
    "test_break_label" >:: test_break_label;
-   "test_break_label_annot" >:: test_break_label_annot;
    "test_try_catch" >:: test_try_catch;
    "test_try_catch_finally" >:: test_try_catch_finally;
    "test_try_finally" >:: test_try_finally;
    "test_switch" >:: test_switch;
    "test_debugger" >:: test_debugger;
-   "test_top_annotations" >:: test_top_annotations;
    "test_script_strict" >:: test_script_strict;
    "test_script_not_strict" >:: test_script_not_strict;
    "test_fun_strict" >:: test_fun_strict;

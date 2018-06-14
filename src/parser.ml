@@ -103,9 +103,11 @@ let get_esprima_annotations json =
 
   let spaces      : int option list               = List.map (fun x -> try Some (String.index x ' ') with _ -> None) comments in 
   let annot_pairs : (string * string) option list = List.map2 (fun c i -> 
-      BatOption.map (fun i -> String.trim (String.sub c 0 i), String.trim (String.sub c i (String.length c - i))) i
+      (match i with 
+      | None -> None
+      | Some i -> Some (String.trim (String.sub c 0 i), String.trim (String.sub c i (String.length c - i))))
     ) comments spaces in 
-  let annot_pairs : (string * string) list = List.map BatOption.get (List.filter (fun x -> x <> None) annot_pairs) in 
+  let annot_pairs : (string * string) list = List.map (fun x -> match x with | Some x -> x) (List.filter (fun x -> x <> None) annot_pairs) in 
   let annot_pairs : (string * string) list = List.filter (fun (a, d) -> 
     a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||  
     a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      || 

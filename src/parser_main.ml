@@ -38,7 +38,6 @@ let exp_from_stdin =
     add_strictness false expression
 
 let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
-  let start_time = Sys.time() in 
 	let js_file = js_to_json ~force_strict:f ~init:i file in
 	let data = Yojson.Safe.from_file js_file in
 	let expression = json_to_exp data in
