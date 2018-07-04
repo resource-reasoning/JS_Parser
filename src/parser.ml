@@ -83,6 +83,7 @@ let process_annotation atype adesc =
 		| "lemma" -> Lemma
 		| "tactic" -> Tactic
 		| "codename" -> Codename
+    | "biabduce" -> BiAbduce
 		| annot -> raise (Unknown_Annotation annot)) in
 	
 	{ annot_type = atype; annot_formula = adesc }
@@ -111,9 +112,9 @@ let get_esprima_annotations json =
   let annot_pairs : (string * string) list = List.filter (fun (a, d) -> 
     a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||  
     a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      || 
-    a = "invariant" || a = "lemma"   || a = "tactic"     || a = "codename") annot_pairs in 
+    a = "invariant" || a = "lemma"   || a = "tactic"     || a = "codename"    || a = "biabduce") annot_pairs in 
 
-  let annot_pairs : (string * string) list = List.map (fun (a, d) -> 
+  let annot_pairs : (string * string) list = List.map (fun (a, d) ->
       let len = String.length d in 
       let d : string = if (String.sub d (len - 1) 1) = "*" then String.trim (String.sub d 0 (len - 1)) else d in 
         (a, d)

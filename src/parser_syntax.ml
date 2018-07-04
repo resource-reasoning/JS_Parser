@@ -66,6 +66,7 @@ type annotation_type =
 	| Invariant     (* Invariant *)
 	| Lemma         (* Lemma *)
 	| Tactic        (* General tactic: fold, unfold, recursive unfold, assert, flash, callspec, and many more to come... *)
+  | BiAbduce      (* Bi-abduction indicator *)
 
 type annotation =
   {
