@@ -1,5 +1,5 @@
 open List
-open Parser_syntax
+open JSParserSyntax
 
 let string_of_comparison_op x =
   match x with

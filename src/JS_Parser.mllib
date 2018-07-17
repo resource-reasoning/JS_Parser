@@ -1,4 +1,4 @@
-Parser
-Parser_main
-Parser_syntax
-Pretty_print
+JSParser
+JSParserMain
+JSParserSyntax
+JSPrettyPrint

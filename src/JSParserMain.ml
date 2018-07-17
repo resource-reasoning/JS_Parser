@@ -1,6 +1,6 @@
-open Parser
-open Pretty_print
-open Parser_syntax
+open JSParser
+open JSPrettyPrint
+open JSParserSyntax
 open Unix
 open Yojson.Safe
 
@@ -15,12 +15,12 @@ let init ?path () =
       | None -> Findlib.init (); Findlib.resolve_path "@JS_Parser-runtime"
       | Some s -> s) in
     json_parser_path := Filename.concat libdir "run_esprima.js";
-    Parser.doctrine_path := Filename.concat libdir "run_doctrine.js";
+    JSParser.doctrine_path := Filename.concat libdir "run_doctrine.js";
   with
     | Findlib.No_such_package _   ->
-        raise (Parser.ParserFailure "JS_Parser not installed. Please supply parser path.")
+        raise (JSParser.ParserFailure "JS_Parser not installed. Please supply parser path.")
     | Unix.Unix_error (err, _, f) ->
-        raise (Parser.ParserFailure (Printf.sprintf "Could not find parser at %s (%s)" f (Unix.error_message err)))
+        raise (JSParser.ParserFailure (Printf.sprintf "Could not find parser at %s (%s)" f (Unix.error_message err)))
 
 let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) : string =
   let force_strict = (if (f) then " -force_strict" else "") in
