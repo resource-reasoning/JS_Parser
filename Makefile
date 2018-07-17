@@ -4,7 +4,7 @@ build: src/*
 	ocamlbuild ${FLAGS} src/JS_Parser.cma src/JS_Parser.cmxa
 
 build_test: src/* test/*
-	ocamlbuild ${FLAGS} test/parser_tests.byte test/parser_tests.native
+	ocamlbuild ${FLAGS} test/JSParserTests.byte test/JSParserTests.native
 
 init:
 	opam pin -yn add JS_Parser-runtime .
@@ -21,7 +21,7 @@ doc:
 	ocamlbuild ${FLAGS} src/JS_Parser.docdir/index.html
 
 test: build_test
-	./parser_tests.native
+	./JSParserTests.native
 
 .PHONY: build init install clean doc
 .PHONY: test

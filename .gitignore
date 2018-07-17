@@ -1,6 +1,6 @@
 _build
-parser_tests.byte
-parser_tests.native
+*.byte
+*.native
 *.cma
 *.cmxa
 .DS_Store
