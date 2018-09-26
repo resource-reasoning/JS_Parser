@@ -8,6 +8,7 @@ env:
   global:
     - PACKAGE=JS_Parser PINS="JS_Parser-runtime:." UBUNTU_TRUSTY=1
   matrix:
+    - OCAML_VERSION=4.07
     - OCAML_VERSION=4.06
     - OCAML_VERSION=4.05
     - OCAML_VERSION=4.04
