@@ -4,6 +4,8 @@
 This is a JavaScript Parser Wrapper for OCaml that uses swappable backends.
 
 ## Dependencies
+OCaml >= 4.04 is required.
+
 It is recommended to use OPAM to install dependencies for this package
 Execute the following line to install the development version of JS_Parser in opam:
 ```sh
