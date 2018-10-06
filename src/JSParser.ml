@@ -111,7 +111,8 @@ let get_esprima_annotations json =
   let annot_pairs : (string * string) list = List.filter (fun (a, d) -> 
     a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||  
     a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      || 
-    a = "invariant" || a = "lemma"   || a = "tactic"     || a = "codename"    || a = "biabduce") annot_pairs in 
+    a = "invariant" || a = "lemma"   || a = "tactic"     || a = "codename"    || a = "biabduce" ||
+    a = "call") annot_pairs in 
 
   let annot_pairs : (string * string) list = List.map (fun (a, d) ->
       let len = String.length d in 
