@@ -84,6 +84,7 @@ let process_annotation atype adesc =
 		| "tactic" -> Tactic
 		| "codename" -> Codename
     | "biabduce" -> BiAbduce
+    | "call" -> Call
 		| annot -> raise (Unknown_Annotation annot)) in
 	
 	{ annot_type = atype; annot_formula = adesc }

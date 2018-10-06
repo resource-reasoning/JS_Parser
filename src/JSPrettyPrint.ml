@@ -73,6 +73,7 @@ let string_of_annot_type atype =
 	| Tactic -> "@tactic"
 	| Lemma -> "@lemma"
   | BiAbduce -> "@biabduce"
+  | Call -> "@call"
 
 let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (annot.annot_formula)
 
