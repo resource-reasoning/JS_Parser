@@ -19,8 +19,9 @@ build-test: [[make "test"]]
 build-doc: [[make "doc"]]
 # install target uses JS_Parser.install automatically
 
-available: [ocaml-version >= "4.02.3"]
+available: [ocaml-version >= "4.04"]
 depends: [
+  "ocamlbuild"
   "ocamlfind"
   "yojson"
   "JS_Parser-runtime"
