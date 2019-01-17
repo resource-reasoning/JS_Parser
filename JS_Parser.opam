@@ -24,7 +24,6 @@ depends: [
   "ocamlbuild"
   "ocamlfind"
   "yojson"
-  "JS_Parser-runtime"
   "ounit" {test}
 ]
 
