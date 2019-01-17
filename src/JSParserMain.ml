@@ -12,7 +12,7 @@ let json_parser_path = ref ""
 let init ?path () =
   try
     let libdir = (match path with
-      | None -> Findlib.init (); Findlib.resolve_path "@JS_Parser-runtime"
+      | None -> Findlib.init (); Findlib.resolve_path "@JS_Parser"
       | Some s -> s) in
     json_parser_path := Filename.concat libdir "run_esprima.js";
     JSParser.doctrine_path := Filename.concat libdir "run_doctrine.js";
