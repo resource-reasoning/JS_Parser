@@ -68,6 +68,7 @@ type annotation_type =
 	| Tactic        (* General tactic: fold, unfold, recursive unfold, assert, flash, callspec, and many more to come... *)
   | BiAbduce      (* Bi-abduction indicator *)
   | Call          (* Function call with substitution *)
+  | JSIL_only     (* Function called in JSIL only *)
 
 type annotation =
   {

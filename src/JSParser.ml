@@ -85,6 +85,7 @@ let process_annotation atype adesc =
 		| "codename" -> Codename
     | "biabduce" -> BiAbduce
     | "call" -> Call
+    | "JSIL" -> JSIL_only
 		| annot -> raise (Unknown_Annotation annot)) in
 	
 	{ annot_type = atype; annot_formula = adesc }

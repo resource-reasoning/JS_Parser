@@ -74,6 +74,7 @@ let string_of_annot_type atype =
 	| Lemma -> "@lemma"
   | BiAbduce -> "@biabduce"
   | Call -> "@call"
+  | JSIL_only -> "@JSIL"
 
 let string_of_annot annot = (string_of_annot_type annot.annot_type) ^ " " ^ (annot.annot_formula)
 
