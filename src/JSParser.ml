@@ -97,11 +97,14 @@ let deal_with_whitespace (s : string) =
     s
 
 let get_esprima_annotations json =
-	let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
+  let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
 
   let comments    : string                        = String.concat "\n" (List.map (fun x -> get_json_string "value" x) leadingComments) in 
+  Printf.printf "Original:\n%s" comments;
   let comments    : string list                   = List.map deal_with_whitespace (List.map String.trim (String.split_on_char '@' comments)) in
+  Printf.printf "After whitespace:\n%s" (String.concat "\n" comments);
   let comments    : string list                   = List.filter (fun x -> x <> "") comments in 
+  Printf.printf "After filter:\n%s" (String.concat "\n" comments);
   let spaces      : int option list               = List.map (fun x -> try Some (String.index x ' ') with _ -> None) comments in 
   let annot_pairs : (string * string) option list = List.map2 (fun c i -> 
       (match i with 
