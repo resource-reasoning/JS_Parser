@@ -113,7 +113,7 @@ let get_esprima_annotations json =
     a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||  
     a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      || 
     a = "invariant" || a = "lemma"   || a = "tactic"     || a = "codename"    || a = "biabduce" ||
-    a = "call") annot_pairs in 
+    a = "call"      || a = "JSIL") annot_pairs in 
 
   let annot_pairs : (string * string) list = List.map (fun (a, d) ->
       let len = String.length d in 
@@ -121,7 +121,7 @@ let get_esprima_annotations json =
         (a, d)
     ) annot_pairs in 
 
-  (* if (annot_pairs <> []) then Printf.printf "Annotations:\n%s\n%!" (String.concat "\n" (List.map (fun (a, d) -> a ^ " " ^ d) annot_pairs)); *)
+  if (annot_pairs <> []) then Printf.printf "Annotations:\n%s\n%!" (String.concat "\n" (List.map (fun (a, d) -> a ^ " " ^ d) annot_pairs)); 
 
   List.map (fun (atype, adesc) -> process_annotation atype adesc) annot_pairs
 
