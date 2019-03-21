@@ -1,3 +1,0 @@
-true: package(yojson), package(findlib), package(unix), package(str)
-<src/**>: include
-<test/**>: include, package(oUnit)

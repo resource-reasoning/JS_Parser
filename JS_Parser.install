@@ -1,18 +1,32 @@
 lib: [
-  "src/META"
-  "lib/run_esprima.js"                        { "run_esprima.js" }
-  "lib/node_modules/esprima/LICENSE.BSD"      { "node_modules/esprima/LICENSE.BSD" }
-  "lib/node_modules/esprima/esprima.js"       { "node_modules/esprima/esprima.js" }
-  "lib/node_modules/esprima/package.json"     { "node_modules/esprima/package.json" }
-  "_build/src/JSParser.cmi"
-  "_build/src/JSParserMain.cmi"
-  "_build/src/JSParserSyntax.cmi"
-  "_build/src/JSPrettyPrint.cmi"
-  "_build/src/JSParser.cmx"
-  "_build/src/JSParserMain.cmx"
-  "_build/src/JSParserSyntax.cmx"
-  "_build/src/JSPrettyPrint.cmx"
-  "_build/src/JS_Parser.cma"
-  "_build/src/JS_Parser.cmxa"
-  "_build/src/JS_Parser.a"
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/JSParser.ml" {"JSParser.ml"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/JSParserMain.ml" {"JSParserMain.ml"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/JSParserSyntax.ml" {"JSParserSyntax.ml"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/JSPrettyPrint.ml" {"JSPrettyPrint.ml"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/JS_Parser.a" {"JS_Parser.a"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/JS_Parser.cma" {"JS_Parser.cma"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/JS_Parser.cmxa" {"JS_Parser.cmxa"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/JS_Parser.cmxs" {"JS_Parser.cmxs"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/META" {"META"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/dune-package" {"dune-package"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser.cmi" {"jS_Parser.cmi"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser.cmt" {"jS_Parser.cmt"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser.cmx" {"jS_Parser.cmx"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser.ml" {"jS_Parser.ml"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParser.cmi" {"jS_Parser__JSParser.cmi"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParser.cmt" {"jS_Parser__JSParser.cmt"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParser.cmx" {"jS_Parser__JSParser.cmx"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParserMain.cmi" {"jS_Parser__JSParserMain.cmi"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParserMain.cmt" {"jS_Parser__JSParserMain.cmt"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParserMain.cmx" {"jS_Parser__JSParserMain.cmx"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParserSyntax.cmi" {"jS_Parser__JSParserSyntax.cmi"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParserSyntax.cmt" {"jS_Parser__JSParserSyntax.cmt"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSParserSyntax.cmx" {"jS_Parser__JSParserSyntax.cmx"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSPrettyPrint.cmi" {"jS_Parser__JSPrettyPrint.cmi"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSPrettyPrint.cmt" {"jS_Parser__JSPrettyPrint.cmt"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/jS_Parser__JSPrettyPrint.cmx" {"jS_Parser__JSPrettyPrint.cmx"}
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/lib/JS_Parser/opam" {"opam"}
+]
+doc: [
+  "/Users/sacha/Prog/github/JS_Parser/_esy/default/store/b/js__parser-fdec9913/install/default/doc/JS_Parser/README.md"
 ]
