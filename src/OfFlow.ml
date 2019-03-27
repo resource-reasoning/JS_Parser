@@ -34,7 +34,7 @@ let deal_with_whitespace (s : string) =
     s
 
 let remove_first = function
-  | a::(b::r) -> (b::r)
+  | _::(b::r) -> (b::r)
   | _         -> raise (CannotHappen "Removing the first of a list that has less than 2 elements")
 
 
@@ -68,7 +68,7 @@ let make_annotation (atype, adesc) =
 let get_annotations (comments: loc Comment.t list) : (loc * Syntax.annotation list) list =
   (* Extracts strig from comment *)
   let mapkeep f l = List.map (fun (a, b) -> (a, f b)) l in
-  let filterkeep f l = List.filter (fun (a, b) -> f b) l in
+  let filterkeep f l = List.filter (fun (_, b) -> f b) l in
   let only_string = function
     | Comment.Block s | Comment.Line s -> s
   in
@@ -139,15 +139,15 @@ let after loca locb = match compare_loc loca locb with After -> true | _ -> fals
 
 let get_first = function
   | [] -> raise (CannotHappen "Getting the first element of an empty list")
-  | a::r -> a
+  | a::_ -> a
 
 let rec get_last = function
   | [] -> raise (CannotHappen "Getting the last element of an empty list")
   | [a] -> a
-  | a::r -> get_last r
+  | _::r -> get_last r
 
 let rem_locs (annots: (loc * annotation list) list) : annotation list =
-  List.flatten (List.map (fun (a,b) -> b) annots)
+  List.flatten (List.map (fun (_,b) -> b) annots)
 
 let offset loc = loc.Loc.start.offset
 
@@ -195,12 +195,13 @@ let add_annot annots exp =
 let option_map f o = match o with None -> None | Some i -> Some (f i)
 
 (* Flow AST utils *)
-let get_str_id ((a, b): loc Identifier.t) = b
+let get_str_id ((_, b): loc Identifier.t) = b
 
 let get_str_pattern pat off =
   let open Pattern in
   match pat with
   | Identifier.(Identifier { name=(_, str) ; _ }) -> str
+  | Expression _ -> raise (NotEcmaScript5 ("ES5 only allows simple identifiers as patterns, given expr !", off))
   | _ -> raise (NotEcmaScript5 ("ES5 only allows simple identifiers as patterns", off))
 
 
@@ -253,8 +254,8 @@ let transform_binary_op off =
   | Binary.Exp -> raise (NotEcmaScript5 ("Exponentiation operator (**) is not part of ES5", off))
   | Binary.Div -> Arith Div
   | Binary.Mod -> Arith Mod
-  | Binary.BitOr -> Arith Bitxor
-  | Binary.Xor -> raise (CannotHappen ("The Xor operator is part of Flow, not JavaScript"))
+  | Binary.BitOr -> Arith Bitor
+  | Binary.Xor -> Arith Bitxor
   | Binary.BitAnd -> Arith Bitand
   | Binary.In -> Comparison In
   | Binary.Instanceof -> Comparison InstanceOf
@@ -283,7 +284,7 @@ let transform_logical_op off =
   | Logical.And -> Boolean And
   | Logical.NullishCoalesce -> raise (NotEcmaScript5 ("The Nullish Coalescing operator is not part of ES5", off))
 
-let transform_update_op off prefix op =
+let transform_update_op prefix op =
   let open Expression.Update in
   match prefix, op with
   | true, Increment -> Pre_Incr
@@ -329,7 +330,7 @@ and transform_expression_sequence start_pos leading_annots inner_annots expr_lis
     match expl with
     | [] -> let () = check_unused_annots (offset start_pos) annots in acc
     | exp::r ->
-      let (le, e) = exp in
+      let (le, _) = exp in
       let e_annots, rest_annots = partition_inner (Loc.btwn stpos (char_after le)) annots in
       let trans_exp = transform_expression e_annots exp in
       let trans_acc = mk_exp (Comma (acc, trans_exp)) (offset start_pos) [] in
@@ -379,8 +380,11 @@ and transform_expression (annotations: (loc * annotation list) list) (expression
     let left_annots, right_annots = partition_inner (Loc.btwn first_pos (char_after leftloc)) inner_annots in
     let trans_left =
       let (locpat, pat) = left in
-      let strpat = get_str_pattern pat (offset locpat) in
-      mk_exp (Var strpat) (offset locpat) (rem_locs left_annots)
+      match pat with
+      | Pattern.(Identifier Identifier.{ name=(_, i); _ }) ->
+        mk_exp (Var i) (offset locpat) (rem_locs left_annots)
+      | Pattern.Expression ex -> transform_expression left_annots ex
+      | _ -> raise (NotEcmaScript5 ("Pattern matching in assignment is not authorized in ES5", offset locpat))
     in
     let trans_right = transform_expression right_annots right in
     begin
@@ -399,7 +403,7 @@ and transform_expression (annotations: (loc * annotation list) list) (expression
     mk_exp (BinOp (trans_left, trans_op, trans_right)) off leading_annots
   | Expression.(Update Update.{ operator; argument; prefix }) ->
     let trans_arg = transform_expression inner_annots argument in
-    let trans_op = transform_update_op off prefix operator in
+    let trans_op = transform_update_op prefix operator in
     mk_exp (Unary_op (trans_op, trans_arg)) off leading_annots
   | Expression.(Member Member.{ _object; property; computed }) ->
     let (lobject, _) = _object in
@@ -536,7 +540,7 @@ and transform_variable_decl declaration total_loc leading_annots inner_annots =
       match init with
       | None -> None, remaining_annots, char_after lpat
       | Some (le, e) ->
-        let this_annot, rest_annot = partition_inner (char_after lpat) remaining_annots in
+        let this_annot, rest_annot = partition_inner (Loc.btwn stloc le) remaining_annots in
         Some (transform_expression this_annot (le, e)), rest_annot, char_after le
     in
 
@@ -553,11 +557,11 @@ and transform_function
       (inner_annots: (loc * annotation list) list)
       (fn:loc Function.t) : exp =
   let Function.{ id; params; body; _ } = fn in
-  let id = match id with None -> None | Some (l, i) -> Some i in
+  let id = match id with None -> None | Some (_, i) -> Some i in
   let param_strs = function_param_filter params in
   let body_transf = 
     match body with
-    | Function.BodyBlock (l, fbody) ->
+    | Function.BodyBlock (_, fbody) ->
       let Statement.Block.{ body } = fbody in
       let children = trans_stmt_list start_pos body inner_annots in
       mk_exp (Block children) (offset start_pos) [] (* Annotations are attached to the children *)
@@ -606,7 +610,7 @@ and transform_statement (annotations: (loc * annotation list) list) (statement: 
     let () = check_unused_annots off rest_annots in
     mk_exp (If (trans_test, trans_cons, trans_alt)) off leading_annots
   | Statement.(Labeled Labeled.{ label; body }) ->
-    let (locbody, raw_body) = body in
+    let (locbody, _) = body in
     let (loclab, lab) = label in
     let child_annot, rest_annot = partition_inner (Loc.btwn (char_after loclab) locbody) inner_annots in
     let () = check_unused_annots off rest_annot in
@@ -627,7 +631,7 @@ and transform_statement (annotations: (loc * annotation list) list) (statement: 
     let trans_body = transform_statement body_annot body in (* Every remaining annotation goes to the body *)
     mk_exp (With (trans_obj, trans_body)) off leading_annots
   | Statement.(Switch { discriminant; cases }) ->
-    let (ldisc, raw_discr) = discriminant in
+    let (ldisc, _) = discriminant in
     let expr_annots, other_annots = partition_inner ldisc inner_annots in
     let trans_discr = transform_expression expr_annots discriminant in
     let trans_cases = List.map (transform_case other_annots) cases in (* This might lose some annotations between the end of a case and the beginning of the next one *)
@@ -680,9 +684,9 @@ and transform_statement (annotations: (loc * annotation list) list) (statement: 
   | Statement.(DoWhile DoWhile.{ test; body }) ->
     let ltest, _ = test in
     let expr_annots, body_annots = partition_inner (Loc.btwn first_pos ltest) inner_annots in
-    let trans_exp = transform_expression expr_annots test in
+    let trans_test = transform_expression expr_annots test in
     let trans_body = transform_statement body_annots body in
-    mk_exp (DoWhile (trans_exp, trans_body)) off leading_annots
+    mk_exp (DoWhile (trans_body, trans_test)) off leading_annots
   | Statement.(ForIn ForIn.{ left; right; body; each=_ }) ->
     let open Statement.ForIn in
     let trans_left, other_annots, endleft =
@@ -734,7 +738,7 @@ and transform_statement (annotations: (loc * annotation list) list) (statement: 
         Some t, other_annots, char_after le
     in
     let trans_update, other_annots, endupdate =
-      match test with
+      match update with
       | None -> None, other_annots, endtest
       | Some (le, e) ->
         let update_annots, other_annots = partition_inner (Loc.btwn endinit le) other_annots in

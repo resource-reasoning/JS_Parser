@@ -1,5 +1,3 @@
-open List
-
 exception CannotHappen
 
 (* syntax *)
@@ -137,7 +135,7 @@ let mk_exp s o annots =
 
 let is_directive exp =
   match exp.exp_stx with
-    | String s -> true
+    | String _ -> true
     | _ -> false
 
 let get_directives exp =
@@ -164,12 +162,12 @@ let rec add_strictness parent_strict exp =
     | None -> None
     | Some e -> Some (f e) in
   match exp.exp_stx with
-    | Num n -> exp
-    | String x -> exp
+    | Num _ -> exp
+    | String _ -> exp
     | Label (x, e1) -> {exp with exp_stx = Label (x, f e1)}
     | Null -> exp
-    | Bool b -> exp
-    | Var x -> exp
+    | Bool _ -> exp
+    | Var _ -> exp
     | If (e1, e2, e3) -> {exp with exp_stx = If (f e1, f e2, fop e3)}
     | While (e1, e2) -> {exp with exp_stx = While (f e1, f e2)}
     | DoWhile (e1, e2) -> {exp with exp_stx = DoWhile (f e1, f e2)}
@@ -197,7 +195,7 @@ let rec add_strictness parent_strict exp =
     | Skip -> exp
     | Throw e -> {exp with exp_stx = Throw (f e)}
     | Return e -> {exp with exp_stx = Return (fop e)}
-    | RegExp (s1, s2) -> exp
+    | RegExp _ -> exp
     | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
     | For (e1, e2, e3, e4) -> {exp with exp_stx = For (fop e1, fop e2, fop e3, f e4)}
     | Break _ -> exp
