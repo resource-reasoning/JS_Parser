@@ -8,6 +8,7 @@
   "dependencies": {
     "@esy-ocaml/flow-parser": "^0.76.2",
     "@opam/dune": "*",
+    "@opam/utop": "2.3.0",
     "ocaml": ">=4.6.0"
   },
   "devDependencies": {

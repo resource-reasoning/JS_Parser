@@ -1,9 +1,6 @@
-open JSParserSyntax
+open Syntax
 open List
 open Yojson.Safe
-
-let doctrine_path = ref ""
-let doctrine_file = ref "doctrine.json"
 
 exception Parser_No_Program
 exception ParserFailure of string
@@ -108,7 +105,7 @@ let get_esprima_annotations json =
       | None -> None
       | Some i -> Some (String.trim (String.sub c 0 i), String.trim (String.sub c i (String.length c - i))))
     ) comments spaces in 
-  let annot_pairs : (string * string) list = List.map (fun x -> match x with | Some x -> x) (List.filter (fun x -> x <> None) annot_pairs) in 
+  let annot_pairs : (string * string) list = List.map (fun x -> match x with | Some x -> x | _ -> raise CannotHappen) (List.filter (fun x -> x <> None) annot_pairs) in 
   let annot_pairs : (string * string) list = List.filter (fun (a, d) -> 
     a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||  
     a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      || 
@@ -130,12 +127,12 @@ let rec json_to_exp json : exp =
   let annotations = get_esprima_annotations json in
   match json_type with
 
-    | "Program" ->
+    | "Program" -> (* Program *)
       let children = get_json_list "body" json in
       let stmts = map json_to_exp children in
       mk_exp (Script (false, stmts)) (get_json_offset json) annotations
 
-    | "BlockStatement" ->
+    | "BlockStatement" -> (* stmt *)
       let children = get_json_list "body" json in
       json_mk_block_exp children (get_json_offset json) annotations
 
@@ -148,7 +145,7 @@ let rec json_to_exp json : exp =
         | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
       end
 
-    | "FunctionDeclaration" ->
+    | "FunctionDeclaration" -> (* stmt *)
       let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
@@ -157,7 +154,7 @@ let rec json_to_exp json : exp =
         | ident -> mk_exp (Function (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
       end
 
-    | "VariableDeclaration" ->
+    | "VariableDeclaration" -> (* stmt *)
       let offset = (get_json_offset json) in
       begin match (get_json_list "declarations" json) with
         | [] -> raise Empty_list
@@ -166,7 +163,7 @@ let rec json_to_exp json : exp =
             mk_exp (VarDec vars) offset annotations
       end
 			
-    | "ExpressionStatement" ->
+    | "ExpressionStatement" -> (* stmt *)
 			(* Get the leading comments *)
 			let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
 			(* Get the body of the expression *)
@@ -183,7 +180,7 @@ let rec json_to_exp json : exp =
 	      | _ -> raise (Failure "Unexpected non-assoc.")) in
       json_to_exp jfexp
 			
-    | "IfStatement" ->
+    | "IfStatement" -> (* stmt *)
       let offset = get_json_offset json in
       let test = json_to_exp (get_json_field "test" json) in
       let cons = json_to_exp (get_json_field "consequent" json) in
@@ -194,7 +191,7 @@ let rec json_to_exp json : exp =
       end in
       mk_exp (If (test, cons, alt)) offset annotations
 
-    | "LabeledStatement" ->
+    | "LabeledStatement" -> (* stmt *)
       let lname = get_json_ident_name (get_json_field "label" json) in
       let body = json_to_exp (get_json_field "body" json) in
       mk_exp (Label (lname, body)) (get_json_offset json) annotations

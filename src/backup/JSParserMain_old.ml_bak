@@ -1,6 +1,6 @@
 open JSParser
-open JSPrettyPrint
-open JSParserSyntax
+open PrettyPrint
+open Syntax
 open Unix
 open Yojson.Safe
 

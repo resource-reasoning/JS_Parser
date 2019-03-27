@@ -1,5 +1,4 @@
 (library
   (name JS_Parser)
   (public_name JS_Parser)
-  (flags -w -3)
-  (libraries yojson findlib unix str flow-parser))
+  (libraries yojson findlib str flow-parser))
