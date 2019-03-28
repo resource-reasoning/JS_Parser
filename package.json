@@ -4,7 +4,7 @@
   "description": "JS_Parser based on flow-parser",
   "license": "MIT",
   "esy": { "build": [ [ "dune", "build", "-p", "JS_Parser" ] ] },
-  "scripts": { "test": "esy dune runtest" },
+  "scripts": { "test": "esy dune runtest", "format": "esy dune build @fmt", "promote": "esy dune promote" },
   "dependencies": {
     "@esy-ocaml/flow-parser": "^0.76.2",
     "@opam/dune": "*",
