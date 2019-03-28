@@ -9,22 +9,27 @@ authors: [
   "Petar Maksimovic <p.maksimovic@imperial.ac.uk>"
   "Sacha-Elie Ayoun <s.ayoun17@imeprial.ac.uk>"
 ]
-description: "Parser for EcmaScript 5 that allows to include JS Logic annotations, based on Flow-Parser"
 homepage: "https://github.com/resource-reasoning/JS_Parser"
 bug-reports: "https://github.com/resource-reasoning/JS_Parser/issues"
 license: "TBC"
-dev-repo: "https://github.com/resource-reasoning/JS_Parser.git"
+dev-repo: "git+https://github.com/resource-reasoning/JS_Parser.git"
 libraries: ["JS_Parser"]
 
-build: [["dune" "build" "-p" name]]
-run-test: [["dune" "runtest"]]
-build-doc: [["dune" "build" "@doc"]]
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest"] { with-test }
+  ["dune" "build" "-p" name "@doc"]
+  ]
 
-available: [ocaml-version >= "4.04"]
 depends: [
   "dune" { build }
   "ocaml" { >="4.04" }
-  "yojson"
-  "flow_parser"
-  "ounit" { test }
+  "flow_parser" #the flow-parser on opam is dead.
+  "ounit" { with-test }
+  "odoc" { with-doc }
 ]
+decription: "Parser for EcmaScript 5 that allows to include JS Logic annotations, based on Flow_parser"
+synopsis: """
+Parser for EcmaScript 5 that allows to include JS Logic annotations, based on Flow_parser
+This package was originaly using google clojure, and then esprima, and is now completely written in OCaml.
+"""
