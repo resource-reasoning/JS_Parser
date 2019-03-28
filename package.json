@@ -13,7 +13,7 @@
   "devDependencies": {
     "@esy-ocaml/merlin": "*",
     "ocaml": "~4.6.0",
-    "@opam/oUnit": "2.0.8",
+    "@opam/ounit": "2.0.8",
     "@opam/utop": "2.3.0"
   }
 }
