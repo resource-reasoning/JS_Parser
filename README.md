@@ -1,52 +1,46 @@
 # JavaScript Parser
 [![Build Status](https://travis-ci.org/resource-reasoning/JS_Parser.svg?branch=master)](https://travis-ci.org/resource-reasoning/JS_Parser)
 
-This is a JavaScript Parser Wrapper for OCaml that uses swappable backends.
+Javascript Parser, based on flow-parser, which adds support for JS_Logic from the JaVerT toolchain.
 
 ## Dependencies
 OCaml >= 4.04 is required.
+esy 0.5.6 is required
 
-It is recommended to use OPAM to install dependencies for this package
-Execute the following line to install the development version of JS_Parser in opam:
-```sh
-opam pin add JS_Parser https://github.com/resource-reasoning/JS_Parser.git
+## Build Locally
+```bash
+npm install -g esy@0.5.6
+esy
 ```
 
-Or, if you need to develop the parser, then clone the repository and then execute
-this line from the repository directory:
-```sh
-opam pin add .
+## Test
+```bash
+esy test
 ```
 
-The current set of OCaml dependencies are maintained in the [opam](opam) file.
-
-### Google Closure Parser Backend
-The Google Closure parser backend additionally requires:
-
-1. [Java](http://www.oracle.com/technetwork/java/index.html)
-
-You can get this on Ubuntu with:
-```shell
-sudo apt-get install java7-jdk
-```
-### Esprima Backend
-The Esprima backend uses a [forked version](https://github.com/resource-reasoning/esprima)
-of Esprima, to find the version in use and a summary of the patches applied,
-check that repository's commit log.
-
-The Esprima parser backend additionally requires:
-1. [NodeJS](https://nodejs.org/)
-
-You can install this on Ubuntu/Debian based systems using:
-```shell
-sudo apt-get install node-legacy
+## Documentation
+To build te documentation, execute :
+```bash
+esy build:doc
 ```
 
-It is important that the legacy package is installed as we depend on the NodeJS
-executable being called `node`, another package got there first on Debian based
-systems! :(
+and then open the doc in `_esy/default/build/default/_doc/_html/index.html`
 
-# Development Notes
-To update the version of Esprima installed use `npm install --save esprima`, and check that
-the relevant changes to package.json and npm-shrinkwrap.json are appropriate before
-committing all changed/new files.
+## Add JS_Parser as a dependency of an `esy` project
+
+the `package.json` should contain
+```json
+"dependencies": {
+  ...
+  "JS_Parser": "*",
+  ...
+},
+"resolutions": {
+  "JS_Parser": "resource-reasoning/JS_Parser#COMMITHASH"
+}
+```
+
+Where `COMMITHASH` is the commit you want to depend on.
+It has to me a commit hash that is more recent than `702e11a`, otherewise the project does not yet support `esy`.
+
+If not commit hash is added, it will simply depend on the current master branch. (See [esy documentation](https://esy.sh/docs/en/using-repo-sources-workflow.html) for more details.)
