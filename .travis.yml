@@ -10,3 +10,7 @@ install:
 script:
 - esy build
 - esy test
+cache:
+  timeout: 360
+  directories:
+    - '$HOME/.esy/'
