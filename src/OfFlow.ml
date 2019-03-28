@@ -630,13 +630,12 @@ and transform_expression (annotations : (loc * annotation list) list)
       let trans_els = trans_els_opt first_pos inner_annots expr_opt_els in
       mk_exp (Array trans_els) off leading_annots
   | Expression.(Identifier (_, i)) -> mk_exp (Var i) off (rem_locs annotations)
-  | Expression.(Literal Literal.({value; raw})) ->
+  | Expression.(Literal Literal.({ value; _ })) ->
       let trans_val =
         match value with
         | Literal.Boolean b -> Bool b
         | Literal.Number f -> Num f
-        | Literal.Null when String.equal raw "null" -> Null
-        | Literal.Null -> Num infinity
+        | Literal.Null -> Null
         | Literal.String s -> String s
         | Literal.(RegExp RegExp.({pattern; flags})) -> RegExp (pattern, flags)
       in
