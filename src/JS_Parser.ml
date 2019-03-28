@@ -1,7 +1,6 @@
 module Syntax = Syntax
 module PrettyPrint = PrettyPrint
-
-exception FlowParseError of string list
+module Error = Error
 
 let parse_string_exn ?(force_strict = false) program =
   let parse_options =
@@ -15,15 +14,20 @@ let parse_string_exn ?(force_strict = false) program =
   in
   if List.length e > 0 then
     let messages =
-      List.map
-        (fun (loc, err) ->
-          Flow_parser.Loc.to_string loc
-          ^ " : "
-          ^ Flow_parser.Parse_error.PP.error err )
-        e
+      String.concat "\n"
+        (List.map
+           (fun (loc, err) ->
+             Flow_parser.Loc.to_string loc
+             ^ " : "
+             ^ Flow_parser.Parse_error.PP.error err )
+           e)
     in
-    raise (FlowParseError messages)
+    raise (Error.ParserError (Error.FlowParser messages))
   else
     let trans_prog = OfFlow.transform_program p in
     let trans_annotated_prog = Syntax.add_strictness force_strict trans_prog in
     trans_annotated_prog
+
+let parse_string ?(force_strict = false) program =
+  try Ok (parse_string_exn ~force_strict program)
+  with Error.ParserError err -> Error err

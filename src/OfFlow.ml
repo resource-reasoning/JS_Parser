@@ -1,5 +1,6 @@
 open Flow_parser.Ast
 open Syntax
+open Error
 module Loc = Flow_parser.Loc
 
 type loc = Loc.t
@@ -7,18 +8,6 @@ type loc = Loc.t
 type pos = Loc.position
 
 exception CannotHappen of string
-
-exception Unknown_Annotation of string
-
-exception Overlapping_Syntax
-
-exception Unhandled_Statement of loc Statement.t * int
-
-exception Unhandled_Expression of loc Expression.t * int
-
-exception NotEcmaScript5 of string * int
-
-exception UnusedAnnotations of annotation list * int
 
 (* IF YOU ARE GOING TO DIVE INTO THIS CODE, PLEASE READ THIS :
 f
@@ -72,7 +61,7 @@ let make_annotation (atype, adesc) =
     | "biabduce" -> BiAbduce
     | "call" -> Call
     | "JSIL" -> JSIL_only
-    | annot -> raise (Unknown_Annotation annot)
+    | annot -> raise (ParserError (Unknown_Annotation annot))
   in
   {annot_type= atype; annot_formula= adesc}
 
@@ -149,7 +138,7 @@ let compare_loc loca locb =
   else if
     lower_eq_pos locb.start loca.start && lower_eq_pos loca._end locb._end
   then Child
-  else raise Overlapping_Syntax
+  else raise (ParserError Overlapping_Syntax)
 
 (* Loc utils *)
 let before loca locb =
@@ -213,7 +202,8 @@ let check_unused_annots off annotation_l =
   let flattened = rem_locs annotation_l in
   let () =
     if List.length flattened > 0 then
-      raise (UnusedAnnotations (flattened, off))
+      let message = List.map PrettyPrint.string_of_annot flattened in
+      raise (ParserError (UnusedAnnotations (message, off)))
   in
   ()
 
@@ -232,11 +222,15 @@ let get_str_pattern pat off =
   | Identifier.(Identifier {name= _, str; _}) -> str
   | Expression _ ->
       raise
-        (NotEcmaScript5
-           ("ES5 only allows simple identifiers as patterns, given expr !", off))
+        (ParserError
+           (NotEcmaScript5
+              ( "ES5 only allows simple identifiers as patterns, given expr !"
+              , off )))
   | _ ->
       raise
-        (NotEcmaScript5 ("ES5 only allows simple identifiers as patterns", off))
+        (ParserError
+           (NotEcmaScript5
+              ("ES5 only allows simple identifiers as patterns", off)))
 
 let function_param_filter params =
   (* We are in ES5, so the only pattern available when declaring a function is an identifier.
@@ -244,7 +238,8 @@ let function_param_filter params =
   let _, Function.Params.({params; rest}) = params in
   let () =
     match rest with
-    | Some (lr, _) -> raise (NotEcmaScript5 ("Using rest params", offset lr))
+    | Some (lr, _) ->
+        raise (ParserError (NotEcmaScript5 ("Using rest params", offset lr)))
     | None -> ()
   in
   (* Now we are going to filter patterns that are not Identifier, if we find something else, we raise an error *)
@@ -273,7 +268,9 @@ let transform_unary_op off =
            "Delete is a special case of operator that should have been caught \
             earlier")
   | Unary.Await ->
-      raise (NotEcmaScript5 ("The await keyword is not part of ES5", off))
+      raise
+        (ParserError
+           (NotEcmaScript5 ("The await keyword is not part of ES5", off)))
 
 let transform_binary_op off =
   let open Expression in
@@ -294,7 +291,9 @@ let transform_binary_op off =
   | Binary.Mult -> Arith Times
   | Binary.Exp ->
       raise
-        (NotEcmaScript5 ("Exponentiation operator (**) is not part of ES5", off))
+        (ParserError
+           (NotEcmaScript5
+              ("Exponentiation operator (**) is not part of ES5", off)))
   | Binary.Div -> Arith Div
   | Binary.Mod -> Arith Mod
   | Binary.BitOr -> Arith Bitor
@@ -315,7 +314,9 @@ let transform_assignment_op off =
   | MultAssign -> Times
   | ExpAssign ->
       raise
-        (NotEcmaScript5 ("The exponentiation operator is not part of ES5", off))
+        (ParserError
+           (NotEcmaScript5
+              ("The exponentiation operator is not part of ES5", off)))
   | DivAssign -> Div
   | ModAssign -> Mod
   | LShiftAssign -> Lsh
@@ -332,8 +333,9 @@ let transform_logical_op off =
   | Logical.And -> Boolean And
   | Logical.NullishCoalesce ->
       raise
-        (NotEcmaScript5
-           ("The Nullish Coalescing operator is not part of ES5", off))
+        (ParserError
+           (NotEcmaScript5
+              ("The Nullish Coalescing operator is not part of ES5", off)))
 
 let transform_update_op prefix op =
   let open Expression.Update in
@@ -353,8 +355,9 @@ let rec transform_properties start_pos annotations properties =
       let () =
         if shorthand then
           raise
-            (NotEcmaScript5
-               ("Shorthand properties are not part of ES5", offset loc))
+            (ParserError
+               (NotEcmaScript5
+                  ("Shorthand properties are not part of ES5", offset loc)))
       in
       let inner_annots, rest_annots =
         partition_inner (Loc.btwn start_pos loc) annotations
@@ -384,8 +387,9 @@ let rec transform_properties start_pos annotations properties =
       :: transform_properties (char_after loc) rest_annots r
   | (loc, Method _) :: _ ->
       raise
-        (NotEcmaScript5
-           ("Methods are not allowed in ES5 for objects", offset loc))
+        (ParserError
+           (NotEcmaScript5
+              ("Methods are not allowed in ES5 for objects", offset loc)))
 
 and transform_prop_key key =
   let open Expression.Object.Property in
@@ -395,10 +399,11 @@ and transform_prop_key key =
   | Identifier i -> PropnameId (get_str_id i)
   | Literal (l, _) | PrivateName (l, _) | Computed (l, _) ->
       raise
-        (NotEcmaScript5
-           ( "Only strings or string and int literals are authorised as \
-              property key in ES5"
-           , offset l ))
+        (ParserError
+           (NotEcmaScript5
+              ( "Only strings or string and int literals are authorised as \
+                 property key in ES5"
+              , offset l )))
 
 and transform_expression_sequence start_pos leading_annots inner_annots
     expr_list =
@@ -479,9 +484,10 @@ and transform_expression (annotations : (loc * annotation list) list)
         | Pattern.Expression ex -> transform_expression left_annots ex
         | _ ->
             raise
-              (NotEcmaScript5
-                 ( "Pattern matching in assignment is not authorized in ES5"
-                 , offset locpat ))
+              (ParserError
+                 (NotEcmaScript5
+                    ( "Pattern matching in assignment is not authorized in ES5"
+                    , offset locpat )))
       in
       let trans_right = transform_expression right_annots right in
       match operator with
@@ -532,8 +538,9 @@ and transform_expression (annotations : (loc * annotation list) list)
           mk_exp (CAccess (trans_obj, trans_prop)) off leading_annots
       | PropertyPrivateName (l, _) ->
           raise
-            (NotEcmaScript5 ("Private properties are not part of ES5", offset l))
-      )
+            (ParserError
+               (NotEcmaScript5
+                  ("Private properties are not part of ES5", offset l))) )
   | Expression.This ->
       let () = check_unused_annots off inner_annots in
       mk_exp This off leading_annots
@@ -546,8 +553,9 @@ and transform_expression (annotations : (loc * annotation list) list)
             | Property p -> p
             | SpreadProperty (l, _) ->
                 raise
-                  (NotEcmaScript5
-                     ("Use of spread property illegal in ES5", offset l)))
+                  (ParserError
+                     (NotEcmaScript5
+                        ("Use of spread property illegal in ES5", offset l))))
           properties
       in
       let trans_props = transform_properties first_pos inner_annots props in
@@ -568,7 +576,9 @@ and transform_expression (annotations : (loc * annotation list) list)
             | Expression e -> e
             | Spread _ ->
                 raise
-                  (NotEcmaScript5 ("Use of spread illegal in ES5", offset loc)))
+                  (ParserError
+                     (NotEcmaScript5
+                        ("Use of spread illegal in ES5", offset loc))))
           arguments
       in
       let trans_args =
@@ -595,7 +605,9 @@ and transform_expression (annotations : (loc * annotation list) list)
             | Some (Expression e) -> Some e
             | Some (Spread _) ->
                 raise
-                  (NotEcmaScript5 ("Use of spread illegal in ES5", offset loc))
+                  (ParserError
+                     (NotEcmaScript5
+                        ("Use of spread illegal in ES5", offset loc)))
             | None -> None)
           elements
       in
@@ -642,7 +654,9 @@ and transform_expression (annotations : (loc * annotation list) list)
             | Expression e -> e
             | Spread _ ->
                 raise
-                  (NotEcmaScript5 ("Use of spread illegal in ES5", offset loc)))
+                  (ParserError
+                     (NotEcmaScript5
+                        ("Use of spread illegal in ES5", offset loc))))
           arguments
       in
       let trans_args =
@@ -652,7 +666,7 @@ and transform_expression (annotations : (loc * annotation list) list)
   | Expression.Function fn ->
       transform_function ~expression:true first_pos leading_annots inner_annots
         fn
-  | _ -> raise (Unhandled_Expression (expression, off))
+  | _ -> raise (ParserError (Unhandled_Expression off))
 
 and transform_expr_list start_pos annots exprl =
   match exprl with
@@ -678,8 +692,9 @@ and transform_variable_decl declaration total_loc leading_annots inner_annots =
     | Var -> ()
     | _ ->
         raise
-          (NotEcmaScript5
-             ("Using Let or Const is not authorized in ES5 !", offset start))
+          (ParserError
+             (NotEcmaScript5
+                ("Using Let or Const is not authorized in ES5 !", offset start)))
   in
   let rec f stloc remaining_annots = function
     | [] ->
@@ -840,8 +855,10 @@ and transform_statement (annotations : (loc * annotation list) list)
               match param with
               | None ->
                   raise
-                    (NotEcmaScript5
-                       ("In ES5, catch must have a parameter!", offset lhandler))
+                    (ParserError
+                       (NotEcmaScript5
+                          ( "In ES5, catch must have a parameter!"
+                          , offset lhandler )))
               | Some (lpat, pat) -> get_str_pattern pat (offset lpat)
             in
             let body_start = Loc.first_char lbody in
@@ -990,7 +1007,7 @@ and transform_statement (annotations : (loc * annotation list) list)
   | Statement.Debugger ->
       let () = check_unused_annots off inner_annots in
       mk_exp Debugger off leading_annots
-  | _ -> raise (Unhandled_Statement (statement, off))
+  | _ -> raise (ParserError (Unhandled_Statement off))
 
 and transform_case annots case =
   (* I don't know how correct the following is. *)
