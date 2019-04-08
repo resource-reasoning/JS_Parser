@@ -11,3 +11,4 @@ esy.lock
 node_modules
 *.merlin
 *.install
+doc
