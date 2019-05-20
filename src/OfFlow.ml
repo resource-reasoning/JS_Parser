@@ -118,7 +118,7 @@ let get_annotations (comments : loc Comment.t list) :
 
 (******* Just a small part to deal with directives *********)
 
-let get_directives (st_lst: Loc.t Statement.t list) =
+let get_directives st_lst =
   let rec loop curr rest =
     match rest with
     | [] -> curr
