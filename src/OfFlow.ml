@@ -116,6 +116,22 @@ let get_annotations (comments : loc Comment.t list) :
   let annot_pairs_clean = mapkeep filter_and_get annot_pairs in
   mapkeep (List.map make_annotation) annot_pairs_clean
 
+(******* Just a small part to deal with directives *********)
+
+let get_directives (st_lst: Loc.t Statement.t list) =
+  let rec loop curr rest =
+    match rest with
+    | [] -> curr
+    | (_, a)::rp ->(
+      match a with
+      | Statement.Expression { directive = Some d; _ } -> loop (d::curr) rp
+      | _ -> curr (* There is not more directives *))
+  in
+  List.rev (loop [] st_lst)
+
+let block_is_strict st_lst =
+  List.mem "use strict" (get_directives st_lst)
+
 (******* Now we deal with AST transformation *********)
 
 let lower_pos posa posb =
@@ -730,22 +746,23 @@ and transform_function ~(expression : bool)
   let Function.({id; params; body; _}) = fn in
   let id = match id with None -> None | Some (_, i) -> Some i in
   let param_strs = function_param_filter params in
-  let body_transf =
+  let (body_transf, strictness) =
     match body with
     | Function.BodyBlock (_, fbody) ->
         let Statement.Block.({body}) = fbody in
+        let strictness = block_is_strict body in
         let children = trans_stmt_list start_pos body inner_annots in
-        mk_exp (Block children) (offset start_pos) []
+        (mk_exp (Block children) (offset start_pos) [], strictness)
         (* Annotations are attached to the children *)
-    | Function.BodyExpression expr -> transform_expression inner_annots expr
+    | Function.BodyExpression expr -> (transform_expression inner_annots expr, false)
   in
   if expression then
     mk_exp
-      (FunctionExp (false, id, param_strs, body_transf))
+      (FunctionExp (strictness, id, param_strs, body_transf))
       (offset start_pos) leading_annots
   else
     mk_exp
-      (Function (false, id, param_strs, body_transf))
+      (Function (strictness, id, param_strs, body_transf))
       (offset start_pos) leading_annots
 
 and transform_statement (annotations : (loc * annotation list) list)
@@ -1042,8 +1059,9 @@ let transform_program (prog : loc program) =
   let start_loc = Loc.none in
   (* At @esy-ocaml/flow-parser v 0.76, this is position (0, 0) *)
   let loc, raw_stmts, cmts = prog in
+  let strictness = block_is_strict raw_stmts in
   let annots = get_annotations cmts in
   let stmts = trans_stmt_list start_loc raw_stmts annots in
-  mk_exp (Script (false, stmts)) (offset loc) []
+  mk_exp (Script (strictness, stmts)) (offset loc) []
 
 (* The script never has annotations *)

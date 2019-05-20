@@ -175,29 +175,9 @@ and switch_case = Case of exp | DefaultCase
 
 let mk_exp s o annots = {exp_offset= o; exp_stx= s; exp_annot= annots}
 
-let is_directive exp = match exp.exp_stx with String _ -> true | _ -> false
-
-let get_directives exp =
-  match exp.exp_stx with
-  | Script (_, stmts) | Block stmts ->
-      let _, directives =
-        List.fold_left
-          (fun (is_in_directive, directives) e ->
-            if not is_in_directive then (false, directives)
-            else if is_directive e then
-              ( true
-              , (match e.exp_stx with String s -> s | _ -> raise CannotHappen)
-                :: directives )
-            else (false, directives) )
-          (true, []) stmts
-      in
-      directives
-  | _ -> []
-
-let is_in_strict_mode exp = List.mem "use strict" (get_directives exp)
-
-let rec add_strictness parent_strict exp =
-  let f = add_strictness parent_strict in
+(** Propagate strictness of parent nodes to the children *)
+let rec propagate_strictness parent_strict exp =
+  let f = propagate_strictness parent_strict in
   let fop e = match e with None -> None | Some e -> Some (f e) in
   match exp.exp_stx with
   | Num _ -> exp
@@ -221,12 +201,12 @@ let rec add_strictness parent_strict exp =
   | Call (e1, e2s) -> {exp with exp_stx= Call (f e1, List.map f e2s)}
   | Assign (e1, e2) -> {exp with exp_stx= Assign (f e1, f e2)}
   | AssignOp (e1, op, e2) -> {exp with exp_stx= AssignOp (f e1, op, f e2)}
-  | FunctionExp (_, n, xs, e) ->
-      let strict = parent_strict || is_in_strict_mode e in
-      {exp with exp_stx= FunctionExp (strict, n, xs, add_strictness strict e)}
-  | Function (_, n, xs, e) ->
-      let strict = parent_strict || is_in_strict_mode e in
-      {exp with exp_stx= Function (strict, n, xs, add_strictness strict e)}
+  | FunctionExp (already_strict, n, xs, e) ->
+      let strict = parent_strict || already_strict in
+      {exp with exp_stx= FunctionExp (strict, n, xs, propagate_strictness strict e)}
+  | Function (already_strict, n, xs, e) ->
+      let strict = parent_strict || already_strict in
+      {exp with exp_stx= Function (strict, n, xs, propagate_strictness strict e)}
   | New (e1, e2s) -> {exp with exp_stx= New (f e1, List.map f e2s)}
   | Obj l -> {exp with exp_stx= Obj (List.map (fun (x, p, e) -> (x, p, f e)) l)}
   | Array es -> {exp with exp_stx= Array (List.map fop es)}
@@ -263,6 +243,5 @@ let rec add_strictness parent_strict exp =
   | ConditionalOp (e1, e2, e3) ->
       {exp with exp_stx= ConditionalOp (f e1, f e2, f e3)}
   | Block es -> {exp with exp_stx= Block (List.map f es)}
-  | Script (_, es) ->
-      let strict = is_in_strict_mode exp in
-      {exp with exp_stx= Script (strict, List.map (add_strictness strict) es)}
+  | Script (strict, es) ->
+      {exp with exp_stx= Script (strict, List.map (propagate_strictness strict) es)}
