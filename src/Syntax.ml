@@ -175,6 +175,12 @@ and switch_case = Case of exp | DefaultCase
 
 let mk_exp s o annots = {exp_offset= o; exp_stx= s; exp_annot= annots}
 
+
+(** Returns true if the given ast is a Script AND is in Strict mode *)
+let script_and_strict = function
+  | Script(true, _) -> true
+  | _ -> false
+
 (** Propagate strictness of parent nodes to the children *)
 let rec propagate_strictness parent_strict exp =
   let f = propagate_strictness parent_strict in
