@@ -640,7 +640,7 @@ and transform_expression (annotations : (loc * annotation list) list)
             let len = String.length raw in 
             (* Raw strings must have some sort of quotation marks around them *)
             assert(len >= 2);
-            String (Scanf.unescaped (String.sub raw 1 (len - 2)))
+            String (String.sub raw 1 (len - 2))
         | Literal.(RegExp RegExp.({pattern; flags})) -> RegExp (pattern, flags)
       in
       mk_exp trans_val off leading_annots
