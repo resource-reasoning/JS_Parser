@@ -752,7 +752,7 @@ and transform_function ~parent_strict ~(expression : bool)
     | Function.BodyBlock (_, fbody) ->
         let Statement.Block.({body}) = fbody in
         let strictness = parent_strict || (block_is_strict body) in
-        let children = trans_stmt_list ~parent_strict start_pos body inner_annots in
+        let children = trans_stmt_list ~parent_strict:strictness start_pos body inner_annots in
         (mk_exp (Block children) (offset start_pos) [], strictness)
         (* Annotations are attached to the children *)
     | Function.BodyExpression expr -> (transform_expression ~parent_strict inner_annots expr, false)
