@@ -24,9 +24,8 @@ let parse_string_exn ?(force_strict = false) program =
     in
     raise (Error.ParserError (Error.FlowParser messages))
   else
-    let trans_prog = OfFlow.transform_program p in
-    let trans_annotated_prog = Syntax.propagate_strictness force_strict trans_prog in
-    trans_annotated_prog
+    let trans_prog = OfFlow.transform_program ~parent_strict:force_strict p in
+    trans_prog
 
 let parse_string ?(force_strict = false) program =
   try Ok (parse_string_exn ~force_strict program)
