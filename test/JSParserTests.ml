@@ -538,11 +538,25 @@ let test_script_strict test_ctx =
   let exp = parse_string_exn "'use strict'; function f() {return}" in
   let string_exp = mk_exp (String "use strict") 0 in
   let r = mk_exp (Return None) 28 in
-  let block = mk_exp (Block [r]) 27 in
+  let block = mk_exp (Block [r]) 14 in
   let script =
     mk_exp
       (Script
          (true, [string_exp; mk_exp (Function (true, Some "f", [], block)) 14]))
+      0
+  in
+  assert_exp_eq script exp
+
+  let test_script_strict_break test_ctx =
+  let exp = parse_string_exn {|'use\
+   strict'; function f() {return}|} in
+  let string_exp = mk_exp (String "use   strict") 0 in
+  let r = mk_exp (Return None) 28 in
+  let block = mk_exp (Block [r]) 14 in
+  let script =
+    mk_exp
+      (Script
+         (false, [string_exp; mk_exp (Function (false, Some "f", [], block)) 14]))
       0
   in
   assert_exp_eq script exp
@@ -573,6 +587,38 @@ let test_fun_strict test_ctx =
   let script =
     mk_exp
       (Script (false, [mk_exp (Function (true, Some "f", [], block)) 0]))
+      0
+  in
+  assert_exp_eq script exp
+
+let test_fun_strict_nested test_ctx =
+  let exp = parse_string_exn {|
+  function f1() {
+  "use strict";
+  return (function () {return})
+  }|} in
+  let use_strict_exp = mk_exp (String "use strict") 14 in
+  let rn = mk_exp (Return None) 0 in
+  let block_nes = mk_exp (Block ([rn])) 0 in
+  let f_exp = mk_exp (FunctionExp (true, None, [], block_nes)) 0 in
+  let r = mk_exp (Return (Some f_exp)) 28 in
+  let block = mk_exp (Block [use_strict_exp; r]) 13 in
+  let script =
+    mk_exp
+      (Script (false, [mk_exp (Function (true, Some "f1", [], block)) 0]))
+      0
+  in
+  assert_exp_eq script exp
+
+  let test_fun_strict_break test_ctx =
+  let exp = parse_string_exn {|function f() {'use\
+   strict'; return}|} in
+  let string_exp = mk_exp (String "use   strict") 14 in
+  let r = mk_exp (Return None) 32 in
+  let block = mk_exp (Block [string_exp; r]) 0 in
+  let script =
+    mk_exp
+      (Script (false, [mk_exp (Function (false, Some "f", [], block)) 0]))
       0
   in
   assert_exp_eq script exp
@@ -696,8 +742,11 @@ let suite =
        ; "test_switch" >:: test_switch
        ; "test_debugger" >:: test_debugger
        ; "test_script_strict" >:: test_script_strict
+       ; "test_script_strict_break" >:: test_script_strict_break
        ; "test_script_not_strict" >:: test_script_not_strict
        ; "test_fun_strict" >:: test_fun_strict
+       ; "test_fun_strict_nested" >:: test_fun_strict_nested
+       ; "test_fun_strict_break" >:: test_fun_strict_break
        ; "test_getter" >:: test_getter
        ; "test_setter" >:: test_setter
        ; "test_obj_init" >:: test_obj_init

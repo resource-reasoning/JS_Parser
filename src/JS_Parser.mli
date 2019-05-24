@@ -27,11 +27,12 @@ module Error : sig
   exception ParserError of t
 end
 
-val parse_string_exn : ?force_strict:bool -> string -> Syntax.exp
-(** [parse_string_exn ~force_strict prog] parses the given string as a program.
+val parse_string_exn : ?parse_annotations:bool -> ?force_strict:bool -> string -> Syntax.exp
+(** [parse_string_exn ~parse_annotations ~force_strict prog] parses the given string as a program.
     The string given should be the entire program.
+    If [parse_annotations] is set to false the possible JS_Logic annotations in the comments will not be parse. It is true by default.
     If [force_strict] is true, the program has to be strict. Default value for [force_strict] is [false].
     If there is an error during the parsing, an exception of type {!Error.ParserError} is raised *)
 
-val parse_string : ?force_strict:bool -> string -> (Syntax.exp, Error.t) result
+val parse_string : ?parse_annotations:bool -> ?force_strict:bool -> string -> (Syntax.exp, Error.t) result
 (** Same as [parse_string_exn] except that it returns a result instead of raising an error. *)

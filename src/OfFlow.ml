@@ -116,6 +116,23 @@ let get_annotations (comments : loc Comment.t list) :
   let annot_pairs_clean = mapkeep filter_and_get annot_pairs in
   mapkeep (List.map make_annotation) annot_pairs_clean
 
+(******* Just a small part to deal with directives *********)
+
+let get_directives st_lst =
+  let rec loop curr rest =
+    match rest with
+    | [] -> curr
+    | (_, a)::rp ->(
+      match a with
+      | Statement.Expression { directive = Some d; _ } -> loop (d::curr) rp
+      | _ -> curr (* There is not more directives *))
+  in
+  List.rev (loop [] st_lst)
+
+(** Returns true if the block is preceeded by a "use strict" directive *)
+let block_is_strict st_lst =
+  List.mem "use strict" (get_directives st_lst)
+
 (******* Now we deal with AST transformation *********)
 
 let lower_pos posa posb =
@@ -345,7 +362,7 @@ let transform_update_op prefix op =
   | false, Increment -> Post_Incr
   | false, Decrement -> Post_Decr
 
-let rec transform_properties start_pos annotations properties =
+let rec transform_properties ~parent_strict start_pos annotations properties =
   let open Expression.Object.Property in
   match properties with
   | [] ->
@@ -363,9 +380,9 @@ let rec transform_properties start_pos annotations properties =
         partition_inner (Loc.btwn start_pos loc) annotations
       in
       let trans_key = transform_prop_key key in
-      let trans_val = transform_expression inner_annots value in
+      let trans_val = transform_expression ~parent_strict inner_annots value in
       (trans_key, PropbodyVal, trans_val)
-      :: transform_properties (char_after loc) rest_annots r
+      :: transform_properties ~parent_strict (char_after loc) rest_annots r
   | (loc, Get {key; value}) :: r | (loc, Set {key; value}) :: r ->
       let inner_annots, rest_annots =
         partition_inner (Loc.btwn start_pos loc) annotations
@@ -374,7 +391,7 @@ let rec transform_properties start_pos annotations properties =
       let lf, func = value in
       let fun_annots, leading_annots = partition_inner lf inner_annots in
       let trans_fun =
-        transform_function ~expression:true start_pos (rem_locs leading_annots)
+        transform_function ~parent_strict ~expression:true start_pos (rem_locs leading_annots)
           fun_annots func
       in
       let typ =
@@ -384,7 +401,7 @@ let rec transform_properties start_pos annotations properties =
         | _ -> raise (CannotHappen "pattern matching gone wrong")
       in
       (trans_key, typ, trans_fun)
-      :: transform_properties (char_after loc) rest_annots r
+      :: transform_properties ~parent_strict (char_after loc) rest_annots r
   | (loc, Method _) :: _ ->
       raise
         (ParserError
@@ -405,7 +422,7 @@ and transform_prop_key key =
                  property key in ES5"
               , offset l )))
 
-and transform_expression_sequence start_pos leading_annots inner_annots
+and transform_expression_sequence ~parent_strict start_pos leading_annots inner_annots
     expr_list =
   let rec aux stpos annots acc expl =
     match expl with
@@ -417,7 +434,7 @@ and transform_expression_sequence start_pos leading_annots inner_annots
         let e_annots, rest_annots =
           partition_inner (Loc.btwn stpos (char_after le)) annots
         in
-        let trans_exp = transform_expression e_annots exp in
+        let trans_exp = transform_expression ~parent_strict e_annots exp in
         let trans_acc =
           mk_exp (Comma (acc, trans_exp)) (offset start_pos) []
         in
@@ -429,19 +446,19 @@ and transform_expression_sequence start_pos leading_annots inner_annots
       let fst_annots, rest_annots =
         partition_inner (Loc.btwn start_pos (char_after lfst)) inner_annots
       in
-      let trans_fst = transform_expression fst_annots fst in
+      let trans_fst = transform_expression ~parent_strict fst_annots fst in
       let lsnd, _ = snd in
       let snd_annots, rest_annots =
         List.partition
           (fun (l, _) -> child l (Loc.btwn (char_after lfst) lsnd))
           rest_annots
       in
-      let trans_snd = transform_expression snd_annots snd in
+      let trans_snd = transform_expression ~parent_strict snd_annots snd in
       let acc = mk_exp (Comma (trans_fst, trans_snd)) (offset start_pos) [] in
       add_annot leading_annots (aux (char_after lsnd) rest_annots acc rest)
   | _ -> raise (CannotHappen "Expression sequence with less than 2 elements")
 
-and transform_expression (annotations : (loc * annotation list) list)
+and transform_expression ~parent_strict (annotations : (loc * annotation list) list)
     (expression : loc Expression.t) : exp =
   let loc, expr = expression in
   (* We supposedly passed with the expression :
@@ -456,7 +473,7 @@ and transform_expression (annotations : (loc * annotation list) list)
   let first_pos = Loc.first_char loc in
   match expr with
   | Expression.(Unary Unary.({operator; prefix= _; argument})) -> (
-      let trans_arg = transform_expression inner_annots argument in
+      let trans_arg = transform_expression ~parent_strict inner_annots argument in
       match operator with
       | Expression.Unary.Delete -> mk_exp (Delete trans_arg) off leading_annots
       | o ->
@@ -467,8 +484,8 @@ and transform_expression (annotations : (loc * annotation list) list)
       let left_annots, right_annots =
         partition_inner (Loc.btwn first_pos (char_after leftloc)) inner_annots
       in
-      let trans_left = transform_expression left_annots left in
-      let trans_right = transform_expression right_annots right in
+      let trans_left = transform_expression ~parent_strict left_annots left in
+      let trans_right = transform_expression ~parent_strict right_annots right in
       let trans_op = transform_binary_op off operator in
       mk_exp (BinOp (trans_left, trans_op, trans_right)) off leading_annots
   | Expression.(Assignment Assignment.({left; right; operator})) -> (
@@ -481,7 +498,7 @@ and transform_expression (annotations : (loc * annotation list) list)
         match pat with
         | Pattern.(Identifier Identifier.({name= _, i; _})) ->
             mk_exp (Var i) (offset locpat) (rem_locs left_annots)
-        | Pattern.Expression ex -> transform_expression left_annots ex
+        | Pattern.Expression ex -> transform_expression ~parent_strict left_annots ex
         | _ ->
             raise
               (ParserError
@@ -489,7 +506,7 @@ and transform_expression (annotations : (loc * annotation list) list)
                     ( "Pattern matching in assignment is not authorized in ES5"
                     , offset locpat )))
       in
-      let trans_right = transform_expression right_annots right in
+      let trans_right = transform_expression ~parent_strict right_annots right in
       match operator with
       | Assign -> mk_exp (Assign (trans_left, trans_right)) off leading_annots
       | o ->
@@ -502,12 +519,12 @@ and transform_expression (annotations : (loc * annotation list) list)
       let left_annots, right_annots =
         partition_inner (Loc.btwn first_pos leftloc) inner_annots
       in
-      let trans_left = transform_expression left_annots left in
-      let trans_right = transform_expression right_annots right in
+      let trans_left = transform_expression ~parent_strict left_annots left in
+      let trans_right = transform_expression ~parent_strict right_annots right in
       let trans_op = transform_logical_op off operator in
       mk_exp (BinOp (trans_left, trans_op, trans_right)) off leading_annots
   | Expression.(Update Update.({operator; argument; prefix})) ->
-      let trans_arg = transform_expression inner_annots argument in
+      let trans_arg = transform_expression ~parent_strict inner_annots argument in
       let trans_op = transform_update_op prefix operator in
       mk_exp (Unary_op (trans_op, trans_arg)) off leading_annots
   | Expression.(Member Member.({_object; property; computed})) -> (
@@ -515,7 +532,7 @@ and transform_expression (annotations : (loc * annotation list) list)
       let object_annots, mem_annots =
         partition_inner (Loc.btwn first_pos lobject) inner_annots
       in
-      let trans_obj = transform_expression object_annots _object in
+      let trans_obj = transform_expression ~parent_strict object_annots _object in
       let open Expression.Member in
       match property with
       | PropertyIdentifier i ->
@@ -534,7 +551,7 @@ and transform_expression (annotations : (loc * annotation list) list)
                 (CannotHappen
                    "Not computed property member given an expression")
           in
-          let trans_prop = transform_expression mem_annots e in
+          let trans_prop = transform_expression ~parent_strict mem_annots e in
           mk_exp (CAccess (trans_obj, trans_prop)) off leading_annots
       | PropertyPrivateName (l, _) ->
           raise
@@ -558,17 +575,17 @@ and transform_expression (annotations : (loc * annotation list) list)
                         ("Use of spread property illegal in ES5", offset l))))
           properties
       in
-      let trans_props = transform_properties first_pos inner_annots props in
+      let trans_props = transform_properties ~parent_strict first_pos inner_annots props in
       mk_exp (Obj trans_props) off leading_annots
   | Expression.(Sequence Sequence.({expressions})) ->
-      transform_expression_sequence first_pos leading_annots inner_annots
+      transform_expression_sequence ~parent_strict first_pos leading_annots inner_annots
         expressions
   | Expression.(New New.({callee; arguments; _})) ->
       let calleeloc, _ = callee in
       let callee_annots, arg_annots =
         partition_inner (Loc.btwn first_pos calleeloc) inner_annots
       in
-      let trans_callee = transform_expression callee_annots callee in
+      let trans_callee = transform_expression ~parent_strict callee_annots callee in
       let exprs_args =
         List.map
           Expression.(
@@ -582,12 +599,12 @@ and transform_expression (annotations : (loc * annotation list) list)
           arguments
       in
       let trans_args =
-        transform_expr_list (char_after calleeloc) arg_annots exprs_args
+        transform_expr_list ~parent_strict (char_after calleeloc) arg_annots exprs_args
       in
       mk_exp (New (trans_callee, trans_args)) off leading_annots
   | Expression.(Conditional Conditional.({test; consequent; alternate})) ->
       let trans_cond =
-        transform_expr_list first_pos inner_annots [test; consequent; alternate]
+        transform_expr_list ~parent_strict first_pos inner_annots [test; consequent; alternate]
       in
       let trans_test, trans_cons, trans_alt =
         match trans_cond with
@@ -623,7 +640,7 @@ and transform_expression (annotations : (loc * annotation list) list)
               let this_annots, rest_annots =
                 partition_inner (Loc.btwn start_pos le) annots
               in
-              Some (transform_expression this_annots exp)
+              Some (transform_expression ~parent_strict this_annots exp)
               :: trans_els_opt (char_after le) rest_annots r
           | None -> None :: trans_els_opt start_pos annots r )
       in
@@ -645,7 +662,7 @@ and transform_expression (annotations : (loc * annotation list) list)
       let callee_annots, arg_annots =
         partition_inner (Loc.btwn first_pos calleeloc) inner_annots
       in
-      let trans_callee = transform_expression callee_annots callee in
+      let trans_callee = transform_expression ~parent_strict callee_annots callee in
       let exprs_args =
         List.map
           Expression.(
@@ -659,15 +676,15 @@ and transform_expression (annotations : (loc * annotation list) list)
           arguments
       in
       let trans_args =
-        transform_expr_list (char_after calleeloc) arg_annots exprs_args
+        transform_expr_list ~parent_strict (char_after calleeloc) arg_annots exprs_args
       in
       mk_exp (Call (trans_callee, trans_args)) off leading_annots
   | Expression.Function fn ->
-      transform_function ~expression:true first_pos leading_annots inner_annots
+      transform_function ~parent_strict ~expression:true first_pos leading_annots inner_annots
         fn
   | _ -> raise (ParserError (Unhandled_Expression off))
 
-and transform_expr_list start_pos annots exprl =
+and transform_expr_list ~parent_strict start_pos annots exprl =
   match exprl with
   | [] ->
       let () = check_unused_annots (offset start_pos) annots in
@@ -677,10 +694,10 @@ and transform_expr_list start_pos annots exprl =
       let this_annots, rest_annots =
         partition_inner (Loc.btwn start_pos le) annots
       in
-      transform_expression this_annots exp
-      :: transform_expr_list (char_after le) rest_annots r
+      transform_expression ~parent_strict this_annots exp
+      :: transform_expr_list ~parent_strict (char_after le) rest_annots r
 
-and transform_variable_decl declaration total_loc leading_annots inner_annots =
+and transform_variable_decl ~parent_strict declaration total_loc leading_annots inner_annots =
   (* We are in ES5, the only patterns available when declaring variable is an identifier.
      Also, the kind has to be var, since let and cons were introduced in ES2015. *)
   let open Statement.VariableDeclaration in
@@ -708,7 +725,7 @@ and transform_variable_decl declaration total_loc leading_annots inner_annots =
               let this_annot, rest_annot =
                 partition_inner (Loc.btwn stloc le) remaining_annots
               in
-              ( Some (transform_expression this_annot (le, e))
+              ( Some (transform_expression ~parent_strict this_annot (le, e))
               , rest_annot
               , char_after le )
         in
@@ -723,32 +740,33 @@ and transform_variable_decl declaration total_loc leading_annots inner_annots =
         (VarDec (f start inner_annots children))
         (offset total_loc) leading_annots
 
-and transform_function ~(expression : bool)
+and transform_function ~parent_strict ~(expression : bool)
     (* If true, gives a FunctionExp, other a Function (statement) *)
     (start_pos : Loc.t) (leading_annots : annotation list)
     (inner_annots : (loc * annotation list) list) (fn : loc Function.t) : exp =
   let Function.({id; params; body; _}) = fn in
   let id = match id with None -> None | Some (_, i) -> Some i in
   let param_strs = function_param_filter params in
-  let body_transf =
+  let (body_transf, strictness) =
     match body with
     | Function.BodyBlock (_, fbody) ->
         let Statement.Block.({body}) = fbody in
-        let children = trans_stmt_list start_pos body inner_annots in
-        mk_exp (Block children) (offset start_pos) []
+        let strictness = parent_strict || (block_is_strict body) in
+        let children = trans_stmt_list ~parent_strict:strictness start_pos body inner_annots in
+        (mk_exp (Block children) (offset start_pos) [], strictness)
         (* Annotations are attached to the children *)
-    | Function.BodyExpression expr -> transform_expression inner_annots expr
+    | Function.BodyExpression expr -> (transform_expression ~parent_strict inner_annots expr, false)
   in
   if expression then
     mk_exp
-      (FunctionExp (false, id, param_strs, body_transf))
+      (FunctionExp (strictness, id, param_strs, body_transf))
       (offset start_pos) leading_annots
   else
     mk_exp
-      (Function (false, id, param_strs, body_transf))
+      (Function (strictness, id, param_strs, body_transf))
       (offset start_pos) leading_annots
 
-and transform_statement (annotations : (loc * annotation list) list)
+and transform_statement ~parent_strict (annotations : (loc * annotation list) list)
     (statement : loc Statement.t) : exp =
   let loc, stmt = statement in
   (* We supposedly passed with the statements :
@@ -763,16 +781,16 @@ and transform_statement (annotations : (loc * annotation list) list)
   let first_pos = Loc.first_char loc in
   match stmt with
   | Statement.Block {body} ->
-      let children = trans_stmt_list first_pos body inner_annots in
+      let children = trans_stmt_list ~parent_strict first_pos body inner_annots in
       mk_exp (Block children) off leading_annots
   | Statement.FunctionDeclaration fn ->
-      transform_function ~expression:false first_pos leading_annots
+      transform_function ~parent_strict ~expression:false first_pos leading_annots
         inner_annots fn
   | Statement.VariableDeclaration vd ->
-      transform_variable_decl vd loc leading_annots inner_annots
+      transform_variable_decl ~parent_strict vd loc leading_annots inner_annots
   | Statement.Expression e ->
       let Statement.Expression.({expression; _}) = e in
-      transform_expression annotations expression
+      transform_expression ~parent_strict annotations expression
       (* all the annotations are given to the child directly *)
   | Statement.(If {test= ltest, testexp; consequent= lcons, consstmt; alternate})
     ->
@@ -784,8 +802,8 @@ and transform_statement (annotations : (loc * annotation list) list)
         partition_inner (Loc.btwn (char_after ltest) lcons) other_annots
       in
       (* annots between the test and the end of the consequent *)
-      let trans_test = transform_expression test_annots (ltest, testexp) in
-      let trans_cons = transform_statement cons_annots (lcons, consstmt) in
+      let trans_test = transform_expression ~parent_strict test_annots (ltest, testexp) in
+      let trans_cons = transform_statement ~parent_strict cons_annots (lcons, consstmt) in
       let trans_alt, rest_annots =
         match alternate with
         | None -> (None, other_annots)
@@ -794,7 +812,7 @@ and transform_statement (annotations : (loc * annotation list) list)
               partition_inner (Loc.btwn (char_after lcons) lalt) other_annots
             in
             let trans_alt =
-              Some (transform_statement alt_annots (lalt, altstmt))
+              Some (transform_statement ~parent_strict alt_annots (lalt, altstmt))
             in
             (trans_alt, rest_annots)
       in
@@ -807,7 +825,7 @@ and transform_statement (annotations : (loc * annotation list) list)
         partition_inner (Loc.btwn (char_after loclab) locbody) inner_annots
       in
       let () = check_unused_annots off rest_annot in
-      let trans_child = transform_statement child_annot body in
+      let trans_child = transform_statement ~parent_strict child_annot body in
       mk_exp (Label (lab, trans_child)) off leading_annots
   | Statement.(Break Break.({label})) ->
       let () = check_unused_annots off inner_annots in
@@ -824,25 +842,25 @@ and transform_statement (annotations : (loc * annotation list) list)
       let obj_annot, body_annot =
         partition_inner (Loc.btwn loc lobj) inner_annots
       in
-      let trans_obj = transform_expression obj_annot _object in
-      let trans_body = transform_statement body_annot body in
+      let trans_obj = transform_expression ~parent_strict obj_annot _object in
+      let trans_body = transform_statement ~parent_strict body_annot body in
       (* Every remaining annotation goes to the body *)
       mk_exp (With (trans_obj, trans_body)) off leading_annots
   | Statement.(Switch {discriminant; cases}) ->
       let ldisc, _ = discriminant in
       let expr_annots, other_annots = partition_inner ldisc inner_annots in
-      let trans_discr = transform_expression expr_annots discriminant in
-      let trans_cases = List.map (transform_case other_annots) cases in
+      let trans_discr = transform_expression ~parent_strict expr_annots discriminant in
+      let trans_cases = List.map (transform_case ~parent_strict other_annots) cases in
       (* This might lose some annotations between the end of a case and the beginning of the next one *)
       mk_exp (Switch (trans_discr, trans_cases)) off leading_annots
   | Statement.(Throw Throw.({argument})) ->
-      let trans_arg = transform_expression inner_annots argument in
+      let trans_arg = transform_expression ~parent_strict inner_annots argument in
       mk_exp (Throw trans_arg) off leading_annots
   | Statement.(Try Try.({block; handler; finalizer})) ->
       let lblock, Statement.Block.({body}) = block in
       let block_annots, other_annots = partition_inner lblock inner_annots in
       let block_start = Loc.first_char lblock in
-      let trans_inside_block = trans_stmt_list block_start body block_annots in
+      let trans_inside_block = trans_stmt_list ~parent_strict block_start body block_annots in
       let trans_block = mk_exp (Block trans_inside_block) (offset lblock) [] in
       let trans_handler, other_annots =
         match handler with
@@ -866,7 +884,7 @@ and transform_statement (annotations : (loc * annotation list) list)
             in
             let Statement.Block.({body}) = bblock in
             let trans_inside_body =
-              trans_stmt_list body_start body body_annots
+              trans_stmt_list ~parent_strict body_start body body_annots
             in
             let trans_body =
               mk_exp (Block trans_inside_body) (offset lbody) []
@@ -880,7 +898,7 @@ and transform_statement (annotations : (loc * annotation list) list)
             let fin_annots, other_annots = partition_inner lfin other_annots in
             let block_start = Loc.first_char lfin in
             let trans_inside_final =
-              trans_stmt_list block_start body fin_annots
+              trans_stmt_list ~parent_strict block_start body fin_annots
             in
             let trans_final =
               mk_exp (Block trans_inside_final) (offset lfin) []
@@ -896,16 +914,16 @@ and transform_statement (annotations : (loc * annotation list) list)
       let expr_annots, body_annots =
         partition_inner (Loc.btwn first_pos ltest) inner_annots
       in
-      let trans_exp = transform_expression expr_annots test in
-      let trans_body = transform_statement body_annots body in
+      let trans_exp = transform_expression ~parent_strict expr_annots test in
+      let trans_body = transform_statement ~parent_strict body_annots body in
       mk_exp (While (trans_exp, trans_body)) off leading_annots
   | Statement.(DoWhile DoWhile.({test; body})) ->
       let ltest, _ = test in
       let expr_annots, body_annots =
         partition_inner (Loc.btwn first_pos ltest) inner_annots
       in
-      let trans_test = transform_expression expr_annots test in
-      let trans_body = transform_statement body_annots body in
+      let trans_test = transform_expression ~parent_strict expr_annots test in
+      let trans_body = transform_statement ~parent_strict body_annots body in
       mk_exp (DoWhile (trans_body, trans_test)) off leading_annots
   | Statement.(ForIn ForIn.({left; right; body; each= _})) ->
       let open Statement.ForIn in
@@ -924,7 +942,7 @@ and transform_statement (annotations : (loc * annotation list) list)
             let left_annots, other_annots =
               partition_inner (Loc.btwn first_pos locleft) inner_annots
             in
-            let t = transform_variable_decl vdecl locleft [] left_annots in
+            let t = transform_variable_decl ~parent_strict vdecl locleft [] left_annots in
             (t, other_annots, char_after locleft)
       in
       let trans_right, other_annots, endright =
@@ -932,7 +950,7 @@ and transform_statement (annotations : (loc * annotation list) list)
         let right_annots, other_annots =
           partition_inner (Loc.btwn endleft locright) other_annots
         in
-        let exp = transform_expression right_annots right in
+        let exp = transform_expression ~parent_strict right_annots right in
         (exp, other_annots, char_after locright)
       in
       let trans_body, rest_annots =
@@ -940,7 +958,7 @@ and transform_statement (annotations : (loc * annotation list) list)
         let body_annots, rest_annots =
           partition_inner (Loc.btwn endright locbody) other_annots
         in
-        let exp = transform_statement body_annots body in
+        let exp = transform_statement ~parent_strict body_annots body in
         (exp, rest_annots)
       in
       let () = check_unused_annots off rest_annots in
@@ -954,13 +972,13 @@ and transform_statement (annotations : (loc * annotation list) list)
             let init_annots, other_annots =
               partition_inner (Loc.btwn first_pos ldec) inner_annots
             in
-            let t = transform_variable_decl vd ldec [] init_annots in
+            let t = transform_variable_decl ~parent_strict vd ldec [] init_annots in
             (Some t, other_annots, char_after ldec)
         | Some (InitExpression (le, e)) ->
             let init_annots, other_annots =
               partition_inner (Loc.btwn first_pos le) inner_annots
             in
-            let t = transform_expression init_annots (le, e) in
+            let t = transform_expression ~parent_strict init_annots (le, e) in
             (Some t, other_annots, char_after le)
       in
       let trans_test, other_annots, endtest =
@@ -970,7 +988,7 @@ and transform_statement (annotations : (loc * annotation list) list)
             let test_annots, other_annots =
               partition_inner (Loc.btwn endinit le) other_annots
             in
-            let t = transform_expression test_annots (le, e) in
+            let t = transform_expression ~parent_strict test_annots (le, e) in
             (Some t, other_annots, char_after le)
       in
       let trans_update, other_annots, endupdate =
@@ -980,7 +998,7 @@ and transform_statement (annotations : (loc * annotation list) list)
             let update_annots, other_annots =
               partition_inner (Loc.btwn endinit le) other_annots
             in
-            let t = transform_expression update_annots (le, e) in
+            let t = transform_expression ~parent_strict update_annots (le, e) in
             (Some t, other_annots, char_after le)
       in
       let trans_body, rest_annots =
@@ -988,7 +1006,7 @@ and transform_statement (annotations : (loc * annotation list) list)
         let body_annots, other_annots =
           partition_inner (Loc.btwn endupdate lbody) other_annots
         in
-        let t = transform_statement body_annots body in
+        let t = transform_statement ~parent_strict body_annots body in
         (t, other_annots)
       in
       let () = check_unused_annots off rest_annots in
@@ -997,7 +1015,7 @@ and transform_statement (annotations : (loc * annotation list) list)
         off leading_annots
   | Statement.(Return Return.({argument})) ->
       let trans_arg =
-        option_map (transform_expression inner_annots) argument
+        option_map (transform_expression ~parent_strict inner_annots) argument
       in
       mk_exp (Return trans_arg) off leading_annots
   | Statement.Empty ->
@@ -1008,7 +1026,7 @@ and transform_statement (annotations : (loc * annotation list) list)
       mk_exp Debugger off leading_annots
   | _ -> raise (ParserError (Unhandled_Statement off))
 
-and transform_case annots case =
+and transform_case ~parent_strict annots case =
   (* I don't know how correct the following is. *)
   let open Statement.Switch.Case in
   let lcase, {test; consequent} = case in
@@ -1022,28 +1040,29 @@ and transform_case annots case =
         (test_end, trans_test)
     | Some (le, e) ->
         let test_end = char_after le in
-        let trans_test = Case (transform_expression [] (le, e)) in
+        let trans_test = Case (transform_expression ~parent_strict [] (le, e)) in
         (test_end, trans_test)
   in
-  let trans_cons = trans_stmt_list test_end consequent inner_annots in
+  let trans_cons = trans_stmt_list ~parent_strict test_end consequent inner_annots in
   (trans_test, mk_exp (Block trans_cons) (offset test_end) [])
 
-and trans_stmt_list start_loc raw_stmts annots =
+and trans_stmt_list ~parent_strict start_loc raw_stmts annots =
   let stmts_with_start_loc = with_start_loc start_loc raw_stmts in
   let trans_stmt (st_l, (lloc, s)) =
     let children_annotations =
       List.filter (fun (l, _) -> child l (Loc.btwn st_l lloc)) annots
     in
-    transform_statement children_annotations (lloc, s)
+    transform_statement ~parent_strict children_annotations (lloc, s)
   in
   List.map trans_stmt stmts_with_start_loc
 
-let transform_program (prog : loc program) =
+let transform_program ~parse_annotations ~parent_strict (prog : loc program) =
   let start_loc = Loc.none in
   (* At @esy-ocaml/flow-parser v 0.76, this is position (0, 0) *)
   let loc, raw_stmts, cmts = prog in
-  let annots = get_annotations cmts in
-  let stmts = trans_stmt_list start_loc raw_stmts annots in
-  mk_exp (Script (false, stmts)) (offset loc) []
+  let strictness = parent_strict || (block_is_strict raw_stmts) in
+  let annots = if parse_annotations then get_annotations cmts else [] in
+  let stmts = trans_stmt_list ~parent_strict:strictness start_loc raw_stmts annots in
+  mk_exp (Script (strictness, stmts)) (offset loc) []
 
 (* The script never has annotations *)
