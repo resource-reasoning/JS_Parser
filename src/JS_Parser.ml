@@ -2,7 +2,7 @@ module Syntax = Syntax
 module PrettyPrint = PrettyPrint
 module Error = Error
 
-let parse_string_exn ?(force_strict = false) program =
+let parse_string_exn ?(parse_annotations = true) ?(force_strict = false) program =
   let parse_options =
     Some
       Flow_parser.Parser_env.
@@ -24,9 +24,9 @@ let parse_string_exn ?(force_strict = false) program =
     in
     raise (Error.ParserError (Error.FlowParser messages))
   else
-    let trans_prog = OfFlow.transform_program ~parent_strict:force_strict p in
+    let trans_prog = OfFlow.transform_program ~parse_annotations ~parent_strict:force_strict p in
     trans_prog
 
-let parse_string ?(force_strict = false) program =
-  try Ok (parse_string_exn ~force_strict program)
+let parse_string ?(parse_annotations = true) ?(force_strict = false) program =
+  try Ok (parse_string_exn ~parse_annotations ~force_strict program)
   with Error.ParserError err -> Error err

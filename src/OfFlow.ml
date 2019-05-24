@@ -1056,12 +1056,12 @@ and trans_stmt_list ~parent_strict start_loc raw_stmts annots =
   in
   List.map trans_stmt stmts_with_start_loc
 
-let transform_program ~parent_strict (prog : loc program) =
+let transform_program ~parse_annotations ~parent_strict (prog : loc program) =
   let start_loc = Loc.none in
   (* At @esy-ocaml/flow-parser v 0.76, this is position (0, 0) *)
   let loc, raw_stmts, cmts = prog in
   let strictness = parent_strict || (block_is_strict raw_stmts) in
-  let annots = get_annotations cmts in
+  let annots = if parse_annotations then get_annotations cmts else [] in
   let stmts = trans_stmt_list ~parent_strict:strictness start_loc raw_stmts annots in
   mk_exp (Script (strictness, stmts)) (offset loc) []
 
