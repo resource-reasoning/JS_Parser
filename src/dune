@@ -1,0 +1,4 @@
+(library
+  (name JS_Parser)
+  (public_name JS_Parser)
+  (libraries str flow-parser))

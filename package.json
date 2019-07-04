@@ -1,0 +1,25 @@
+{
+  "name": "js_parser",
+  "version": "0.0.1",
+  "description": "JS_Parser based on flow-parser",
+  "license": "MIT",
+  "esy": { "build": [ [ "dune", "build", "-p", "JS_Parser" ] ], "buildsInSource": "_build" },
+  "scripts": {
+    "test": "esy dune runtest",
+    "format": "esy dune build @fmt",
+    "promote": "esy dune promote",
+    "build:doc": "esy -C sh -c \"dune build @doc && cp -R _build/default/_doc/ doc/\""
+  },
+  "dependencies": {
+    "@esy-ocaml/flow-parser": "^0.76.2",
+    "@opam/dune": "*",
+    "ocaml": ">=4.6.0"
+  },
+  "devDependencies": {
+    "@esy-ocaml/merlin": "*",
+    "ocaml": "~4.6.0",
+    "@opam/ounit": "2.0.8",
+    "@opam/odoc": "1.4.0",
+    "@opam/utop": "2.3.0"
+  }
+}

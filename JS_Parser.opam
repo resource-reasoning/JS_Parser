@@ -1,33 +1,35 @@
-opam-version: "1.2"
+opam-version: "2.0"
 name: "JS_Parser"
 version: "dev"
-maintainer: "Thomas Wood <thomas.wood09@imperial.ac.uk>"
+maintainer: "Sacha-Elie Ayoun <s.ayoun17@imeprial.ac.uk>"
 authors: [
   "Daiva Naudziuniene <d.naudziuniene11@imperial.ac.uk>"
   "Conrad Watt <conrad.watt12@imperial.ac.uk>"
   "Thomas Wood <thomas.wood09@imperial.ac.uk>"
   "Petar Maksimovic <p.maksimovic@imperial.ac.uk>"
+  "Sacha-Elie Ayoun <s.ayoun17@imeprial.ac.uk>"
 ]
 homepage: "https://github.com/resource-reasoning/JS_Parser"
 bug-reports: "https://github.com/resource-reasoning/JS_Parser/issues"
 license: "TBC"
-dev-repo: "https://github.com/resource-reasoning/JS_Parser.git"
+dev-repo: "git+https://github.com/resource-reasoning/JS_Parser.git"
 libraries: ["JS_Parser"]
 
-build: [[make]]
-build-test: [[make "test"]]
-build-doc: [[make "doc"]]
-# install target uses JS_Parser.install automatically
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+  ["dune" "runtest"] { with-test }
+  ["dune" "build" "-p" name "@doc"]
+  ]
 
-available: [ocaml-version >= "4.04"]
 depends: [
-  "ocamlbuild"
-  "ocamlfind"
-  "yojson"
-  "batteries"
-  "ounit" {test}
+  "dune" { build }
+  "ocaml" { >="4.04" }
+  "flow_parser" #the flow-parser on opam is dead.
+  "ounit" { with-test }
+  "odoc" { with-doc }
 ]
-
-substs: [
-  "src/META"
-]
+decription: "Parser for EcmaScript 5 that allows to include JS Logic annotations, based on Flow_parser"
+synopsis: """
+Parser for EcmaScript 5 that allows to include JS Logic annotations, based on Flow_parser
+This package was originaly using google clojure, and then esprima, and is now completely written in OCaml.
+"""
