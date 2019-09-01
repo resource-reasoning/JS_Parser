@@ -373,6 +373,7 @@ let rec transform_properties ~parent_strict start_pos annotations properties =
         partition_inner (Loc.btwn start_pos loc) annotations in
       let trans_key = transform_prop_key key in
       let trans_val = transform_expression ~parent_strict inner_annots value in
+      (* PETAR: ALLOWING SHORTHAND! 
       let () =
         if shorthand then
           print_endline (Printf.sprintf "Shorthand:\n\tKey: %s\n\tValue: %s" 
@@ -381,8 +382,7 @@ let rec transform_properties ~parent_strict start_pos annotations properties =
           raise
             (ParserError
                (NotEcmaScript5
-                  ("Shorthand properties are not part of ES5", offset loc)))
-      in
+                  ("Shorthand properties are not part of ES5", offset loc))) *)
       (trans_key, PropbodyVal, trans_val)
       :: transform_properties ~parent_strict (char_after loc) rest_annots r
   | (loc, Get {key; value}) :: r | (loc, Set {key; value}) :: r ->
@@ -400,7 +400,7 @@ let rec transform_properties ~parent_strict start_pos annotations properties =
         match properties with
         | (_, Get _) :: _ -> PropbodyGet
         | (_, Set _) :: _ -> PropbodySet
-        | _ -> raise (CannotHappen "pattern matching gone wrong")
+        | _ -> raise (CannotHappen "Impossible: accessor other than getter or setter")
       in
       (trans_key, typ, trans_fun)
       :: transform_properties ~parent_strict (char_after loc) rest_annots r
