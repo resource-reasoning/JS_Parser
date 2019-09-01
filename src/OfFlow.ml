@@ -369,18 +369,20 @@ let rec transform_properties ~parent_strict start_pos annotations properties =
       let () = check_unused_annots (offset start_pos) annotations in
       []
   | (loc, Init {key; value; shorthand}) :: r ->
+      let inner_annots, rest_annots =
+        partition_inner (Loc.btwn start_pos loc) annotations in
+      let trans_key = transform_prop_key key in
+      let trans_val = transform_expression ~parent_strict inner_annots value in
       let () =
         if shorthand then
+          print_endline (Printf.sprintf "Shorthand:\n\tKey: %s\n\tValue: %s" 
+            (PrettyPrint.string_of_propname trans_key) 
+            (PrettyPrint.string_of_exp_syntax trans_val.exp_stx));
           raise
             (ParserError
                (NotEcmaScript5
                   ("Shorthand properties are not part of ES5", offset loc)))
       in
-      let inner_annots, rest_annots =
-        partition_inner (Loc.btwn start_pos loc) annotations
-      in
-      let trans_key = transform_prop_key key in
-      let trans_val = transform_expression ~parent_strict inner_annots value in
       (trans_key, PropbodyVal, trans_val)
       :: transform_properties ~parent_strict (char_after loc) rest_annots r
   | (loc, Get {key; value}) :: r | (loc, Set {key; value}) :: r ->
