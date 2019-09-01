@@ -735,11 +735,27 @@ and create_assignment lpat pattern exp =
               raise (ParserError (NotEcmaScript5 ("ES5: RestProperty not supported in object pattern assignment", off)))
         ) properties)
 
-  | Array ar ->
-    raise
-      (ParserError
-          (NotEcmaScript5
-            ("ES5: Unsupported pattern: Array", off)))
+  | Array { elements; _ } ->
+    let open Flow_parser.Ast.Pattern.Array in 
+    (match exp with 
+    | None -> raise (ParserError (NotEcmaScript5 ("ES5: Array pattern assignment without rhs", off)))
+    | Some exp -> 
+        List.concat (List.mapi (fun i oelement -> 
+          match oelement with 
+          | None -> []
+          | Some element -> 
+            match element with 
+            | Element (_, Identifier {name= _, str; _}) -> 
+              let propname : string = str in 
+              let index = { exp_offset = exp.exp_offset; exp_stx = Num (float_of_int i); exp_annot = [] } in 
+              let propvalue = { exp with exp_stx = CAccess(exp, index) } in
+                [ (propname, Some propvalue) ]
+            | Element _ -> 
+                raise (ParserError (NotEcmaScript5 ("ES5: Only identifiers supported in array pattern assignment", off)))
+            | RestElement _ -> 
+                raise (ParserError (NotEcmaScript5 ("ES5: RestElement not supported in object pattern assignment", off)))
+        ) elements))
+
   | Assignment ass ->
     raise
       (ParserError
