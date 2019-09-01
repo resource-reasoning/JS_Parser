@@ -233,7 +233,7 @@ let option_map f o = match o with None -> None | Some i -> Some (f i)
 (* Flow AST utils *)
 let get_str_id ((_, b) : loc Identifier.t) = b
 
-let get_str_pattern pat off =
+let get_str_pattern_restricted pat off =
   let open Pattern in
   match pat with
   | Identifier.(Identifier {name= _, str; _}) -> str
@@ -241,13 +241,23 @@ let get_str_pattern pat off =
       raise
         (ParserError
            (NotEcmaScript5
-              ( "ES5 only allows simple identifiers as patterns, given expr !"
+              ( "ES5: Unsupported pattern: Expression"
               , off )))
-  | _ ->
+  | Object o ->
       raise
         (ParserError
            (NotEcmaScript5
-              ("ES5 only allows simple identifiers as patterns", off)))
+              ("ES5: Unsupported pattern: Object", off)))
+  | Array ar ->
+    raise
+      (ParserError
+          (NotEcmaScript5
+            ("ES5: Unsupported pattern: Array", off)))
+  | Assignment ass ->
+    raise
+      (ParserError
+          (NotEcmaScript5
+            ("ES5: Unsupported pattern: Assignment", off)))
 
 let function_param_filter params =
   (* We are in ES5, so the only pattern available when declaring a function is an identifier.
@@ -262,7 +272,8 @@ let function_param_filter params =
   (* Now we are going to filter patterns that are not Identifier, if we find something else, we raise an error *)
   let rec f = function
     | [] -> []
-    | (l, pattern) :: r -> get_str_pattern pattern (offset l) :: f r
+    (* TODO: This is where the default parameter values will appear via the Assignment pattern *)
+    | (l, pattern) :: r -> get_str_pattern_restricted pattern (offset l) :: f r
   in
   f params
 
@@ -699,6 +710,42 @@ and transform_expr_list ~parent_strict start_pos annots exprl =
       transform_expression ~parent_strict this_annots exp
       :: transform_expr_list ~parent_strict (char_after le) rest_annots r
 
+and create_assignment lpat pattern exp = 
+  let open Pattern in
+  let open Flow_parser.Ast.Pattern.Object in 
+  let off = offset lpat in 
+  match pattern with
+  | Identifier.(Identifier {name= _, str; _}) -> [ (str, exp) ]
+  | Expression _ -> raise (ParserError (NotEcmaScript5 ("ES5: Unsupported pattern: Expression", off)))
+  | Object { properties; _ } ->
+    (match exp with 
+    | None -> raise (ParserError (NotEcmaScript5 ("ES5: Object pattern assignment without rhs", off)))
+    | Some exp -> 
+        List.map (fun property -> 
+          match property with 
+          | Property (_, { key; _ }) -> 
+            let propname : string = 
+              match key with 
+              | Identifier (_, id) -> id
+              | _ -> raise (ParserError (NotEcmaScript5 ("ES5: Unsupported identifier in object pattern: literal/computed", off)))
+            in 
+            let propvalue = { exp with exp_stx = Access(exp, propname) } in
+              (propname, Some propvalue)
+          | RestProperty _ -> 
+              raise (ParserError (NotEcmaScript5 ("ES5: RestProperty not supported in object pattern assignment", off)))
+        ) properties)
+
+  | Array ar ->
+    raise
+      (ParserError
+          (NotEcmaScript5
+            ("ES5: Unsupported pattern: Array", off)))
+  | Assignment ass ->
+    raise
+      (ParserError
+          (NotEcmaScript5
+            ("ES5: Unsupported pattern: Assignment", off)))
+
 and transform_variable_decl ~parent_strict declaration total_loc leading_annots inner_annots =
   (* We are in ES5, the only patterns available when declaring variable is an identifier.
      Also, the kind has to be var, since let and cons were introduced in ES2015. *)
@@ -719,7 +766,7 @@ and transform_variable_decl ~parent_strict declaration total_loc leading_annots 
         let () = check_unused_annots (offset total_loc) remaining_annots in
         []
     | (_, Declarator.({id= lpat, pattern; init})) :: r ->
-        let var = get_str_pattern pattern (offset lpat) in
+        (* TODO: This is where the are object and array assignment patterns are enabled *)
         let exp, rest_annot, last_char =
           match init with
           | None -> (None, remaining_annots, char_after lpat)
@@ -731,7 +778,8 @@ and transform_variable_decl ~parent_strict declaration total_loc leading_annots 
               , rest_annot
               , char_after le )
         in
-        (var, exp) :: f last_char rest_annot r
+        (create_assignment lpat pattern exp) 
+        @ f last_char rest_annot r
   in
   match declarations with
   | [] ->
@@ -878,7 +926,8 @@ and transform_statement ~parent_strict (annotations : (loc * annotation list) li
                        (NotEcmaScript5
                           ( "In ES5, catch must have a parameter!"
                           , offset lhandler )))
-              | Some (lpat, pat) -> get_str_pattern pat (offset lpat)
+              (* TODO: Which patterns are expected here? *)
+              | Some (lpat, pat) -> get_str_pattern_restricted pat (offset lpat)
             in
             let body_start = Loc.first_char lbody in
             let body_annots, other_annots =
@@ -935,7 +984,8 @@ and transform_statement ~parent_strict (annotations : (loc * annotation list) li
             let left_annots, other_annots =
               partition_inner (Loc.btwn first_pos locleft) inner_annots
             in
-            let strpat = get_str_pattern leftpat (offset locleft) in
+            (* TODO: Which patterns are expected here? *)
+            let strpat = get_str_pattern_restricted leftpat (offset locleft) in
             let exp =
               mk_exp (Var strpat) (offset locleft) (rem_locs left_annots)
             in
