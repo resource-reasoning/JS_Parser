@@ -17,16 +17,16 @@ let parse_string_exn ?(parse_annotations = true) ?(force_strict = false) program
       None
   in
   if List.length e > 0 then
-    let messages =
-      String.concat "\n"
+    let pretty_messages =
         (List.map
            (fun (loc, err) ->
              Flow_parser.Loc.to_string loc
              ^ " : "
              ^ Flow_parser.Parse_error.PP.error err )
-           e)
+           e) in 
+    let messages = String.concat "\n" pretty_messages
     in
-    let error_type = (match search_forward_safe (Str.regexp "Invalid left-hand side in assignment") messages with 
+    let error_type = (match search_forward_safe (Str.regexp "Invalid left-hand side in assignment") (List.hd pretty_messages) with 
       | Some _ -> "ReferenceError"
       | None -> "SyntaxError") in 
     raise (Error.ParserError (Error.FlowParser (messages, error_type)))
