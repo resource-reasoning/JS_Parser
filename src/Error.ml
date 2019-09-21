@@ -4,7 +4,7 @@ type t =
   | Unhandled_Expression of int
   | NotEcmaScript5 of string * int
   | UnusedAnnotations of string list * int
-  | FlowParser of string
+  | FlowParser of string * string
 
 let str = function
   | Overlapping_Syntax ->
@@ -27,6 +27,6 @@ let str = function
          AST:\n\
          %s"
         i (String.concat "\n" sl)
-  | FlowParser s -> Printf.sprintf "Flow_parser failed saying :\n%s" s
+  | FlowParser (msg, error_type) -> Printf.sprintf "Flow_parser failed: %s: %s" msg error_type
 
 exception ParserError of t

@@ -18,7 +18,7 @@ module Error : sig
       (** Something used in the script is not part of ES5 *)
   | UnusedAnnotations of string list * int
       (** Some JS_Logic annotations were in the wrong place *)
-  | FlowParser of string  (** Some Error happened at the flow_parser lever. *)
+  | FlowParser of string * string  (** Some Error happened at the flow_parser lever. *)
 
   val str : t -> string
 
