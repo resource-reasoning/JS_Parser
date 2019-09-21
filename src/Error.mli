@@ -1,6 +1,4 @@
 type t =
-  | Unknown_Annotation of string
-      (** There was an unkown JS_Logic annotation *)
   | Overlapping_Syntax
       (** Something went wrong with the parser, some syntax is overlapping *)
   | Unhandled_Statement of int

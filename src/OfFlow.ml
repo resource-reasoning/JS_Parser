@@ -42,28 +42,30 @@ let remove_first = function
 let make_annotation (atype, adesc) =
   let atype =
     match atype with
-    | "requires" -> Requires
-    | "ensures" -> Ensures
-    | "ensureserr" -> EnsuresErr
-    | "toprequires" -> TopRequires
-    | "topensures" -> TopEnsures
-    | "topensureserr" -> TopEnsuresErr
-    | "pre" -> Requires
-    | "post" -> Ensures
-    | "posterr" -> EnsuresErr
-    | "id" -> Id
-    | "pred" -> Pred
-    | "onlyspec" -> OnlySpec
-    | "invariant" -> Invariant
-    | "lemma" -> Lemma
-    | "tactic" -> Tactic
-    | "codename" -> Codename
-    | "biabduce" -> BiAbduce
-    | "call" -> Call
-    | "JSIL" -> JSIL_only
-    | annot -> raise (ParserError (Unknown_Annotation annot))
+    | "requires"      -> Some Requires
+    | "ensures"       -> Some Ensures
+    | "ensureserr"    -> Some EnsuresErr
+    | "toprequires"   -> Some TopRequires
+    | "topensures"    -> Some TopEnsures
+    | "topensureserr" -> Some TopEnsuresErr
+    | "pre"           -> Some Requires
+    | "post"          -> Some Ensures
+    | "posterr"       -> Some EnsuresErr
+    | "id"            -> Some Id
+    | "pred"          -> Some Pred
+    | "onlyspec"      -> Some OnlySpec
+    | "invariant"     -> Some Invariant
+    | "lemma"         -> Some Lemma
+    | "tactic"        -> Some Tactic
+    | "codename"      -> Some Codename
+    | "biabduce"      -> Some BiAbduce
+    | "call"          -> Some Call
+    | "JSIL"          -> Some JSIL_only
+    | annot           -> None
   in
-  {annot_type= atype; annot_formula= adesc}
+  match atype with 
+  | None -> None 
+  | Some atype -> Some {annot_type= atype; annot_formula= adesc}
 
 let get_annotations (comments : loc Comment.t list) :
     (loc * Syntax.annotation list) list =
@@ -114,7 +116,9 @@ let get_annotations (comments : loc Comment.t list) :
     | [] -> []
   in
   let annot_pairs_clean = mapkeep filter_and_get annot_pairs in
-  mapkeep (List.map make_annotation) annot_pairs_clean
+  let annot_pairs = mapkeep (List.map make_annotation) annot_pairs_clean in 
+    mapkeep filter_and_get annot_pairs
+  
 
 (******* Just a small part to deal with directives *********)
 

@@ -1,5 +1,4 @@
 type t =
-  | Unknown_Annotation of string
   | Overlapping_Syntax
   | Unhandled_Statement of int
   | Unhandled_Expression of int
@@ -8,8 +7,6 @@ type t =
   | FlowParser of string
 
 let str = function
-  | Unknown_Annotation s ->
-      Printf.sprintf "%s is an unkown JS_Logic annotation" s
   | Overlapping_Syntax ->
       Printf.sprintf
         "Something went wrong with the parser, some syntax is overlapping "
