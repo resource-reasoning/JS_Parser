@@ -61,7 +61,7 @@ let make_annotation (atype, adesc) =
     | "biabduce"      -> Some BiAbduce
     | "call"          -> Some Call
     | "JSIL"          -> Some JSIL_only
-    | annot           -> None
+    | _           -> None
   in
   match atype with 
   | None -> None 
@@ -247,17 +247,17 @@ let get_str_pattern_restricted pat off =
            (NotEcmaScript5
               ( "ES5: Unsupported pattern: Expression"
               , off )))
-  | Object o ->
+  | Object _ ->
       raise
         (ParserError
            (NotEcmaScript5
               ("ES5: Unsupported pattern: Object", off)))
-  | Array ar ->
+  | Array _ ->
     raise
       (ParserError
           (NotEcmaScript5
             ("ES5: Unsupported pattern: Array", off)))
-  | Assignment ass ->
+  | Assignment _ ->
     raise
       (ParserError
           (NotEcmaScript5
@@ -383,7 +383,7 @@ let rec transform_properties ~parent_strict start_pos annotations properties =
   | [] ->
       let () = check_unused_annots (offset start_pos) annotations in
       []
-  | (loc, Init {key; value; shorthand}) :: r ->
+  | (loc, Init {key; value; shorthand=_}) :: r ->
       let inner_annots, rest_annots =
         partition_inner (Loc.btwn start_pos loc) annotations in
       let trans_key = transform_prop_key key in
@@ -760,7 +760,7 @@ and create_assignment lpat pattern exp =
                 raise (ParserError (NotEcmaScript5 ("ES5: RestElement not supported in object pattern assignment", off)))
         ) elements))
 
-  | Assignment ass ->
+  | Assignment _ ->
     raise
       (ParserError
           (NotEcmaScript5
