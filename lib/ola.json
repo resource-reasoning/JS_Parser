@@ -1,0 +1,181 @@
+{
+    "type": "Program",
+    "body": [
+        {
+            "type": "VariableDeclaration",
+            "declarations": [
+                {
+                    "type": "VariableDeclarator",
+                    "id": {
+                        "type": "Identifier",
+                        "name": "j",
+                        "range": [
+                            4,
+                            5
+                        ]
+                    },
+                    "init": null,
+                    "range": [
+                        4,
+                        5
+                    ]
+                }
+            ],
+            "kind": "var",
+            "range": [
+                0,
+                6
+            ]
+        },
+        {
+            "type": "VariableDeclaration",
+            "declarations": [
+                {
+                    "type": "VariableDeclarator",
+                    "id": {
+                        "type": "Identifier",
+                        "name": "i",
+                        "range": [
+                            12,
+                            13
+                        ]
+                    },
+                    "init": null,
+                    "range": [
+                        12,
+                        13
+                    ]
+                }
+            ],
+            "kind": "var",
+            "range": [
+                8,
+                14
+            ]
+        },
+        {
+            "type": "ExpressionStatement",
+            "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                    "type": "Identifier",
+                    "name": "i",
+                    "range": [
+                        16,
+                        17
+                    ]
+                },
+                "right": {
+                    "type": "Literal",
+                    "value": 0,
+                    "raw": "0",
+                    "range": [
+                        20,
+                        21
+                    ]
+                },
+                "range": [
+                    16,
+                    21
+                ]
+            },
+            "range": [
+                16,
+                22
+            ]
+        },
+        {
+            "type": "VariableDeclaration",
+            "declarations": [
+                {
+                    "type": "VariableDeclarator",
+                    "id": {
+                        "type": "Identifier",
+                        "name": "f",
+                        "range": [
+                            27,
+                            28
+                        ]
+                    },
+                    "init": {
+                        "type": "ArrowFunctionExpression",
+                        "id": null,
+                        "params": [
+                            {
+                                "type": "Identifier",
+                                "name": "x",
+                                "range": [
+                                    32,
+                                    33
+                                ]
+                            }
+                        ],
+                        "body": {
+                            "type": "BlockStatement",
+                            "body": [
+                                {
+                                    "type": "ReturnStatement",
+                                    "argument": {
+                                        "type": "BinaryExpression",
+                                        "operator": "+",
+                                        "left": {
+                                            "type": "Identifier",
+                                            "name": "x",
+                                            "range": [
+                                                47,
+                                                48
+                                            ]
+                                        },
+                                        "right": {
+                                            "type": "Literal",
+                                            "value": 1,
+                                            "raw": "1",
+                                            "range": [
+                                                49,
+                                                50
+                                            ]
+                                        },
+                                        "range": [
+                                            47,
+                                            50
+                                        ]
+                                    },
+                                    "range": [
+                                        40,
+                                        51
+                                    ]
+                                }
+                            ],
+                            "range": [
+                                38,
+                                53
+                            ]
+                        },
+                        "generator": false,
+                        "expression": false,
+                        "async": false,
+                        "range": [
+                            31,
+                            53
+                        ]
+                    },
+                    "range": [
+                        27,
+                        53
+                    ]
+                }
+            ],
+            "kind": "var",
+            "range": [
+                23,
+                53
+            ]
+        }
+    ],
+    "sourceType": "script",
+    "range": [
+        0,
+        53
+    ]
+}
