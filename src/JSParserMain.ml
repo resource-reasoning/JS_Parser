@@ -9,7 +9,7 @@ let from_stdin = ref false
 
 let json_parser_path = ref ""
 
-let init ?path =
+let init ?path () =
   Printf.printf "inside init!!!\n"; 
   try
     let libdir = (match path with

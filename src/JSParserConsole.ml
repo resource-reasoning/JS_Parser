@@ -22,7 +22,7 @@ let arguments () =
 let main () : unit = 
   arguments ();
   Printf.printf "About to call init"; 
-  JSParserMain.init ~path:"./lib"; 
+  JSParserMain.init (); (*~path:"./lib"; *)
   let e_str = load_file !file in 
   Printf.printf "The input JS prog is the following:\n%s" e_str; 
   let e_js = JSParserMain.exp_from_string e_str in 

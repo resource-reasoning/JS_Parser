@@ -2,7 +2,7 @@ lib: [
   "src/META"
   "lib/run_esprima.js"                        { "run_esprima.js" }
   "lib/node_modules/esprima/LICENSE.BSD"      { "node_modules/esprima/LICENSE.BSD" }
-  "lib/node_modules/esprima/esprima.js"       { "node_modules/esprima/esprima.js" }
+  "lib/node_modules/esprima/dist/esprima.js"  { "node_modules/esprima/dist/esprima.js" }
   "lib/node_modules/esprima/package.json"     { "node_modules/esprima/package.json" }
   "_build/src/JSParser.cmi"
   "_build/src/JSParserMain.cmi"
