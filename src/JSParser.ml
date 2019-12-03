@@ -27,7 +27,10 @@ exception Empty_list
 let get_json_field field_name json =
   let result = match json with
     | `Assoc contents ->
-        snd (List.find (fun (str, _) -> (str = field_name)) contents)
+        Printf.printf "sera que eu vou morrer aqui? %s\n" field_name; 
+        let ret = List.find (fun (str, _) -> (str = field_name)) contents in
+        Printf.printf "sobrevivi!\n"; 
+        snd ret
     | _ -> print_string field_name; raise Empty_list
   in 
     result
@@ -128,6 +131,31 @@ let get_esprima_annotations json =
 let rec json_to_exp json : exp =
   let json_type = get_json_type json in
   let annotations = get_esprima_annotations json in
+
+  let parse_properties obj = 
+    let key = json_propname_element (get_json_field "key" obj) in
+    let leadingComments = try (get_json_list "leadingComments" obj) with _ -> [] in
+    let obj = (match obj with
+      | `Assoc (contents : (string * json) list) ->
+        let (enriched_contents : (string * json) list)=
+          List.map (fun ((k, v) : (string * json)) ->
+            (match k with
+              | "value" -> (match (v : json) with
+                | `Assoc (lst : (string * json) list) ->
+                  let (new_contents : json) = `List leadingComments in
+                  (k, `Assoc (("leadingComments", new_contents) :: lst))
+                | _ -> raise (Failure "Unexpected non-assoc."))
+              | _ -> (k, v))) contents in
+        `Assoc enriched_contents
+      | _ -> raise (Failure "Unexpected non-assoc.")) in
+    let value = json_to_exp (get_json_field "value" obj) in
+    match (get_json_string "kind" obj) with
+      | "init" -> (key, PropbodyVal, value)
+      | "get"  -> (key, PropbodyGet, value)
+      | "set"  -> (key, PropbodySet, value)
+      | _ -> raise Parser_ObjectLit in 
+
+  Printf.printf "nao somos ignorantas: %s\n" json_type; 
   match json_type with
 
     | "Program" ->
@@ -146,6 +174,15 @@ let rec json_to_exp json : exp =
       begin match fn_name with
         | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body)) (get_json_offset json) annotations
         | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
+      end
+    
+    | "ArrowFunctionExpression" -> 
+      let fn_name = get_json_field "id" json in
+      let fn_params = map json_to_exp (get_json_list "params" json) in
+      let fn_body = json_to_exp (get_json_field "body" json) in
+      begin match fn_name with
+        | `Null -> mk_exp (ArrowExp (false,None,fn_params,fn_body)) (get_json_offset json) annotations
+        | ident -> mk_exp (ArrowExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
       end
 
     | "FunctionDeclaration" ->
@@ -265,6 +302,13 @@ let rec json_to_exp json : exp =
       let obj = json_to_exp (get_json_field "right" json) in
       let block = json_to_exp (get_json_field "body" json) in
       mk_exp (ForIn (var, obj, block)) offset annotations
+    
+    | "ForOfStatement" ->
+      let offset = get_json_offset json in
+      let var = json_to_exp (get_json_field "left" json) in
+      let obj = json_to_exp (get_json_field "right" json) in
+      let block = json_to_exp (get_json_field "body" json) in
+      mk_exp (ForIn (var, obj, block)) offset annotations
 
     | "DebuggerStatement" ->
       mk_exp Debugger (get_json_offset json) annotations
@@ -306,30 +350,8 @@ let rec json_to_exp json : exp =
       json_parse_array_literal members (get_json_offset json) annotations
 
     | "ObjectExpression" ->
-      let l = map (fun obj ->
-        let key = json_propname_element (get_json_field "key" obj) in
-        let leadingComments = try (get_json_list "leadingComments" obj) with _ -> [] in
-        let obj = (match obj with
-          | `Assoc (contents : (string * json) list) ->
-            let (enriched_contents : (string * json) list)=
-              List.map (fun ((k, v) : (string * json)) ->
-                (match k with
-                  | "value" -> (match (v : json) with
-                    | `Assoc (lst : (string * json) list) ->
-                      let (new_contents : json) = `List leadingComments in
-                      (k, `Assoc (("leadingComments", new_contents) :: lst))
-                    | _ -> raise (Failure "Unexpected non-assoc."))
-                  | _ -> (k, v))) contents in
-            `Assoc enriched_contents
-          | _ -> raise (Failure "Unexpected non-assoc.")) in
-        let value = json_to_exp (get_json_field "value" obj) in
-        match (get_json_string "kind" obj) with
-          | "init" -> (key, PropbodyVal, value)
-          | "get"  -> (key, PropbodyGet, value)
-          | "set"  -> (key, PropbodySet, value)
-          | _ -> raise Parser_ObjectLit
-      ) (get_json_list "properties" json)
-    in (mk_exp (Obj l) (get_json_offset json)) annotations
+      let l = map parse_properties (get_json_list "properties" json) in 
+      (mk_exp (Obj l) (get_json_offset json)) annotations
 
     | "SequenceExpression" ->
       json_nest_sequence (get_json_list "expressions" json) (get_json_offset json) annotations
@@ -365,6 +387,20 @@ let rec json_to_exp json : exp =
 
     | "EmptyStatement" ->
       mk_exp Skip (get_json_offset json) annotations
+
+    | "ObjectPattern" -> 
+      let l = map parse_properties (get_json_list "properties" json) in 
+      (mk_exp (Obj l) (get_json_offset json)) annotations
+    
+    | "TemplateLiteral" -> 
+      (mk_exp (String("maria")) (get_json_offset json)) annotations
+    
+    | "AwaitExpression" -> 
+      let offset = (get_json_offset json) in
+      begin match (get_json_field "argument" json) with
+        | `Null -> raise (Failure "await without expression not supported")
+        | expr  -> mk_exp (Await (json_to_exp expr)) offset annotations
+      end
 
     | _ -> Printf.printf "Ooops!\n"; raise (Parser_Unknown_Tag (json_type, (get_json_offset json)))
 and

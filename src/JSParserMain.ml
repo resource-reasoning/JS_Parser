@@ -9,12 +9,14 @@ let from_stdin = ref false
 
 let json_parser_path = ref ""
 
-let init ?path () =
+let init ?path =
+  Printf.printf "inside init!!!\n"; 
   try
     let libdir = (match path with
       | None -> Findlib.init (); Findlib.resolve_path "@JS_Parser"
       | Some s -> s) in
     json_parser_path := Filename.concat libdir "run_esprima.js";
+    Printf.printf "SET json_parser_path: %s\n" !json_parser_path; 
     JSParser.doctrine_path := Filename.concat libdir "run_doctrine.js";
   with
     | Findlib.No_such_package _   ->
@@ -26,8 +28,11 @@ let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) :
   let force_strict = (if (f) then " -force_strict" else "") in
   let init = (if (i) then " -builtin_init" else "") in
   let cmd = "node " ^ !json_parser_path ^ " " ^ (Filename.quote filename) ^ force_strict ^ init in 
+  Printf.printf "filename: %s\n" filename;
+  Printf.printf "trying to run node with the following command: %s\n" cmd; 
   match Unix.system cmd with
     | Unix.WEXITED n ->
+        Printf.printf "o parser terminou completamente!\n"; 
         if (n <> 0) then raise (Failure (Printf.sprintf "Error %d: %s" n filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
     | _ -> raise (ParserFailure "Parser exited in an unacceptable manner.")
 
@@ -41,6 +46,7 @@ let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
 	let js_file = js_to_json ~force_strict:f ~init:i file in
 	let data = Yojson.Safe.from_file js_file in
 	let expression = json_to_exp data in
+  Printf.printf "after json_to_exp\n";
   	add_strictness f expression
 
 let exp_from_string ?force_strict:(f = false) s =

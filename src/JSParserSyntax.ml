@@ -108,6 +108,7 @@ and exp_syntax =
   | Assign of exp * exp   (* e = e *)
   | AssignOp of exp * arith_op * exp   (* e op= e *)
   | FunctionExp of bool * (string option) * var list * exp (* function (x1,..,x2){e} *)
+  | ArrowExp of bool * (string option) * exp list * exp (* function (x1,..,x2){e} *)
   | Function of bool * (string option) * var list * exp (* function x(x1,..,x2){e} *)
   | New of exp * exp list      (* new e(e1,..,en) *)
   | Obj of (propname * proptype * exp) list (* {x_i : e_i} *)
@@ -117,6 +118,7 @@ and exp_syntax =
   | Skip
   | Throw of exp          (* throw e *)
   | Return of exp option        (* return e *)
+  | Await of exp            (* await e *)
   | RegExp of string * string (* / pattern / flags *)
   | For of (exp option) * (exp option) * (exp option) * exp (* for (e1; e2; e3) {e4} *)
   | ForIn of exp * exp * exp (* for (exp in exp) {exp}*)
@@ -186,6 +188,9 @@ let rec add_strictness parent_strict exp =
     | FunctionExp (_, n, xs, e) ->
       let strict = parent_strict || is_in_strict_mode e in
       {exp with exp_stx = FunctionExp (strict, n, xs, add_strictness strict e)}
+    | ArrowExp (_, n, xs, e) ->
+      let strict = parent_strict || is_in_strict_mode e in
+      {exp with exp_stx = ArrowExp (strict, n, xs, add_strictness strict e)}  
     | Function (_, n, xs, e) ->
       let strict = parent_strict || is_in_strict_mode e in
       {exp with exp_stx = Function (strict, n, xs, add_strictness strict e)}
@@ -197,6 +202,7 @@ let rec add_strictness parent_strict exp =
     | Skip -> exp
     | Throw e -> {exp with exp_stx = Throw (f e)}
     | Return e -> {exp with exp_stx = Return (fop e)}
+    | Await e -> {exp with exp_stx = Await (f e)}
     | RegExp (s1, s2) -> exp
     | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
     | For (e1, e2, e3, e4) -> {exp with exp_stx = For (fop e1, fop e2, fop e3, f e4)}

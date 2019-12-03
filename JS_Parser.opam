@@ -8,10 +8,10 @@ authors: [
   "Thomas Wood <thomas.wood09@imperial.ac.uk>"
   "Petar Maksimovic <p.maksimovic@imperial.ac.uk>"
 ]
-homepage: "https://github.com/resource-reasoning/JS_Parser"
+homepage: "https://github.com/resource-reasoning/JS_Parser/tree/es5+++"
 bug-reports: "https://github.com/resource-reasoning/JS_Parser/issues"
 license: "TBC"
-dev-repo: "https://github.com/resource-reasoning/JS_Parser.git"
+dev-repo: "https://github.com/resource-reasoning/JS_Parser/tree/es5+++"
 libraries: ["JS_Parser"]
 
 build: [[make]]
