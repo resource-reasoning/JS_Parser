@@ -42,28 +42,30 @@ let remove_first = function
 let make_annotation (atype, adesc) =
   let atype =
     match atype with
-    | "requires" -> Requires
-    | "ensures" -> Ensures
-    | "ensureserr" -> EnsuresErr
-    | "toprequires" -> TopRequires
-    | "topensures" -> TopEnsures
-    | "topensureserr" -> TopEnsuresErr
-    | "pre" -> Requires
-    | "post" -> Ensures
-    | "posterr" -> EnsuresErr
-    | "id" -> Id
-    | "pred" -> Pred
-    | "onlyspec" -> OnlySpec
-    | "invariant" -> Invariant
-    | "lemma" -> Lemma
-    | "tactic" -> Tactic
-    | "codename" -> Codename
-    | "biabduce" -> BiAbduce
-    | "call" -> Call
-    | "JSIL" -> JSIL_only
-    | annot -> raise (ParserError (Unknown_Annotation annot))
+    | "requires"      -> Some Requires
+    | "ensures"       -> Some Ensures
+    | "ensureserr"    -> Some EnsuresErr
+    | "toprequires"   -> Some TopRequires
+    | "topensures"    -> Some TopEnsures
+    | "topensureserr" -> Some TopEnsuresErr
+    | "pre"           -> Some Requires
+    | "post"          -> Some Ensures
+    | "posterr"       -> Some EnsuresErr
+    | "id"            -> Some Id
+    | "pred"          -> Some Pred
+    | "onlyspec"      -> Some OnlySpec
+    | "invariant"     -> Some Invariant
+    | "lemma"         -> Some Lemma
+    | "tactic"        -> Some Tactic
+    | "codename"      -> Some Codename
+    | "biabduce"      -> Some BiAbduce
+    | "call"          -> Some Call
+    | "JSIL"          -> Some JSIL_only
+    | _           -> None
   in
-  {annot_type= atype; annot_formula= adesc}
+  match atype with 
+  | None -> None 
+  | Some atype -> Some {annot_type= atype; annot_formula= adesc}
 
 let get_annotations (comments : loc Comment.t list) :
     (loc * Syntax.annotation list) list =
@@ -114,7 +116,9 @@ let get_annotations (comments : loc Comment.t list) :
     | [] -> []
   in
   let annot_pairs_clean = mapkeep filter_and_get annot_pairs in
-  mapkeep (List.map make_annotation) annot_pairs_clean
+  let annot_pairs = mapkeep (List.map make_annotation) annot_pairs_clean in 
+    mapkeep filter_and_get annot_pairs
+  
 
 (******* Just a small part to deal with directives *********)
 
@@ -233,7 +237,7 @@ let option_map f o = match o with None -> None | Some i -> Some (f i)
 (* Flow AST utils *)
 let get_str_id ((_, b) : loc Identifier.t) = b
 
-let get_str_pattern pat off =
+let get_str_pattern_restricted pat off =
   let open Pattern in
   match pat with
   | Identifier.(Identifier {name= _, str; _}) -> str
@@ -241,13 +245,23 @@ let get_str_pattern pat off =
       raise
         (ParserError
            (NotEcmaScript5
-              ( "ES5 only allows simple identifiers as patterns, given expr !"
+              ( "ES5: Unsupported pattern: Expression"
               , off )))
-  | _ ->
+  | Object _ ->
       raise
         (ParserError
            (NotEcmaScript5
-              ("ES5 only allows simple identifiers as patterns", off)))
+              ("ES5: Unsupported pattern: Object", off)))
+  | Array _ ->
+    raise
+      (ParserError
+          (NotEcmaScript5
+            ("ES5: Unsupported pattern: Array", off)))
+  | Assignment _ ->
+    raise
+      (ParserError
+          (NotEcmaScript5
+            ("ES5: Unsupported pattern: Assignment", off)))
 
 let function_param_filter params =
   (* We are in ES5, so the only pattern available when declaring a function is an identifier.
@@ -262,7 +276,8 @@ let function_param_filter params =
   (* Now we are going to filter patterns that are not Identifier, if we find something else, we raise an error *)
   let rec f = function
     | [] -> []
-    | (l, pattern) :: r -> get_str_pattern pattern (offset l) :: f r
+    (* TODO: This is where the default parameter values will appear via the Assignment pattern *)
+    | (l, pattern) :: r -> get_str_pattern_restricted pattern (offset l) :: f r
   in
   f params
 
@@ -368,19 +383,21 @@ let rec transform_properties ~parent_strict start_pos annotations properties =
   | [] ->
       let () = check_unused_annots (offset start_pos) annotations in
       []
-  | (loc, Init {key; value; shorthand}) :: r ->
+  | (loc, Init {key; value; shorthand=_}) :: r ->
+      let inner_annots, rest_annots =
+        partition_inner (Loc.btwn start_pos loc) annotations in
+      let trans_key = transform_prop_key key in
+      let trans_val = transform_expression ~parent_strict inner_annots value in
+      (* PETAR: ALLOWING SHORTHAND! 
       let () =
         if shorthand then
+          print_endline (Printf.sprintf "Shorthand:\n\tKey: %s\n\tValue: %s" 
+            (PrettyPrint.string_of_propname trans_key) 
+            (PrettyPrint.string_of_exp_syntax trans_val.exp_stx));
           raise
             (ParserError
                (NotEcmaScript5
-                  ("Shorthand properties are not part of ES5", offset loc)))
-      in
-      let inner_annots, rest_annots =
-        partition_inner (Loc.btwn start_pos loc) annotations
-      in
-      let trans_key = transform_prop_key key in
-      let trans_val = transform_expression ~parent_strict inner_annots value in
+                  ("Shorthand properties are not part of ES5", offset loc))) *)
       (trans_key, PropbodyVal, trans_val)
       :: transform_properties ~parent_strict (char_after loc) rest_annots r
   | (loc, Get {key; value}) :: r | (loc, Set {key; value}) :: r ->
@@ -398,7 +415,7 @@ let rec transform_properties ~parent_strict start_pos annotations properties =
         match properties with
         | (_, Get _) :: _ -> PropbodyGet
         | (_, Set _) :: _ -> PropbodySet
-        | _ -> raise (CannotHappen "pattern matching gone wrong")
+        | _ -> raise (CannotHappen "Impossible: accessor other than getter or setter")
       in
       (trans_key, typ, trans_fun)
       :: transform_properties ~parent_strict (char_after loc) rest_annots r
@@ -697,6 +714,58 @@ and transform_expr_list ~parent_strict start_pos annots exprl =
       transform_expression ~parent_strict this_annots exp
       :: transform_expr_list ~parent_strict (char_after le) rest_annots r
 
+and create_assignment lpat pattern exp = 
+  let open Pattern in
+  let open Flow_parser.Ast.Pattern.Object in 
+  let off = offset lpat in 
+  match pattern with
+  | Identifier.(Identifier {name= _, str; _}) -> [ (str, exp) ]
+  | Expression _ -> raise (ParserError (NotEcmaScript5 ("ES5: Unsupported pattern: Expression", off)))
+  | Object { properties; _ } ->
+    (match exp with 
+    | None -> raise (ParserError (NotEcmaScript5 ("ES5: Object pattern assignment without rhs", off)))
+    | Some exp -> 
+        List.map (fun property -> 
+          match property with 
+          | Property (_, { key; _ }) -> 
+            let propname : string = 
+              match key with 
+              | Identifier (_, id) -> id
+              | _ -> raise (ParserError (NotEcmaScript5 ("ES5: Unsupported identifier in object pattern: literal/computed", off)))
+            in 
+            let propvalue = { exp with exp_stx = Access(exp, propname) } in
+              (propname, Some propvalue)
+          | RestProperty _ -> 
+              raise (ParserError (NotEcmaScript5 ("ES5: RestProperty not supported in object pattern assignment", off)))
+        ) properties)
+
+  | Array { elements; _ } ->
+    let open Flow_parser.Ast.Pattern.Array in 
+    (match exp with 
+    | None -> raise (ParserError (NotEcmaScript5 ("ES5: Array pattern assignment without rhs", off)))
+    | Some exp -> 
+        List.concat (List.mapi (fun i oelement -> 
+          match oelement with 
+          | None -> []
+          | Some element -> 
+            match element with 
+            | Element (_, Identifier {name= _, str; _}) -> 
+              let propname : string = str in 
+              let index = { exp_offset = exp.exp_offset; exp_stx = Num (float_of_int i); exp_annot = [] } in 
+              let propvalue = { exp with exp_stx = CAccess(exp, index) } in
+                [ (propname, Some propvalue) ]
+            | Element _ -> 
+                raise (ParserError (NotEcmaScript5 ("ES5: Only identifiers supported in array pattern assignment", off)))
+            | RestElement _ -> 
+                raise (ParserError (NotEcmaScript5 ("ES5: RestElement not supported in object pattern assignment", off)))
+        ) elements))
+
+  | Assignment _ ->
+    raise
+      (ParserError
+          (NotEcmaScript5
+            ("ES5: Unsupported pattern: Assignment", off)))
+
 and transform_variable_decl ~parent_strict declaration total_loc leading_annots inner_annots =
   (* We are in ES5, the only patterns available when declaring variable is an identifier.
      Also, the kind has to be var, since let and cons were introduced in ES2015. *)
@@ -717,7 +786,7 @@ and transform_variable_decl ~parent_strict declaration total_loc leading_annots 
         let () = check_unused_annots (offset total_loc) remaining_annots in
         []
     | (_, Declarator.({id= lpat, pattern; init})) :: r ->
-        let var = get_str_pattern pattern (offset lpat) in
+        (* TODO: This is where the are object and array assignment patterns are enabled *)
         let exp, rest_annot, last_char =
           match init with
           | None -> (None, remaining_annots, char_after lpat)
@@ -729,7 +798,8 @@ and transform_variable_decl ~parent_strict declaration total_loc leading_annots 
               , rest_annot
               , char_after le )
         in
-        (var, exp) :: f last_char rest_annot r
+        (create_assignment lpat pattern exp) 
+        @ f last_char rest_annot r
   in
   match declarations with
   | [] ->
@@ -876,7 +946,8 @@ and transform_statement ~parent_strict (annotations : (loc * annotation list) li
                        (NotEcmaScript5
                           ( "In ES5, catch must have a parameter!"
                           , offset lhandler )))
-              | Some (lpat, pat) -> get_str_pattern pat (offset lpat)
+              (* TODO: Which patterns are expected here? *)
+              | Some (lpat, pat) -> get_str_pattern_restricted pat (offset lpat)
             in
             let body_start = Loc.first_char lbody in
             let body_annots, other_annots =
@@ -933,7 +1004,8 @@ and transform_statement ~parent_strict (annotations : (loc * annotation list) li
             let left_annots, other_annots =
               partition_inner (Loc.btwn first_pos locleft) inner_annots
             in
-            let strpat = get_str_pattern leftpat (offset locleft) in
+            (* TODO: Which patterns are expected here? *)
+            let strpat = get_str_pattern_restricted leftpat (offset locleft) in
             let exp =
               mk_exp (Var strpat) (offset locleft) (rem_locs left_annots)
             in

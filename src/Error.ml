@@ -1,15 +1,12 @@
 type t =
-  | Unknown_Annotation of string
   | Overlapping_Syntax
   | Unhandled_Statement of int
   | Unhandled_Expression of int
   | NotEcmaScript5 of string * int
   | UnusedAnnotations of string list * int
-  | FlowParser of string
+  | FlowParser of string * string
 
 let str = function
-  | Unknown_Annotation s ->
-      Printf.sprintf "%s is an unkown JS_Logic annotation" s
   | Overlapping_Syntax ->
       Printf.sprintf
         "Something went wrong with the parser, some syntax is overlapping "
@@ -30,6 +27,6 @@ let str = function
          AST:\n\
          %s"
         i (String.concat "\n" sl)
-  | FlowParser s -> Printf.sprintf "Flow_parser failed saying :\n%s" s
+  | FlowParser (msg, error_type) -> Printf.sprintf "Flow_parser failed: %s: %s" msg error_type
 
 exception ParserError of t

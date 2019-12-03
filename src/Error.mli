@@ -1,6 +1,4 @@
 type t =
-  | Unknown_Annotation of string
-      (** There was an unkown JS_Logic annotation *)
   | Overlapping_Syntax
       (** Something went wrong with the parser, some syntax is overlapping *)
   | Unhandled_Statement of int
@@ -11,7 +9,7 @@ type t =
       (** Something used in the script is not part of ES5 *)
   | UnusedAnnotations of string list * int
       (** Some JS_Logic annotations were in the wrong place *)
-  | FlowParser of string  (** Some Error happened at the flow_parser lever. *)
+  | FlowParser of string * string  (** Some Error happened at the flow_parser lever. *)
 
 val str : t -> string
 
