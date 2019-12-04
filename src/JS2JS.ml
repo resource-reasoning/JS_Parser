@@ -17,17 +17,18 @@ let rec js2js (exp: exp) : exp =
 
   (* Transforms forOf into while *)
   let for_of_to_while e1 e2 e3 =
+    Printf.printf "FOROF TO WHILE";
     (* 1. var iter = obj.getIterator() *)
     let iter_var_name = fresh_iter_var () in
     let iter_var = VarDec [(iter_var_name, None)] in
-    let get_iterator_call = Call (mk_exp_s (Access (e2, get_iterator_fun_name)), []) in
+    let get_iterator_call = Call (mk_exp_s (Access (f e2, get_iterator_fun_name)), []) in
     let iter_assignment = Assign(mk_exp_s iter_var, mk_exp_s get_iterator_call) in
     
     (* 2. while(iter.hasNext()) {e = iter.next(); e3 } *)
     let iter_has_next = Call (mk_exp_s (Access (mk_exp_s (Var iter_var_name), has_next_fun_name)), []) in
     let iter_next = Call (mk_exp_s (Access (mk_exp_s (Var iter_var_name), next_fun_name)), []) in
     let e_equal_iter_next = Assign (e1, mk_exp_s iter_next) in
-    let while_body = Block [mk_exp_s e_equal_iter_next; e3] in
+    let while_body = Block [mk_exp_s e_equal_iter_next; f e3] in
     let while_has_next = While (mk_exp_s iter_has_next, mk_exp_s while_body) in
 
     (* We simply return the first command followed by the second*)
@@ -38,6 +39,7 @@ let rec js2js (exp: exp) : exp =
     fold_left (fun ac exp -> 
                 match exp.exp_stx with
                 | String s -> ac @ [s]
+                | Var s -> ac @ [s]
                 | _ -> []) [] exps in
 
   let string_from_propname (p : propname) : string =
@@ -57,12 +59,12 @@ let rec js2js (exp: exp) : exp =
       var xn = o.xn; 
       s
     } *)
-  let lambda_to_fdecl (b: bool) (id: string option) (params: exp list) (body: exp) : exp_syntax = 
+  let lambda_to_fdecl (b: bool) (id: string option) (params: exp list) (body: exp) (async: bool): exp_syntax = 
     match params with
-    | [] -> Function (b, id, [], body, true)
+    | [] -> Function (b, id, [], f body, async)
     | ps when (strings_from_exps ps <> []) ->
       let string_params = strings_from_exps ps in 
-      Function (b, id, string_params, body, true)
+      Function (b, id, string_params, f body, async)
     | [single_param] -> 
       (match single_param.exp_stx with
       | Obj props -> 
@@ -72,9 +74,9 @@ let rec js2js (exp: exp) : exp =
             let p_str = string_from_propname p in
             (p_str, Some (mk_exp_s (Access (mk_exp_s (Var obj_param), p_str)))
           )) props in
-        let fun_body = Block [mk_exp_s (VarDec access_list); body] in
-        Function (b, id, [obj_param], mk_exp_s fun_body, true)
-      | _ ->  raise (Failure "Lambda expression not supported yet."))
+        let fun_body = Block [mk_exp_s (VarDec access_list); f body] in
+        Function (b, id, [obj_param], f (mk_exp_s fun_body), async)
+      | _ -> Printf.printf "PARAM: %s, body: %s" (JSPrettyPrint.string_of_exp true single_param) (JSPrettyPrint.string_of_exp true body); raise (Failure "Lambda expression not supported yet."))
     | _ -> raise (Failure "Lambda expression not supported yet.") in
 
   let fop e = match e with
@@ -95,7 +97,7 @@ let rec js2js (exp: exp) : exp =
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
     | FunctionExp (b, n, xs, e, async) -> {exp with exp_stx = FunctionExp (b, n, xs, f e, async)}
     | Function (b, n, xs, e, async) -> {exp with exp_stx = Function (b, n, xs, f e, async)}
-    | ArrowExp (b, n, es, e) -> {exp with exp_stx = lambda_to_fdecl b n es e}
+    | ArrowExp (b, n, es, e, async) -> {exp with exp_stx = lambda_to_fdecl b n es e async}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, map f e2s)}
     | Array es -> {exp with exp_stx = Array (List.map fop es)}
     | CAccess (e1, e2) -> {exp with exp_stx = CAccess (f e1, f e2)}
@@ -119,4 +121,5 @@ let rec js2js (exp: exp) : exp =
     | ConditionalOp (e1, e2, e3) -> {exp with exp_stx = ConditionalOp (f e1, f e2, f e3)}
     | Block es -> {exp with exp_stx = Block (map f es)}
     | Script (b, es) -> {exp with exp_stx = Script (b, map f es)}
+    | Await e -> {exp with exp_stx = Await (f e)}           
     | _ -> exp

@@ -108,7 +108,7 @@ and exp_syntax =
   | Assign of exp * exp   (* e = e *)
   | AssignOp of exp * arith_op * exp   (* e op= e *)
   | FunctionExp of bool * (string option) * var list * exp * bool (* function (x1,..,x2){e} *)
-  | ArrowExp of bool * (string option) * exp list * exp (* function (x1,..,x2){e} *)
+  | ArrowExp of bool * (string option) * exp list * exp * bool(* function (x1,..,x2){e} *)
   | Function of bool * (string option) * var list * exp * bool (* function x(x1,..,x2){e}  *)
   | New of exp * exp list      (* new e(e1,..,en) *)
   | Obj of (propname * proptype * exp) list (* {x_i : e_i} *)
@@ -191,9 +191,9 @@ let rec add_strictness parent_strict exp =
     | FunctionExp (_, n, xs, e, b) ->
       let strict = parent_strict || is_in_strict_mode e in
       {exp with exp_stx = FunctionExp (strict, n, xs, add_strictness strict e, b)}
-    | ArrowExp (_, n, xs, e) ->
+    | ArrowExp (_, n, xs, e, b) ->
       let strict = parent_strict || is_in_strict_mode e in
-      {exp with exp_stx = ArrowExp (strict, n, xs, add_strictness strict e)}  
+      {exp with exp_stx = ArrowExp (strict, n, xs, add_strictness strict e, b)}  
     | Function (_, n, xs, e, b) ->
       let strict = parent_strict || is_in_strict_mode e in
       {exp with exp_stx = Function (strict, n, xs, add_strictness strict e, b)}

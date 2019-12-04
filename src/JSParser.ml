@@ -178,9 +178,10 @@ let rec json_to_exp json : exp =
       let fn_name = get_json_field "id" json in
       let fn_params = map json_to_exp (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
+      let fn_async = get_json_bool "async" json in 
       begin match fn_name with
-        | `Null -> mk_exp (ArrowExp (false,None,fn_params,fn_body)) (get_json_offset json) annotations
-        | ident -> mk_exp (ArrowExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
+        | `Null -> mk_exp (ArrowExp (false,None,fn_params,fn_body,fn_async)) (get_json_offset json) annotations
+        | ident -> mk_exp (ArrowExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body,fn_async)) (get_json_offset json) annotations
       end
 
     | "FunctionDeclaration" ->
