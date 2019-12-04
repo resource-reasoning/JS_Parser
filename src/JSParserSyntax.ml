@@ -107,9 +107,9 @@ and exp_syntax =
   | Call of exp * exp list     (* e(e1,..,en) *)
   | Assign of exp * exp   (* e = e *)
   | AssignOp of exp * arith_op * exp   (* e op= e *)
-  | FunctionExp of bool * (string option) * var list * exp (* function (x1,..,x2){e} *)
+  | FunctionExp of bool * (string option) * var list * exp * bool (* function (x1,..,x2){e} *)
   | ArrowExp of bool * (string option) * exp list * exp (* function (x1,..,x2){e} *)
-  | Function of bool * (string option) * var list * exp (* function x(x1,..,x2){e} *)
+  | Function of bool * (string option) * var list * exp * bool (* function x(x1,..,x2){e}  *)
   | New of exp * exp list      (* new e(e1,..,en) *)
   | Obj of (propname * proptype * exp) list (* {x_i : e_i} *)
   | Array of (exp option) list (* [e1,...,en] *)
@@ -118,10 +118,13 @@ and exp_syntax =
   | Skip
   | Throw of exp          (* throw e *)
   | Return of exp option        (* return e *)
+  | TemplateLiteral of exp list * exp list (* `${e1}e2` *)
+  | TemplateElement of string * string * bool
   | Await of exp            (* await e *)
   | RegExp of string * string (* / pattern / flags *)
   | For of (exp option) * (exp option) * (exp option) * exp (* for (e1; e2; e3) {e4} *)
   | ForIn of exp * exp * exp (* for (exp in exp) {exp}*)
+  | ForOf of exp * exp * exp (* for (exp in exp) {exp}*)
   | Break of string option
   | Continue of string option
   | Try of exp * (string * exp) option * exp option (* try e catch e finally e *)
@@ -185,15 +188,15 @@ let rec add_strictness parent_strict exp =
     | Call (e1, e2s) -> {exp with exp_stx = Call (f e1, List.map f e2s)}
     | Assign (e1, e2) -> {exp with exp_stx = Assign (f e1, f e2)}
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
-    | FunctionExp (_, n, xs, e) ->
+    | FunctionExp (_, n, xs, e, b) ->
       let strict = parent_strict || is_in_strict_mode e in
-      {exp with exp_stx = FunctionExp (strict, n, xs, add_strictness strict e)}
+      {exp with exp_stx = FunctionExp (strict, n, xs, add_strictness strict e, b)}
     | ArrowExp (_, n, xs, e) ->
       let strict = parent_strict || is_in_strict_mode e in
       {exp with exp_stx = ArrowExp (strict, n, xs, add_strictness strict e)}  
-    | Function (_, n, xs, e) ->
+    | Function (_, n, xs, e, b) ->
       let strict = parent_strict || is_in_strict_mode e in
-      {exp with exp_stx = Function (strict, n, xs, add_strictness strict e)}
+      {exp with exp_stx = Function (strict, n, xs, add_strictness strict e, b)}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, List.map f e2s)}
     | Obj l -> {exp with exp_stx = Obj (List.map (fun (x, p, e) -> (x, p, f e)) l)}
     | Array es -> {exp with exp_stx = Array (List.map fop es)}
@@ -203,8 +206,11 @@ let rec add_strictness parent_strict exp =
     | Throw e -> {exp with exp_stx = Throw (f e)}
     | Return e -> {exp with exp_stx = Return (fop e)}
     | Await e -> {exp with exp_stx = Await (f e)}
+    | TemplateLiteral (e1s, e2s) -> {exp with exp_stx = TemplateLiteral (List.map f e1s, List.map f e2s)}
+    | TemplateElement _ -> exp
     | RegExp (s1, s2) -> exp
     | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
+    | ForOf (e1, e2, e3) -> {exp with exp_stx = ForOf (f e1, f e2, f e3)}
     | For (e1, e2, e3, e4) -> {exp with exp_stx = For (fop e1, fop e2, fop e3, f e4)}
     | Break _ -> exp
     | Continue _ -> exp
@@ -222,3 +228,15 @@ let rec add_strictness parent_strict exp =
     | Script (_, es) ->
       let strict = is_in_strict_mode exp in
       {exp with exp_stx = Script (strict, List.map (add_strictness strict) es)}
+
+let fresh_sth (name : string) : (unit -> string) =
+  let counter = ref 0 in
+  let rec f () =
+    let v = name ^ (string_of_int !counter) in
+    counter := !counter + 1;
+    v
+  in f
+
+let fresh_var : (unit -> string) = fresh_sth "x_"
+
+let fresh_iter_var : (unit -> string) = fresh_sth "x_iter_"

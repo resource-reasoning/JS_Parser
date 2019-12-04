@@ -171,9 +171,10 @@ let rec json_to_exp json : exp =
       let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
+      let fn_async = get_json_bool "async" json in 
       begin match fn_name with
-        | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body)) (get_json_offset json) annotations
-        | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
+        | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
+        | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
       end
     
     | "ArrowFunctionExpression" -> 
@@ -189,9 +190,10 @@ let rec json_to_exp json : exp =
       let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
+      let fn_async = get_json_bool "async" json in 
       begin match fn_name with
-        | `Null -> mk_exp (Function (false,None,fn_params,fn_body)) (get_json_offset json) annotations
-        | ident -> mk_exp (Function (false,Some (get_json_ident_name fn_name),fn_params,fn_body)) (get_json_offset json) annotations
+        | `Null -> mk_exp (Function (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
+        | ident -> mk_exp (Function (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
       end
 
     | "VariableDeclaration" ->
@@ -393,8 +395,18 @@ let rec json_to_exp json : exp =
       (mk_exp (Obj l) (get_json_offset json)) annotations
     
     | "TemplateLiteral" -> 
-      (mk_exp (String("maria")) (get_json_offset json)) annotations
+      let quasis = (get_json_list "quasis" json) in
+      let expressions = (get_json_list "expressions" json) in
+      mk_exp (TemplateLiteral ((map json_to_exp quasis),(map json_to_exp expressions))) (get_json_offset json) annotations
     
+    | "TemplateElement" ->
+      let value = get_json_field "value" json in
+      let raw = get_json_string "raw" value in
+      let cooked = get_json_string "cooked" value in
+      let tail = get_json_bool "tail" json in
+      mk_exp (TemplateElement (raw, cooked, tail)) (get_json_offset json) annotations
+
+
     | "AwaitExpression" -> 
       let offset = (get_json_offset json) in
       begin match (get_json_field "argument" json) with

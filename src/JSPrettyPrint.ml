@@ -133,8 +133,8 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Call (e1, e2s) -> Printf.sprintf "(%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Assign (e1, e2) -> Printf.sprintf "%s = %s" (f e1) (f e2)
     | AssignOp (e1, op, e2) -> Printf.sprintf "%s %s= %s" (f e1) (string_of_arith_op op) (f e2)
-    | FunctionExp (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
-    | Function (_, n, xs, e) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
+    | FunctionExp (_, n, xs, e, _) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
+    | Function (_, n, xs, e, _) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
     | ArrowExp (_, n, es, e) -> Printf.sprintf "(%s) => \n%s\n" (String.concat ", " (map f es)) (f e)
     | New (e1, e2s) -> Printf.sprintf "new (%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Obj l -> Printf.sprintf "{%s}"
@@ -153,6 +153,8 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Return (Some e) -> Printf.sprintf "return %s" (f e)
     | Return None -> "return"
     | Await e -> Printf.sprintf "await %s" (f e)
+    | TemplateLiteral (e1s, e2s) -> Printf.sprintf "`${%s}%s`" (String.concat " " (map f e1s)) (String.concat " " (map f e2s))
+    | TemplateElement (s1, _, _) -> Printf.sprintf "%s" s1
     | RegExp (s1, s2) -> Printf.sprintf "/%s/%s" s1 s2
     | ForIn (e1, e2, e3) -> Printf.sprintf "for (%s in %s) %s" (f e1) (f e2) (f e3)
     | For (e1, e2, e3, e4) -> Printf.sprintf "for (%s ; %s ; %s) %s" (fop e1) (fop e2) (fop e3) (f e4)
