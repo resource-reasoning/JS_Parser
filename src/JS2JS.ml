@@ -76,7 +76,7 @@ let rec js2js (exp: exp) : exp =
           )) props in
         let fun_body = Block [mk_exp_s (VarDec access_list); f body] in
         Function (b, id, [obj_param], f (mk_exp_s fun_body), async)
-      | _ -> Printf.printf "PARAM: %s, body: %s" (JSPrettyPrint.string_of_exp true single_param) (JSPrettyPrint.string_of_exp true body); raise (Failure "Lambda expression not supported yet."))
+      | _ -> raise (Failure "Lambda expression not supported yet."))
     | _ -> raise (Failure "Lambda expression not supported yet.") in
 
   let fop e = match e with
@@ -94,6 +94,7 @@ let rec js2js (exp: exp) : exp =
     | Access (e, x) -> {exp with exp_stx = Access (f e, x)}
     | Call (e1, e2s) -> {exp with exp_stx = Call (f e1, map f e2s)}
     | Assign (e1, e2) -> {exp with exp_stx = Assign (f e1, f e2)}
+    | VarDec xs -> {exp with exp_stx = VarDec (List.map (fun (name, e1) -> (name, fop e1)) xs)}
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
     | FunctionExp (b, n, xs, e, async) -> {exp with exp_stx = FunctionExp (b, n, xs, f e, async)}
     | Function (b, n, xs, e, async) -> {exp with exp_stx = Function (b, n, xs, f e, async)}
