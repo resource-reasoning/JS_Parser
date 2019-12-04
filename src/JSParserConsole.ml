@@ -21,12 +21,11 @@ let arguments () =
 
 let main () : unit = 
   arguments ();
-  Printf.printf "About to call init"; 
   JSParserMain.init (); (*~path:"./lib"; *)
   let e_str = load_file !file in 
   Printf.printf "The input JS prog is the following:\n%s" e_str; 
   let e_js = JS2JS.js2js (JSParserMain.exp_from_string e_str) in 
-  Printf.printf "The PARSED JS prog is the following:\n%s" (JSPrettyPrint.string_of_exp true e_js)
+  Printf.printf "The PARSED JS prog is the following:\n%s\n" (JSPrettyPrint.string_of_exp true e_js)
 
 let _ = main () 
 

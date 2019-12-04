@@ -27,9 +27,7 @@ exception Empty_list
 let get_json_field field_name json =
   let result = match json with
     | `Assoc contents ->
-        Printf.printf "sera que eu vou morrer aqui? %s\n" field_name; 
         let ret = List.find (fun (str, _) -> (str = field_name)) contents in
-        Printf.printf "sobrevivi!\n"; 
         snd ret
     | _ -> print_string field_name; raise Empty_list
   in 
@@ -155,7 +153,6 @@ let rec json_to_exp json : exp =
       | "set"  -> (key, PropbodySet, value)
       | _ -> raise Parser_ObjectLit in 
 
-  Printf.printf "nao somos ignorantas: %s\n" json_type; 
   match json_type with
 
     | "Program" ->

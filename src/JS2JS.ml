@@ -1,5 +1,6 @@
 open JSParserSyntax
 open List
+open Constants
  
 let rec js2js (exp: exp) : exp =
   let f = js2js in
@@ -10,21 +11,21 @@ let rec js2js (exp: exp) : exp =
     (match e1s, e2s with
     | [], [] -> String ""
     (* This case is not possible *)
-    | [], (exp::exps) -> BinOp (js2js exp, Arith Plus, mk_exp (template_literal_to_concat [] exps) 0 [])
-    | (te::tes), [] -> BinOp (js2js te, Arith Plus, mk_exp (template_literal_to_concat tes []) 0 [])
-    | (te::tes), (exp::exps) -> BinOp (mk_exp (BinOp (js2js te, Arith Plus, js2js exp)) 0 [], Arith Plus, (mk_exp (template_literal_to_concat tes exps) 0 []))) in
+    | [], (exp::exps) -> BinOp (js2js exp, Arith Plus, mk_exp_s (template_literal_to_concat [] exps))
+    | (te::tes), [] -> BinOp (js2js te, Arith Plus, mk_exp_s (template_literal_to_concat tes []))
+    | (te::tes), (exp::exps) -> BinOp (mk_exp_s (BinOp (js2js te, Arith Plus, js2js exp)), Arith Plus, (mk_exp_s (template_literal_to_concat tes exps)))) in
 
   (* Transforms forOf into while *)
   let for_of_to_while e1 e2 e3 =
     (* 1. var iter = obj.getIterator() *)
     let iter_var_name = fresh_iter_var () in
     let iter_var = VarDec [(iter_var_name, None)] in
-    let get_iterator_call = Call (mk_exp_s (Access (e2, "getIterator")), []) in
+    let get_iterator_call = Call (mk_exp_s (Access (e2, get_iterator_fun_name)), []) in
     let iter_assignment = Assign(mk_exp_s iter_var, mk_exp_s get_iterator_call) in
     
     (* 2. while(iter.hasNext()) {e = iter.next(); e3 } *)
-    let iter_has_next = Call (mk_exp_s (Access (mk_exp_s (Var iter_var_name), "hasNext")), []) in
-    let iter_next = Call (mk_exp_s (Access (mk_exp_s (Var iter_var_name), "next")), []) in
+    let iter_has_next = Call (mk_exp_s (Access (mk_exp_s (Var iter_var_name), has_next_fun_name)), []) in
+    let iter_next = Call (mk_exp_s (Access (mk_exp_s (Var iter_var_name), next_fun_name)), []) in
     let e_equal_iter_next = Assign (e1, mk_exp_s iter_next) in
     let while_body = Block [mk_exp_s e_equal_iter_next; e3] in
     let while_has_next = While (mk_exp_s iter_has_next, mk_exp_s while_body) in
@@ -33,12 +34,14 @@ let rec js2js (exp: exp) : exp =
     Block [mk_exp_s iter_assignment; mk_exp_s while_has_next] in
 
   let strings_from_exps (exps: exp list) : string list =
+    (* This is useful to check whether a list of expressions if formed of strings *)
     fold_left (fun ac exp -> 
                 match exp.exp_stx with
                 | String s -> ac @ [s]
                 | _ -> []) [] exps in
 
   let string_from_propname (p : propname) : string =
+    (* For now, we are supporting lambda exps with objects containing strings as property names *)
     match p with
     | PropnameId x | PropnameString x -> x
     | _ -> raise (Failure "Propname not supported") in
