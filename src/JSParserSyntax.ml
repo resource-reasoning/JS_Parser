@@ -237,6 +237,6 @@ let fresh_sth (name : string) : (unit -> string) =
     v
   in f
 
-let fresh_var : (unit -> string) = fresh_sth "x_"
+let fresh_var : (unit -> string) = fresh_sth "x_09898_"
 
-let fresh_iter_var : (unit -> string) = fresh_sth "x_iter_"
+let fresh_iter_var : (unit -> string) = fresh_sth "x_iter_80980_"
