@@ -3,9 +3,10 @@ open List
  
 let rec js2js (exp: exp) : exp =
   let f = js2js in
+  let mk_exp_s exp = mk_exp exp 0 [] in
 
+  (* Iterates over Template elements and concat the result with the identifier, if applicable *)
   let rec template_literal_to_concat e1s e2s =
-    (* Iterate over Template elements and concat the result with the identifier, if applicable *)
     (match e1s, e2s with
     | [], [] -> String ""
     (* This case is not possible *)
@@ -13,10 +14,8 @@ let rec js2js (exp: exp) : exp =
     | (te::tes), [] -> BinOp (js2js te, Arith Plus, mk_exp (template_literal_to_concat tes []) 0 [])
     | (te::tes), (exp::exps) -> BinOp (mk_exp (BinOp (js2js te, Arith Plus, js2js exp)) 0 [], Arith Plus, (mk_exp (template_literal_to_concat tes exps) 0 []))) in
 
+  (* Transforms forOf into while *)
   let for_of_to_while e1 e2 e3 =
-    let mk_exp_s exp = mk_exp exp 0 [] in
-
-    (* Transforms forOf into while *)
     (* 1. var iter = obj.getIterator() *)
     let iter_var_name = fresh_iter_var () in
     let iter_var = VarDec [(iter_var_name, None)] in
@@ -32,6 +31,48 @@ let rec js2js (exp: exp) : exp =
 
     (* We simply return the first command followed by the second*)
     Block [mk_exp_s iter_assignment; mk_exp_s while_has_next] in
+
+  let strings_from_exps (exps: exp list) : string list =
+    fold_left (fun ac exp -> 
+                match exp.exp_stx with
+                | String s -> ac @ [s]
+                | _ -> []) [] exps in
+
+  let string_from_propname (p : propname) : string =
+    match p with
+    | PropnameId x | PropnameString x -> x
+    | _ -> raise (Failure "Propname not supported") in
+
+  (* Transforms lambda into fun decl *)
+  (* If params are variables, translation is straightforward *)
+  (* (x1, …, xn)  => { s } becomes function (x1, …, xn) { s } *)
+  (* Otherwise, we create a function which takes an object as parameter and tries to access the lambda parameters in this obj *)
+  (* ( {x1, …, xn }) => { s } becomes 
+    function (o) { 
+      var x1 = o.x1;
+      …
+      var xn = o.xn; 
+      s
+    } *)
+  let lambda_to_fdecl (b: bool) (id: string option) (params: exp list) (body: exp) : exp_syntax = 
+    match params with
+    | [] -> Function (b, id, [], body, true)
+    | ps when (strings_from_exps ps <> []) ->
+      let string_params = strings_from_exps ps in 
+      Function (b, id, string_params, body, true)
+    | [single_param] -> 
+      (match single_param.exp_stx with
+      | Obj props -> 
+        let obj_param = "o" in
+        let access_list = map 
+          (fun (p,_,_) -> 
+            let p_str = string_from_propname p in
+            (p_str, Some (mk_exp_s (Access (mk_exp_s (Var obj_param), p_str)))
+          )) props in
+        let fun_body = Block [mk_exp_s (VarDec access_list); body] in
+        Function (b, id, [obj_param], mk_exp_s fun_body, true)
+      | _ ->  raise (Failure "Lambda expression not supported yet."))
+    | _ -> raise (Failure "Lambda expression not supported yet.") in
 
   let fop e = match e with
     | None -> None
@@ -51,7 +92,7 @@ let rec js2js (exp: exp) : exp =
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
     | FunctionExp (b, n, xs, e, async) -> {exp with exp_stx = FunctionExp (b, n, xs, f e, async)}
     | Function (b, n, xs, e, async) -> {exp with exp_stx = Function (b, n, xs, f e, async)}
-    | ArrowExp (b, n, es, e) -> {exp with exp_stx = exp.exp_stx}
+    | ArrowExp (b, n, es, e) -> {exp with exp_stx = lambda_to_fdecl b n es e}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, map f e2s)}
     | Array es -> {exp with exp_stx = Array (List.map fop es)}
     | CAccess (e1, e2) -> {exp with exp_stx = CAccess (f e1, f e2)}
