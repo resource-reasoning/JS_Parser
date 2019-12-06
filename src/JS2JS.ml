@@ -17,7 +17,6 @@ let rec js2js (exp: exp) : exp =
 
   (* Transforms forOf into while *)
   let for_of_to_while e1 e2 e3 =
-    Printf.printf "FOROF TO WHILE";
     (* 1. var iter = obj.getIterator() *)
     let iter_var_name = fresh_iter_var () in
     let iter_var = VarDec [(iter_var_name, None)] in

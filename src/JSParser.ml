@@ -169,6 +169,7 @@ let rec json_to_exp json : exp =
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
       let fn_async = get_json_bool "async" json in 
+
       begin match fn_name with
         | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
         | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
@@ -179,9 +180,10 @@ let rec json_to_exp json : exp =
       let fn_params = map json_to_exp (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
       let fn_async = get_json_bool "async" json in 
+
       begin match fn_name with
-        | `Null -> mk_exp (ArrowExp (false,None,fn_params,fn_body,fn_async)) (get_json_offset json) annotations
-        | ident -> mk_exp (ArrowExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body,fn_async)) (get_json_offset json) annotations
+        | `Null -> mk_exp (ArrowExp (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
+        | ident -> mk_exp (ArrowExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
       end
 
     | "FunctionDeclaration" ->
@@ -189,6 +191,7 @@ let rec json_to_exp json : exp =
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
       let fn_async = get_json_bool "async" json in 
+      
       begin match fn_name with
         | `Null -> mk_exp (Function (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
         | ident -> mk_exp (Function (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
