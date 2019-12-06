@@ -275,10 +275,13 @@ let rec json_to_exp json : exp =
       let offset = get_json_offset json in
       let block_obj = get_json_field "block" json in
       let block = json_mk_block_exp (get_json_list "body" block_obj) (get_json_offset block_obj) annotations in
-      let handler = get_json_list "handlers" json in
-      let guardedHandlers = get_json_list "guardedHandlers" json in
+      (*Printf.printf "getting handler";*)
+      (*let handler = get_json_list "handlers" json in*)
+      let handler = get_json_field "handler" json in
+      (*let guardedHandlers = get_json_list "guardedHandlers" json in*)
       let finaliser = get_json_field "finalizer" json in
-      let catch, finally = json_get_catch_finally handler guardedHandlers finaliser offset in
+      let catch, finally = json_get_catch_finally handler finaliser offset in
+      (*let catch, finally = json_get_catch_finally handler guardedHandlers finaliser offset in*)
       mk_exp (Try (block, catch, finally)) offset annotations
 
     | "WhileStatement" ->
@@ -440,16 +443,17 @@ json_parse_catch handler offset =
   let body = json_to_exp (get_json_field "body" handler) in
   (name, body)
 and
-json_get_catch_finally handler guardedHandlers f_block offset =
-  begin if (guardedHandlers <> []) then raise (Parser_Unknown_Tag ("json_get_catch_finally", offset)) end;
+json_get_catch_finally handler f_block offset =
+  (*begin if (guardedHandlers <> []) then raise (Parser_Unknown_Tag ("json_get_catch_finally", offset)) end;*)
   let finaliser = begin match f_block with
     | `Null -> None
     | expr  -> Some (json_to_exp expr)
   end in
-  match handler with
+  Some (json_parse_catch handler offset), finaliser
+  (*match handler with
     | []      -> None, finaliser
     | h :: [] -> Some (json_parse_catch h offset), finaliser
-    | _ -> raise (Parser_Unknown_Tag ("json_get_catch_finally", offset))
+    | _ -> raise (Parser_Unknown_Tag ("json_get_catch_finally", offset))*)
 and
 json_mk_left_right_op json json_mk_op annotations =
   let child1 = json_to_exp (get_json_field "left" json) in
