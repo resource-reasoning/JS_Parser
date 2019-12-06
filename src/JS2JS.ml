@@ -2,6 +2,16 @@ open JSParserSyntax
 open List
 open Constants
  
+
+(*
+  *  C(await e) ::= Promise.await(e)
+  *)
+let await_expression_to_call (e : exp) : exp_syntax = 
+  let mk_exp_s exp = mk_exp exp 0 [] in
+  let x = CAccess(mk_exp_s (Var "Promise"), mk_exp_s (String "await"))  in  
+    Call (e, [ e ])
+
+  
 let rec js2js (exp: exp) : exp =
   let f = js2js in
   let mk_exp_s exp = mk_exp exp 0 [] in
@@ -105,7 +115,7 @@ let rec js2js (exp: exp) : exp =
     | With (e1, e2) -> {exp with exp_stx = With (f e1, f e2)}
     | Throw e -> {exp with exp_stx = Throw (f e)}
     | Return e -> {exp with exp_stx = Return (fop e)}
-    | Await e -> {exp with exp_stx = Await (f e)}
+    | Await e -> {exp with exp_stx = await_expression_to_call (f e) }
     | TemplateLiteral (e1s, e2s) -> {exp with exp_stx = (template_literal_to_concat e1s e2s)}
     | TemplateElement (s1, _, _) -> {exp with exp_stx = String s1}
     | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
