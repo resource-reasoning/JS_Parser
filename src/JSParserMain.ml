@@ -3,6 +3,7 @@ open JSPrettyPrint
 open JSParserSyntax
 open Unix
 open Yojson.Safe
+open JS2JS
 
 let verbose = ref false
 let from_stdin = ref false
