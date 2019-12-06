@@ -25,6 +25,7 @@ depends: [
   "ocamlfind"
   "yojson"
   "ounit" {test}
+  "batteries" {build}
 ]
 
 substs: [

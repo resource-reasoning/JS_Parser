@@ -29,7 +29,7 @@ let rec js2js (exp: exp) : exp =
     let get_iterator_fun_name = "getIterator" in
     let has_next_fun_name = "hasNext" in
     let next_fun_name = "next" in
-    
+
     (* 1. var iter = obj.getIterator() *)
     let iter_var_name = fresh_iter_var () in
     let iter_var = VarDec [(iter_var_name, None)] in
@@ -76,7 +76,7 @@ let rec js2js (exp: exp) : exp =
     | [] -> Function (b, id, [], f body, async)
     | ps when (strings_from_exps ps <> []) ->
       let string_params = strings_from_exps ps in 
-      Function (b, id, string_params, f body, async)
+      FunctionExp (b, id, string_params, f body, async)
     | [single_param] -> 
       (match single_param.exp_stx with
       | Obj props -> 
@@ -87,7 +87,7 @@ let rec js2js (exp: exp) : exp =
             (p_str, Some (mk_exp_s (Access (mk_exp_s (Var obj_param), p_str)))
           )) props in
         let fun_body = Block [mk_exp_s (VarDec access_list); f body] in
-        Function (b, id, [obj_param], f (mk_exp_s fun_body), async)
+        FunctionExp (b, id, [obj_param], f (mk_exp_s fun_body), async)
       | _ -> raise (Failure "Lambda expression not supported yet."))
     | _ -> raise (Failure "Lambda expression not supported yet.") in
 
