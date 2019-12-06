@@ -1,6 +1,5 @@
 open JSParserSyntax
 open List
-open Constants
  
 
 (*
@@ -27,6 +26,10 @@ let rec js2js (exp: exp) : exp =
 
   (* Transforms forOf into while *)
   let for_of_to_while e1 e2 e3 =
+    let get_iterator_fun_name = "getIterator" in
+    let has_next_fun_name = "hasNext" in
+    let next_fun_name = "next" in
+    
     (* 1. var iter = obj.getIterator() *)
     let iter_var_name = fresh_iter_var () in
     let iter_var = VarDec [(iter_var_name, None)] in
