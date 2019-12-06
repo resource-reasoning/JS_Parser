@@ -244,7 +244,7 @@ let fresh_iter_var : (unit -> string) = fresh_sth "x_iter_80980_"
 let flat_map f l = List.flatten (List.map f l)
 
 
-let rec js_fold 
+(*let rec js_fold 
     (f_ac    : exp -> 'a -> 'a -> 'a list -> 'a) 
     (f_state : exp -> 'a -> 'a) 
     (state   : 'a) 
@@ -341,7 +341,7 @@ let rec js_map f_m expr =
     | RegExp _ | With (_, _)      -> raise (Failure "JS Construct Not Supported") in 
 
   let new_e = { expr with exp_stx = new_e_stx } in 
-  f_m new_e  
+  f_m new_e  *)
 
 
 

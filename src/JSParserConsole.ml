@@ -21,7 +21,7 @@ let arguments () =
     usage_msg
 
 
-let count_functions (e : JSParserSyntax.exp) : int = 
+(*let count_functions (e : JSParserSyntax.exp) : int = 
   let f_state (expr : JSParserSyntax.exp) (count : int) : int = 
     match expr.exp_stx with 
       | Function _
@@ -47,7 +47,7 @@ let add_bananas (e : JSParserSyntax.exp) : JSParserSyntax.exp =
           { e with exp_stx = FunctionExp (str, name, args, block, async)} 
 
       | _ -> e in 
-  JSParserSyntax.js_map f_m e 
+  JSParserSyntax.js_map f_m e *)
 
 let main () : unit = 
   arguments ();
@@ -55,9 +55,7 @@ let main () : unit =
   let e_str = load_file !file in 
   (*Printf.printf "The input JS prog is the following:\n%s" e_str; *)
   let e_js =  JSParserMain.exp_from_string e_str in
-  let count = count_functions e_js in 
-  let e_js' = add_bananas e_js in 
-  Printf.printf "The PARSED JS prog is the following has %d functions:\n%s\n" count (JSPrettyPrint.string_of_exp true e_js')
+  Printf.printf "The PARSED JS prog is the following:\n%s\n" (JSPrettyPrint.string_of_exp true e_js)
 
 let _ = main () 
 
