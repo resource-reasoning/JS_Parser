@@ -1,7 +1,6 @@
 open JSParserSyntax
 open List
 open Yojson.Safe
-open JS2JS
 
 let doctrine_path = ref ""
 let doctrine_file = ref "doctrine.json"
