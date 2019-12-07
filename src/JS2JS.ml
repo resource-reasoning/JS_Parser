@@ -73,7 +73,7 @@ let rec js2js (exp: exp) : exp =
     } *)
   let lambda_to_fdecl (b: bool) (id: string option) (params: exp list) (body: exp) (async: bool): exp_syntax = 
     match params with
-    | [] -> Function (b, id, [], f body, async)
+    | [] -> FunctionExp (b, id, [], f body, async)
     | ps when (strings_from_exps ps <> []) ->
       let string_params = strings_from_exps ps in 
       FunctionExp (b, id, string_params, f body, async)
