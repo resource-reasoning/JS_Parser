@@ -1,15 +1,48 @@
 open JSParserSyntax
 open List
+open ParserConstants
  
 
-(*
-  *  C(await e) ::= Promise.await(e)
-  *)
+(*  C(await e) ::= Promise.await(e) *)
 let await_expression_to_call (e : exp) : exp_syntax = 
   let mk_exp_s exp = mk_exp exp 0 [] in
-  let x = CAccess(mk_exp_s (Var "Promise"), mk_exp_s (String "await"))  in  
-    Call (e, [ e ])
+  let await_call = CAccess(mk_exp_s (Var promise_constructor), mk_exp_s (String await_fun))  in  
+    Call (mk_exp_s await_call, [ e ])
 
+(* For now, we only support async functions of the form:
+   async fun(...){ ... return exp } *)
+let async_to_sync (e: exp) : exp =
+  (* The expression e is actually the body of the async function *)
+  let mk_exp_s exp = mk_exp exp 0 [] in
+
+  let promise_wrapper (e: exp) (exps: exp list) (resolve: bool) : exp =
+    let promise_fun = if resolve then resolve_fun else reject_fun in
+    let promise_access = Access (mk_exp_s (Var promise_constructor), promise_fun) in
+    let promise_fulfill = Call (mk_exp_s promise_access, [e]) in
+    let new_ret         = mk_exp_s (Return (Some (mk_exp_s promise_fulfill))) in
+    mk_exp_s (Block (List.rev (new_ret :: exps))) in
+
+  let undefined_exp = mk_exp_s (Var undefined_val) in
+  (match e.exp_stx with
+  (* If the body is not a block, we don't do anything *)
+  | Block exps ->
+    (* We need to change the last expression of the block, which should be of the form return exp *)
+    (let rev_exps = List.rev exps in
+    match rev_exps with
+    | [] -> promise_wrapper undefined_exp [] true
+    | (e_ret::es) -> 
+      (match e_ret.exp_stx with
+      (* return e ===> return Promise.resolve(e) *)
+      | Return e_ret -> 
+        (match e_ret with
+        | Some e -> promise_wrapper e es true
+        (* TODO: perhaps throw error in the cases below. Check the real behaviour!*) 
+        | None -> promise_wrapper undefined_exp es true)
+      (* throw e ===> return Promise.reject(e) *)
+      | Throw e_err -> promise_wrapper e_err es false
+      | _ -> promise_wrapper undefined_exp es true
+      ))
+  | _ -> e)
   
 let rec js2js (exp: exp) : exp =
   let f = js2js in
@@ -26,10 +59,6 @@ let rec js2js (exp: exp) : exp =
 
   (* Transforms forOf into while *)
   let for_of_to_while e1 e2 e3 =
-    let get_iterator_fun_name = "getIterator" in
-    let has_next_fun_name = "hasNext" in
-    let next_fun_name = "next" in
-
     (* 1. var iter = obj.getIterator() *)
     let iter_var_name = fresh_iter_var () in
     let iter_var = VarDec [(iter_var_name, None)] in
@@ -109,7 +138,9 @@ let rec js2js (exp: exp) : exp =
     | VarDec xs -> {exp with exp_stx = VarDec (List.map (fun (name, e1) -> (name, fop e1)) xs)}
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
     | FunctionExp (b, n, xs, e, async) -> {exp with exp_stx = FunctionExp (b, n, xs, f e, async)}
-    | Function (b, n, xs, e, async) -> {exp with exp_stx = Function (b, n, xs, f e, async)}
+    | Function (b, n, xs, e, async) -> 
+        let body = if async then async_to_sync (f e) else f e in
+        {exp with exp_stx = Function (b, n, xs, body, false)}
     | ArrowExp (b, n, es, e, async) -> {exp with exp_stx = lambda_to_fdecl b n es e async}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, map f e2s)}
     | Array es -> {exp with exp_stx = Array (List.map fop es)}
@@ -133,6 +164,5 @@ let rec js2js (exp: exp) : exp =
         ) e2s)}
     | ConditionalOp (e1, e2, e3) -> {exp with exp_stx = ConditionalOp (f e1, f e2, f e3)}
     | Block es -> {exp with exp_stx = Block (map f es)}
-    | Script (b, es) -> {exp with exp_stx = Script (b, map f es)}
-    | Await e -> {exp with exp_stx = Await (f e)}           
+    | Script (b, es) -> {exp with exp_stx = Script (b, map f es)}       
     | _ -> exp
