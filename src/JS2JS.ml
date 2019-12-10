@@ -1,6 +1,6 @@
 open JSParserSyntax
 open List
-open ParserConstants
+open JSParserConstants
 
 
 let strings_from_exps (exps: exp list) : string list =

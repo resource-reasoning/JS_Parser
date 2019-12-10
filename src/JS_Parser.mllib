@@ -3,3 +3,4 @@ JSParserMain
 JSParserSyntax
 JSPrettyPrint
 JS2JS
+JSParserConstants

@@ -158,6 +158,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | RegExp (s1, s2) -> Printf.sprintf "/%s/%s" s1 s2
     | ForIn (e1, e2, e3) -> Printf.sprintf "for (%s in %s) %s" (f e1) (f e2) (f e3)
     | For (e1, e2, e3, e4) -> Printf.sprintf "for (%s ; %s ; %s) %s" (fop e1) (fop e2) (fop e3) (f e4)
+    | ForOf (e1, e2, e3) -> Printf.sprintf "for (%s in %s) %s" (f e1) (f e2) (f e3)
     | Break None -> "break"
     | Break (Some l) -> Printf.sprintf "break %s" l
     | Continue None -> "continue"
