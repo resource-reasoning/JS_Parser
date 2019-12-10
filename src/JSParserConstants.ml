@@ -1,5 +1,5 @@
 let promise_constructor   = "Promise"
-let await_fun             = "js_await"
+let await_fun             = "await"
 let get_iterator_fun_name = "getIterator" 
 let has_next_fun_name     = "hasNext" 
 let next_fun_name         = "next" 

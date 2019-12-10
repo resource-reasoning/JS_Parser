@@ -19,6 +19,7 @@ let string_from_propname (p : propname) : string =
 
 (*  C(await e) ::= Promise.await(e) *)
 let await_expression_to_call (e : exp) : exp_syntax = 
+  (* We assume that the expression e is a promise *)
   let mk_exp_s exp = mk_exp exp 0 [] in
   let await_call = CAccess(mk_exp_s (Var promise_constructor), mk_exp_s (String await_fun))  in  
     Call (mk_exp_s await_call, [ e ])
