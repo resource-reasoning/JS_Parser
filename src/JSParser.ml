@@ -416,7 +416,7 @@ let rec json_to_exp json : exp =
       begin match (get_json_field "argument" json) with
         | `Null -> raise (Failure "await without expression not supported")
         | expr  -> mk_exp (Await (json_to_exp expr)) offset annotations
-      end
+    end
 
     | _ -> Printf.printf "Ooops!\n"; raise (Parser_Unknown_Tag (json_type, (get_json_offset json)))
 and
@@ -444,16 +444,14 @@ json_parse_catch handler offset =
   (name, body)
 and
 json_get_catch_finally handler f_block offset =
-  (*begin if (guardedHandlers <> []) then raise (Parser_Unknown_Tag ("json_get_catch_finally", offset)) end;*)
   let finaliser = begin match f_block with
     | `Null -> None
     | expr  -> Some (json_to_exp expr)
   end in
-  Some (json_parse_catch handler offset), finaliser
-  (*match handler with
-    | []      -> None, finaliser
-    | h :: [] -> Some (json_parse_catch h offset), finaliser
-    | _ -> raise (Parser_Unknown_Tag ("json_get_catch_finally", offset))*)
+  match handler with
+    | `Null      -> None, finaliser
+    | h -> Some (json_parse_catch h offset), finaliser
+    | _ -> raise (Parser_Unknown_Tag ("json_get_catch_finally", offset))
 and
 json_mk_left_right_op json json_mk_op annotations =
   let child1 = json_to_exp (get_json_field "left" json) in
