@@ -101,14 +101,12 @@ let get_esprima_annotations json =
   let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
 
   let comments    : string                        = String.concat "\n" (List.map (fun x -> get_json_string "value" x) leadingComments) in 
-  Printf.printf "Leading comments unprocessed:\n\t%s" comments;
   let comments    : string list                   = List.map deal_with_whitespace (List.map String.trim (String.split_on_char '@' comments)) in
-  Printf.printf "Comments split on @:\n\t%s" (String.concat "\n\t" comments);
   let comments    : string list                   = List.filter (fun x -> x <> "") comments in 
   let spaces      : int option list               = List.map (fun x -> try Some (String.index x ' ') with _ -> None) comments in 
   let annot_pairs : (string * string) option list = List.map2 (fun c i -> 
       (match i with 
-      | None -> if c = "JSIL" then Some (c, "") else None
+      | None -> None
       | Some i -> Some (String.trim (String.sub c 0 i), String.trim (String.sub c i (String.length c - i))))
     ) comments spaces in 
   let annot_pairs : (string * string) list = List.map (fun x -> match x with | Some x -> x) (List.filter (fun x -> x <> None) annot_pairs) in 
