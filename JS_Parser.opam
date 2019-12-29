@@ -2,6 +2,7 @@ opam-version: "1.2"
 name: "JS_Parser"
 version: "dev"
 maintainer: "Thomas Wood <thomas.wood09@imperial.ac.uk>"
+synopsis: "JavaScript Parser for JaVerT"
 authors: [
   "Daiva Naudziuniene <d.naudziuniene11@imperial.ac.uk>"
   "Conrad Watt <conrad.watt12@imperial.ac.uk>"

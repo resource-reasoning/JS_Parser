@@ -314,7 +314,7 @@ let rec json_to_exp json : exp =
       let var = json_to_exp (get_json_field "left" json) in
       let obj = json_to_exp (get_json_field "right" json) in
       let block = json_to_exp (get_json_field "body" json) in
-      mk_exp (ForIn (var, obj, block)) offset annotations
+      mk_exp (ForOf (var, obj, block)) offset annotations
 
     | "DebuggerStatement" ->
       mk_exp Debugger (get_json_offset json) annotations
