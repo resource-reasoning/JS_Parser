@@ -1,0 +1,12 @@
+var assert = require("../harness/assert").assert;
+var Promise = require("../../../js/Promises/Promise").Promise;
+
+var bound = (((function () 
+{  }
+).bind)());
+((Object).defineProperty)(bound,"prototype",{get : function () 
+{ throw new (Test262Error)() }
+});
+((assert).throws)(TypeError,function () 
+{ ((Reflect).construct)(Promise,[],bound) }
+)
