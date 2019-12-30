@@ -29,7 +29,7 @@ let main () : unit =
   (*Printf.printf "The input JS prog is the following:\n%s" e_str; *)
   let e_js =  JSParserMain.exp_from_string e_str in
   if(!output_file <> "") then (
-    let out = open_out_gen [Open_wronly; Open_append; Open_creat; Open_text] 0o666 !output_file in
+    let out = open_out !output_file in
     output_string out (JSPrettyPrint.string_of_exp true e_js);  
     close_out out;              
   );

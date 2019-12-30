@@ -109,7 +109,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Some str -> str in
   match expstx with
     | Num n -> string_of_float n
-    | String x -> Printf.sprintf "\"%s\"" x
+    | String x -> Printf.sprintf "'%s'" x
     | Label (x, e) -> Printf.sprintf "%s: %s" x (f e)
     | Null -> "null"
     | Bool b -> string_of_bool b

@@ -139,13 +139,6 @@ function $DONE(error) {
   }
 }
 
-/**
- * @param {object} obj
- * @param {string|symbol} name
- * @param {PropertyDescriptor|undefined} desc
- * @param {object} [options]
- * @param {boolean} [options.restore]
- */
 function verifyProperty(obj, name, desc, options) {
   assert(
     arguments.length > 2,
