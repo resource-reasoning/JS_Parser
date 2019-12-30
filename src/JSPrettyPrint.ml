@@ -118,7 +118,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | If (e1, e2, Some e3) -> Printf.sprintf "if (%s) {\n%s\n} else {\n%s\n}" (f e1) (f e2) (f e3)
     | While (e1, e2) -> Printf.sprintf "while (%s) \n%s\n" (f e1) (f e2)
     | DoWhile (e1, e2) -> Printf.sprintf "do \n%s\n while (%s) \n" (f e1) (f e2)
-    | VarDec xs -> Printf.sprintf "var %s" (String.concat ", " (map (string_of_var_in_dec with_annot) xs))
+    | VarDec xs -> Printf.sprintf "\nvar %s" (String.concat ", " (map (string_of_var_in_dec with_annot) xs))
     | This -> "this"
     | Delete e -> Printf.sprintf "delete %s" (f e)
     | Comma (e1, e2) -> Printf.sprintf "%s , %s" (f e1) (f e2)
@@ -138,7 +138,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | ArrowExp (_, n, es, e, _) -> Printf.sprintf "(%s) => \n%s\n" (String.concat ", " (map f es)) (f e)
     | New (e1, e2s) -> Printf.sprintf "new (%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Obj l -> Printf.sprintf "{%s}"
-      (String.concat "; " (map (fun (x, p, e) ->
+      (String.concat ", " (map (fun (x, p, e) ->
         match p with
           | PropbodyVal -> Printf.sprintf "%s : %s" (string_of_propname x) (f e)
           | PropbodyGet -> Printf.sprintf "get %s %s" (string_of_propname x) (f e)
