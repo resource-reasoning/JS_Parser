@@ -10,10 +10,13 @@ def run_parser(folder):
     for dirpath, dirnames, filenames in walk(folder,topdown=True):
         files = fnmatch.filter(filenames, '*.js')
         file_number = len(files)
-        flen = len(folder)
-        dlen = len(dirpath)
-        start = flen - dlen
-        prefix = dirpath[start:]
+        if folder == dirpath:
+            prefix = "_base"
+        else:
+            flen = len(folder)
+            dlen = len(dirpath)
+            start = flen - dlen
+            prefix = dirpath[start:]
         prefix = prefix.replace("/", "_")
         print (prefix)
         print ("RUNNING PARSER FOR %d FILES") % (file_number)
