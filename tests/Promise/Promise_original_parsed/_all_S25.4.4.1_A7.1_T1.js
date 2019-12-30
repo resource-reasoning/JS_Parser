@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,21 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var p1 = (((Promise).resolve)(3.));
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var pAll = (((Promise).all)([p1]));
+((((pAll).then)(function (result) 
+{ if (! (pAll) instanceof (Promise)) {
+{ ($ERROR)(('Expected Promise.all() to be promise, actually ') + (pAll)) }
+};
+if (! (result) instanceof (Array)) {
+{ ($ERROR)(('Expected Promise.all() to be promise for an Array, actually ') + (result)) }
+};
+if (((result).length) !== (1.)) {
+{ ($ERROR)(('Expected Promise.all([p1]) to be a promise for one-element Array, actually ') + (result)) }
+};
+if (((result)[0.]) !== (3.)) {
+{ ($ERROR)(('Expected result[0] to be 3, actually ') + ((result)[0.])) }
+} }
+)).then)($DONE,$DONE)

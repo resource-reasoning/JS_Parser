@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,26 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var thenable = (((Promise).resolve)());
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var returnValue = (null);
+
+var reject;
+
+var p = (new (Promise)(function (_,_reject) 
+{ reject = _reject }
+));
+((((p).then)(function () 
+{ ($DONE)('The promise should not be fulfilled.') }
+)).then)(function () 
+{ ($DONE)('The promise should not be fulfilled.') }
+,function (x) 
+{ if ((x) !== (thenable)) {
+{ ($DONE)('The promise should be rejected with the resolution value.');
+return }
+};
+($DONE)() }
+);
+returnValue = (reject)(thenable);
+((assert).sameValue)(returnValue,undefined,'"reject" function return value')

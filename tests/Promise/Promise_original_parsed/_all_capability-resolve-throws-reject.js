@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,23 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var thrown = (new (Test262Error)());
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var P = (function (executor) 
+{ return new (Promise)(function (_,reject) 
+{ (executor)(function () 
+{ throw thrown }
+,reject) }
+) }
+);
+(P).resolve = (Promise).resolve;
+(((((Promise).all).call)(P,[])).then)(function () 
+{ ($DONE)('Promise incorrectly fulfilled.') }
+,function (reason) 
+{ if ((reason) !== (thrown)) {
+{ ($DONE)('Promise rejected with incorrect "reason."');
+return }
+};
+($DONE)() }
+)

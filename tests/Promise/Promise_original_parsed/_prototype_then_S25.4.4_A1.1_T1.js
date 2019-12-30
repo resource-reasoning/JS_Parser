@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,27 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var sequence = ([]);
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var p = (new (Promise)(function (resolve,reject) 
+{ ((sequence).push)(1.);
+(resolve)('') }
+));
+((((((p).then)(function () 
+{ ((sequence).push)(3.) }
+)).then)(function () 
+{ ((sequence).push)(5.) }
+)).then)(function () 
+{ ((sequence).push)(7.) }
+);
+((((((((((p).then)(function () 
+{ ((sequence).push)(4.) }
+)).then)(function () 
+{ ((sequence).push)(6.) }
+)).then)(function () 
+{ ((sequence).push)(8.) }
+)).then)(function () 
+{ (checkSequence)(sequence,'Sequence should be as expected') }
+)).then)($DONE,$DONE);
+((sequence).push)(2.)

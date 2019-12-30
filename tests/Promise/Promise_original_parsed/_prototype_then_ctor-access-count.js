@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,22 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var callCount = (0.);
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var prms = (new (Promise)(function (resolve) 
+{ (resolve)() }
+));
+((Object).defineProperty)(prms,'constructor',{get : function () 
+{ callCount += 1.;
+return Promise }
+});
+((prms).then)(function () 
+{ if ((callCount) !== (1.)) {
+{ ($DONE)(('Expected constructor access count: 1. Actual: ') + (callCount));
+return }
+};
+($DONE)() }
+,function () 
+{ ($DONE)('The promise should not be rejected.') }
+)

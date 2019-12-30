@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,27 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var expectedThisValue = ((function () 
+{ return this }
+)());
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var callCount = (0.);
+
+var object = ({});
+
+var thisValue, args;
+(((Promise).resolve).call)(function (executor) 
+{ function resolve(v) 
+{ callCount += 1.;
+thisValue = this;
+args = arguments }
+;
+(executor)(resolve,$ERROR);
+((assert).sameValue)(callCount,0.,'callCount before returning from constructor') }
+,object);
+((assert).sameValue)(callCount,1.,'callCount after call to resolve()');
+((assert).sameValue)(typeof args,'object');
+((assert).sameValue)((args).length,1.);
+((assert).sameValue)((args)[0.],object);
+((assert).sameValue)(thisValue,expectedThisValue)

@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,31 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
+function resolveFunction() 
+{  }
+;
+function Constructor(executor) 
+{ (executor)(resolveFunction,$ERROR) }
+;
+(Constructor).resolve = function (v) 
+{ return v }
+;
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var callCount1 = (0.), callCount2 = (0.);
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var p1OnFulfilled;
+
+var p1 = ({then : function (onFulfilled,onRejected) 
+{ callCount1 += 1.;
+p1OnFulfilled = onFulfilled;
+((assert).notSameValue)(onFulfilled,resolveFunction,'p1.then') }
+});
+
+var p2 = ({then : function (onFulfilled,onRejected) 
+{ callCount2 += 1.;
+((assert).notSameValue)(onFulfilled,resolveFunction,'p2.then');
+((assert).notSameValue)(onFulfilled,p1OnFulfilled,'p1.onFulfilled != p2.onFulfilled') }
+});
+(((Promise).allSettled).call)(Constructor,[p1, p2]);
+((assert).sameValue)(callCount1,1.,'p1.then call count');
+((assert).sameValue)(callCount2,1.,'p2.then call count')

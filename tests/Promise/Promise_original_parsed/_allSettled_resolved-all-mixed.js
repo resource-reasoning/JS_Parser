@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,34 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var obj1 = ({});
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var obj2 = ({});
+
+var r1 = (new (Promise)(function (_,reject) 
+{ (reject)(1.) }
+));
+
+var f1 = (new (Promise)(function (resolve) 
+{ (resolve)(2.) }
+));
+
+var f2 = (new (Promise)(function (resolve) 
+{ (resolve)('tc39') }
+));
+
+var r2 = (new (Promise)(function (_,reject) 
+{ (reject)('test262') }
+));
+
+var r3 = (new (Promise)(function (_,reject) 
+{ (reject)(obj1) }
+));
+
+var f3 = (new (Promise)(function (resolve) 
+{ (resolve)(obj2) }
+));
+((((((Promise).allSettled)([r1, f1, f2, r2, r3, f3])).then)(function (settled) 
+{ (checkSettledPromises)(settled,[{status : 'rejected', reason : 1.}, {status : 'fulfilled', value : 2.}, {status : 'fulfilled', value : 'tc39'}, {status : 'rejected', reason : 'test262'}, {status : 'rejected', reason : obj1}, {status : 'fulfilled', value : obj2}],'settled') }
+)).then)($DONE,$DONE)

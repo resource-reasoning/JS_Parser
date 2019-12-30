@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,42 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
+((assert).sameValue)(typeof ((Promise).prototype).finally,'function');
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var symbol = ((Symbol)());
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var thrower = (function () 
+{ throw new (Test262Error)('this should never happen') }
+);
+
+var p = (new (Promise)(function () 
+{  }
+));
+(p).then = undefined;
+((assert).throws)(TypeError,function () 
+{ ((((Promise).prototype).finally).call)(p,thrower) }
+,'undefined');
+(p).then = null;
+((assert).throws)(TypeError,function () 
+{ ((((Promise).prototype).finally).call)(p,thrower) }
+,'null');
+(p).then = 1.;
+((assert).throws)(TypeError,function () 
+{ ((((Promise).prototype).finally).call)(p,thrower) }
+,'number');
+(p).then = '';
+((assert).throws)(TypeError,function () 
+{ ((((Promise).prototype).finally).call)(p,thrower) }
+,'string');
+(p).then = true;
+((assert).throws)(TypeError,function () 
+{ ((((Promise).prototype).finally).call)(p,thrower) }
+,'boolean');
+(p).then = symbol;
+((assert).throws)(TypeError,function () 
+{ ((((Promise).prototype).finally).call)(p,thrower) }
+,'symbol');
+(p).then = {};
+((assert).throws)(TypeError,function () 
+{ ((((Promise).prototype).finally).call)(p,thrower) }
+,'ordinary object')

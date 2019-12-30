@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,24 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var sequence = ([]);
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var original = ({});
+
+var replacement = ({});
+
+var p = (((Promise).reject)(original));
+((((((((((p).finally)(function () 
+{ ((sequence).push)(1.);
+((assert).sameValue)((arguments).length,0.,'onFinally receives zero args');
+return replacement }
+)).then)(function () 
+{ ($ERROR)('promise is rejected pre-finally; onFulfill should not be called') }
+)).catch)(function (reason) 
+{ ((sequence).push)(2.);
+((assert).sameValue)(reason,original,'onFinally can not override the rejection value by returning') }
+)).then)(function () 
+{ (checkSequence)(sequence,'All expected callbacks called in correct order');
+($DONE)() }
+)).catch)($ERROR)

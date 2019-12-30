@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,31 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var booleanCount = (0.);
+((Boolean).prototype).then = function () 
+{ booleanCount += 1. }
+;
+((((Promise).prototype).catch).call)(true);
+((assert).sameValue)(booleanCount,1.,'boolean');
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var numberCount = (0.);
+((Number).prototype).then = function () 
+{ numberCount += 1. }
+;
+((((Promise).prototype).catch).call)(34.);
+((assert).sameValue)(numberCount,1.,'number');
+
+var stringCount = (0.);
+((String).prototype).then = function () 
+{ stringCount += 1. }
+;
+((((Promise).prototype).catch).call)('');
+((assert).sameValue)(stringCount,1.,'string');
+
+var symbolCount = (0.);
+((Symbol).prototype).then = function () 
+{ symbolCount += 1. }
+;
+((((Promise).prototype).catch).call)((Symbol)());
+((assert).sameValue)(symbolCount,1.,'symbol')

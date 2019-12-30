@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,26 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var iterStepThrows = ({});
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var poisonedDone = ({});
+
+var returnCount = (0.);
+
+var error = (new (Test262Error)());
+((Object).defineProperty)(poisonedDone,'done',{get : function () 
+{ throw error }
+});
+((Object).defineProperty)(poisonedDone,'value',{get : function () 
+{ ($ERROR)('The `value` property should not be accessed.') }
+});
+(iterStepThrows)[(Symbol).iterator] = function () 
+{ return {next : function () 
+{ return poisonedDone }
+, return : function () 
+{ returnCount += 1. }
+} }
+;
+((Promise).race)(iterStepThrows);
+((assert).sameValue)(returnCount,0.)

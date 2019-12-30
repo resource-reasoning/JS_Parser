@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,38 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var v1 = ({});
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var v2 = ({});
+
+var v3 = ({});
+((((Promise).all)([v1, v2, v3])).then)(function (values) 
+{ if (! values) {
+{ ($DONE)('The promise should be resolved with a value.');
+return }
+};
+if (((values).constructor) !== (Array)) {
+{ ($DONE)('The promise should be resolved with an Array instance.');
+return }
+};
+if (((values).length) !== (3.)) {
+{ ($DONE)('The promise should be resolved with an array of proper length.');
+return }
+};
+if (((values)[0.]) !== (v1)) {
+{ ($DONE)('The promise should be resolved with the correct element values (#1)');
+return }
+};
+if (((values)[1.]) !== (v2)) {
+{ ($DONE)('The promise should be resolved with the correct element values (#2)');
+return }
+};
+if (((values)[2.]) !== (v3)) {
+{ ($DONE)('The promise should be resolved with the correct element values (#3)');
+return }
+};
+($DONE)() }
+,function () 
+{ ($DONE)('The promise should not be rejected.') }
+)

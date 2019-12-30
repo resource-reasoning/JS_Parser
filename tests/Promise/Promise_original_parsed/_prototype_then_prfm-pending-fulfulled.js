@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,21 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var value = ({});
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var resolve;
+
+var p = (new (Promise)(function (_resolve) 
+{ resolve = _resolve }
+));
+((p).then)(function (x) 
+{ if ((x) !== (value)) {
+{ ($DONE)('The `onFulfilled` handler should be invoked with the promise result.');
+return }
+};
+($DONE)() }
+,function () 
+{ ($DONE)('The `onRejected` handler should not be invoked.') }
+);
+(resolve)(value)

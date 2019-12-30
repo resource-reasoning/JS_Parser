@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,23 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var expectedThis = (undefined), obj = ({});
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var p = (((((Promise).reject)(obj)).then)(function () 
+{ ($DONE)('Unexpected fulfillment; expected rejection.') }
+,function (arg) 
+{ if ((this) !== (expectedThis)) {
+{ ($DONE)((''this' must be undefined, got ') + (this));
+return }
+};
+if ((arg) !== (obj)) {
+{ ($DONE)(('Expected promise to be rejected with obj, actually ') + (arg));
+return }
+};
+if (((arguments).length) !== (1.)) {
+{ ($DONE)('Expected handler function to be called with exactly 1 argument.');
+return }
+};
+($DONE)() }
+))

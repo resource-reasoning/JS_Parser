@@ -32,8 +32,8 @@ let main () : unit =
     let out = open_out !output_file in
     output_string out (JSPrettyPrint.string_of_exp true e_js);  
     close_out out;              
-  );
-  Printf.printf "The PARSED JS prog is the following:\n%s\n" (JSPrettyPrint.string_of_exp true e_js)
+  )
+  (* Printf.printf "The PARSED JS prog is the following:\n%s\n" (JSPrettyPrint.string_of_exp true e_js) *)
 
 let _ = main () 
 

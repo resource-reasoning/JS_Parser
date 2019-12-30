@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,30 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var promise = (new (Promise)(function (resolve) 
+{ (resolve)() }
+));
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var fulfilledCallCount = (0.);
+
+var rejectedCallCount = (0.);
+((promise).then)(function () 
+{ fulfilledCallCount += 1.;
+throw new (Error)() }
+,function () 
+{ rejectedCallCount += 1. }
+);
+((promise).then)(function () 
+{ if ((fulfilledCallCount) !== (1.)) {
+{ ($DONE)('Expected "onFulfilled" handler to be invoked exactly once.');
+return }
+};
+if ((rejectedCallCount) !== (0.)) {
+{ ($DONE)('Expected "onRejected" handler to not be invoked.');
+return }
+};
+($DONE)() }
+,function () 
+{ ($DONE)('This promise should not be rejected.') }
+)

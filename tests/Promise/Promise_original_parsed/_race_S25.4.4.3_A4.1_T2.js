@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,22 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
-
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var iterThrows = ({});
+((Object).defineProperty)(iterThrows,(Symbol).iterator,{get : function () 
+{ return {next : function () 
+{ 
+var v = ({});
+((Object).defineProperty)(v,'value',{get : function () 
+{ throw new (Error)('abrupt completion') }
+});
+return v }
+} }
+});
+((((((Promise).race)(iterThrows)).then)(function () 
+{ ($ERROR)('Promise unexpectedly fulfilled: Promise.race(iterThrows) should throw TypeError') }
+,function (err) 
+{ if (! (err) instanceof (TypeError)) {
+{ ($ERROR)(('Expected TypeError, got ') + (err)) }
+} }
+)).then)($DONE,$DONE)

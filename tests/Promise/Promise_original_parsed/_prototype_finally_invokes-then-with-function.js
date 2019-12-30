@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,49 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var target = (new (Promise)(function () 
+{  }
+));
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var returnValue = ({});
+
+var callCount = (0.);
+
+var thisValue = (null);
+
+var argCount = (null);
+
+var firstArg = (null);
+
+var secondArg = (null);
+(target).then = function (a,b) 
+{ callCount += 1.;
+thisValue = this;
+argCount = (arguments).length;
+firstArg = a;
+secondArg = b;
+return returnValue }
+;
+
+var originalFinallyHandler = (function () 
+{  }
+);
+
+var anonName = (((Object)(function () 
+{  }
+)).name);
+
+var result = (((((Promise).prototype).finally).call)(target,originalFinallyHandler,2.,3.));
+((assert).sameValue)(callCount,1.,'Invokes `then` method exactly once');
+((assert).sameValue)(thisValue,target,'Invokes `then` method with the instance as the `this` value');
+((assert).sameValue)(argCount,2.,'Invokes `then` method with exactly two single arguments');
+((assert).sameValue)(typeof firstArg,'function','Invokes `then` method with a function as the first argument');
+((assert).notSameValue)(firstArg,originalFinallyHandler,'Invokes `then` method with a different fulfillment handler');
+((assert).sameValue)((firstArg).length,1.,'fulfillment handler has a length of 1');
+((assert).sameValue)((firstArg).name,anonName,'fulfillment handler is anonymous');
+((assert).sameValue)(typeof secondArg,'function','Invokes `then` method with a function as the second argument');
+((assert).notSameValue)(secondArg,originalFinallyHandler,'Invokes `then` method with a different rejection handler');
+((assert).sameValue)((secondArg).length,1.,'rejection handler has a length of 1');
+((assert).sameValue)((secondArg).name,anonName,'rejection handler is anonymous');
+((assert).sameValue)(result,returnValue,'Returns the result of the invocation of `then`')

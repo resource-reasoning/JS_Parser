@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,28 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var callCount = (0.);
+function Constructor(executor) 
+{ function resolve(values) 
+{ callCount += 1.;
+(checkSettledPromises)(values,[{status : 'fulfilled', value : 'expectedValue-p1'}, {status : 'fulfilled', value : 'expectedValue-p2'}],'values') }
+;
+(executor)(resolve,$ERROR) }
+;
+(Constructor).resolve = function (v) 
+{ return v }
+;
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var p1 = ({then : function (onFulfilled,onRejected) 
+{ (onFulfilled)('expectedValue-p1');
+(onFulfilled)('unexpectedValue-p1') }
+});
+
+var p2 = ({then : function (onFulfilled,onRejected) 
+{ (onFulfilled)('expectedValue-p2');
+(onFulfilled)('unexpectedValue-p2') }
+});
+((assert).sameValue)(callCount,0.,'callCount before call to all()');
+(((Promise).allSettled).call)(Constructor,[p1, p2]);
+((assert).sameValue)(callCount,1.,'callCount after call to all()')

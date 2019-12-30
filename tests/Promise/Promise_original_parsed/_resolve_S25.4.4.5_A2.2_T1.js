@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,16 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
-
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var resolveP1, p1 = (new (Promise)(function (resolve) 
+{ resolveP1 = resolve }
+)), p2 = (((Promise).resolve)(p1)), obj = ({});
+if ((p1) !== (p2)) {
+{ ($ERROR)('Expected p1 === Promise.resolve(p1) because they have same constructor') }
+};
+((((p2).then)(function (arg) 
+{ if ((arg) !== (obj)) {
+{ ($ERROR)(('Expected promise to be resolved with obj, actually ') + (arg)) }
+} }
+)).then)($DONE,$DONE);
+(resolveP1)(obj)

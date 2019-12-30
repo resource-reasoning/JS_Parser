@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,33 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var promise = (new (Promise)(function () 
+{  }
+));
+(promise).constructor = undefined;
+((assert).throws)(TypeError,function () 
+{ (((Promise).resolve).call)(undefined,promise) }
+,'`this` value is undefined');
+(promise).constructor = null;
+((assert).throws)(TypeError,function () 
+{ (((Promise).resolve).call)(null,promise) }
+,'`this` value is null');
+(promise).constructor = true;
+((assert).throws)(TypeError,function () 
+{ (((Promise).resolve).call)(true,promise) }
+,'`this` value is a Boolean');
+(promise).constructor = 1.;
+((assert).throws)(TypeError,function () 
+{ (((Promise).resolve).call)(1.,promise) }
+,'`this` value is a Number');
+(promise).constructor = '';
+((assert).throws)(TypeError,function () 
+{ (((Promise).resolve).call)('',promise) }
+,'`this` value is a String');
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var symbol = ((Symbol)());
+(promise).constructor = symbol;
+((assert).throws)(TypeError,function () 
+{ (((Promise).resolve).call)(symbol,promise) }
+,'`this` value is a Symbol')

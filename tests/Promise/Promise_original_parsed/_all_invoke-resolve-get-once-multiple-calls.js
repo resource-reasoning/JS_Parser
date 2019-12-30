@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,27 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var p1 = (((Promise).resolve)(1.));
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var p2 = (((Promise).resolve)(1.));
+
+var p3 = (((Promise).reject)(1.));
+
+var p4 = (((Promise).resolve)(1.));
+
+var resolve = ((Promise).resolve);
+
+var getCount = (0.);
+
+var callCount = (0.);
+((Object).defineProperty)(Promise,'resolve',{configurable : true, get : function () 
+{ getCount += 1.;
+return function () 
+{ callCount += 1.;
+return ((resolve).apply)(Promise,arguments) }
+ }
+});
+((Promise).all)([p1, p2, p3, p4]);
+((assert).sameValue)(getCount,1.,'Got `resolve` only once for each iterated value');
+((assert).sameValue)(callCount,4.,'`resolve` invoked once for each iterated value')

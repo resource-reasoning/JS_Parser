@@ -1,11 +1,5 @@
-import os.path
-from os import walk
-import sys
-import time
-import fnmatch
 
-promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+var Promise = require("../../../js/Promises/Promise").Promise;
 
 function Test262Error(message) {
   this.message = message || "";
@@ -409,17 +403,65 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-"""
 
-def run_parser(folder):
-    for js_file in os.listdir(folder):
-        #with open(folder+js_file, 'a+') as f:
-        with open(folder+js_file, "r+") as f:
-            a = f.read()
-            #Now writing into the file with the prepend line + old file data
-            with open(folder+js_file, "w+") as f:
-                f.write(promise_header + a)
+var checkPoint = ('');
+((assert).throws)(TypeError,function () 
+{ (((Promise).race).call)(function (executor) 
+{ checkPoint += 'a' }
+,[]) }
+,'executor not called at all');
+((assert).sameValue)(checkPoint,'a','executor not called at all');
 
-if __name__ == "__main__":
-    folder = sys.argv[1]
-    run_parser(folder)	
+var checkPoint = ('');
+((assert).throws)(TypeError,function () 
+{ (((Promise).race).call)(function (executor) 
+{ checkPoint += 'a';
+(executor)();
+checkPoint += 'b' }
+,[]) }
+,'executor called with no arguments');
+((assert).sameValue)(checkPoint,'ab','executor called with no arguments');
+
+var checkPoint = ('');
+((assert).throws)(TypeError,function () 
+{ (((Promise).race).call)(function (executor) 
+{ checkPoint += 'a';
+(executor)(undefined,undefined);
+checkPoint += 'b' }
+,[]) }
+,'executor called with (undefined, undefined)');
+((assert).sameValue)(checkPoint,'ab','executor called with (undefined, undefined)');
+
+var checkPoint = ('');
+((assert).throws)(TypeError,function () 
+{ (((Promise).race).call)(function (executor) 
+{ checkPoint += 'a';
+(executor)(undefined,function () 
+{  }
+);
+checkPoint += 'b' }
+,[]) }
+,'executor called with (undefined, function)');
+((assert).sameValue)(checkPoint,'ab','executor called with (undefined, function)');
+
+var checkPoint = ('');
+((assert).throws)(TypeError,function () 
+{ (((Promise).race).call)(function (executor) 
+{ checkPoint += 'a';
+(executor)(function () 
+{  }
+,undefined);
+checkPoint += 'b' }
+,[]) }
+,'executor called with (function, undefined)');
+((assert).sameValue)(checkPoint,'ab','executor called with (function, undefined)');
+
+var checkPoint = ('');
+((assert).throws)(TypeError,function () 
+{ (((Promise).race).call)(function (executor) 
+{ checkPoint += 'a';
+(executor)(123.,'invalid value');
+checkPoint += 'b' }
+,[]) }
+,'executor called with (Number, String)');
+((assert).sameValue)(checkPoint,'ab','executor called with (Number, String)')
