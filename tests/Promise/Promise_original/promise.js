@@ -17,7 +17,7 @@ info: |
 includes: [propertyHelper.js]
 ---*/
 
-verifyProperty(this, 'Promise', {
+verifyProperty(globalThis, 'Promise', {
   value: Promise,
   writable: true,
   enumerable: false,

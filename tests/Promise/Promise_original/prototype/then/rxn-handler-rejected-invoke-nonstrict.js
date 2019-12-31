@@ -12,14 +12,14 @@ description: >
 flags: [async, noStrict]
 ---*/
 
-var expectedThis = this,
+var expectedThis = globalThis,
   obj = {};
 
 var p = Promise.reject(obj).then(function() {
   $DONE("Unexpected fulfillment; expected rejection.");
 }, function(arg) {
   if (this !== expectedThis) {
-    $DONE("'this' must be global object, got " + this);
+    $DONE("this must be global object, got " + this);
     return;
   }
 

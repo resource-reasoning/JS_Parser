@@ -10,7 +10,7 @@ promise_header = """
 const PromiseLib = require(\"../../../js/Promises/Promise\");
 require (\"../../../js/Promises/ArrayIterator\"); 
 
-var Promise = PromiseLib.Promise; 
+globalThis.Promise = PromiseLib.Promise; 
 var ExecJobQueue = PromiseLib.ExecJobQueue; 
 
 function Test262Error(message) {
