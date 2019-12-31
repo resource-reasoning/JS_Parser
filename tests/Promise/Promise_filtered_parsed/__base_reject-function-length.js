@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,12 +406,13 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var rejectFunction;
 new(Promise)(function(resolve, reject) {
     rejectFunction = reject
 });
 ((assert).sameValue)((rejectFunction).length, 1.);
-(verifyNotEnumerable)(rejectFunction, 'length');
-(verifyNotWritable)(rejectFunction, 'length');
-(verifyConfigurable)(rejectFunction, 'length')
+(verifyNotEnumerable)(rejectFunction, "length");
+(verifyNotWritable)(rejectFunction, "length");
+(verifyConfigurable)(rejectFunction, "length")
+
+ExecJobQueue();

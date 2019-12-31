@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,13 +406,11 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var fulfiller = ({
     then: function(resolve) {
         (resolve)()
     }
 });
-
 var lateRejector = ({
     then: function(resolve, reject) {
         (resolve)();
@@ -418,5 +420,7 @@ var lateRejector = ({
 ((((Promise).all)([fulfiller, lateRejector])).then)(function() {
     ($DONE)()
 }, function() {
-    ($DONE)('The promise should not be rejected.')
+    ($DONE)("The promise should not be rejected.")
 })
+
+ExecJobQueue();

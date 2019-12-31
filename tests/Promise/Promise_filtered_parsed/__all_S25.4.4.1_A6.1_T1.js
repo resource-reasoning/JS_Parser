@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,10 +406,11 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var p = (((Promise).all)([]));
 if (!(p) instanceof(Promise)) {
     {
-        ($ERROR)(('Expected Promise.all([]) to be instanceof Promise') + (err))
+        ($ERROR)(("Expected Promise.all([]) to be instanceof Promise") + (err))
     }
 }
+
+ExecJobQueue();

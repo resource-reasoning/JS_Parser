@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,15 +406,16 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var p = (new(Promise)(function() {}));
 if (!((p).then) instanceof(Function)) {
     {
-        ($ERROR)('Expected p.then to be a function')
+        ($ERROR)("Expected p.then to be a function")
     }
 };
 if ((((p).then).length) !== (2.)) {
     {
-        ($ERROR)('Expected p.then to be a function of two arguments')
+        ($ERROR)("Expected p.then to be a function of two arguments")
     }
 }
+
+ExecJobQueue();

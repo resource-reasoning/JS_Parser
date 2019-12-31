@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,7 +406,6 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var rejectP1, p1 = (new(Promise)(function(resolve, reject) {
         rejectP1 = reject
     })),
@@ -410,16 +413,18 @@ var rejectP1, p1 = (new(Promise)(function(resolve, reject) {
     obj = ({});
 if ((p1) !== (p2)) {
     {
-        ($ERROR)('Expected p1 === Promise.resolve(p1) because they have same constructor')
+        ($ERROR)("Expected p1 === Promise.resolve(p1) because they have same constructor")
     }
 };
 ((((p2).then)(function() {
-    ($ERROR)('Expected p2 to be rejected, not fulfilled.')
+    ($ERROR)("Expected p2 to be rejected, not fulfilled.")
 }, function(arg) {
     if ((arg) !== (obj)) {
         {
-            ($ERROR)(('Expected promise to be rejected with reason obj, actually ') + (arg))
+            ($ERROR)(("Expected promise to be rejected with reason obj, actually ") + (arg))
         }
     }
 })).then)($DONE, $DONE);
 (rejectP1)(obj)
+
+ExecJobQueue();

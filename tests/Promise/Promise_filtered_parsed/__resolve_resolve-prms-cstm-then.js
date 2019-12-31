@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,15 +406,11 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var value = ({});
-
 var rejectCallCount = (0.);
-
 var thenable = (new(Promise)(function(resolve) {
     (resolve)()
 }));
-
 var resolvedValue;
 (thenable).then = function(resolve) {
     (resolve)(value)
@@ -422,3 +422,5 @@ var resolvedValue;
 });
 ((assert).sameValue)(resolvedValue, value);
 ((assert).sameValue)(rejectCallCount, 0.)
+
+ExecJobQueue();

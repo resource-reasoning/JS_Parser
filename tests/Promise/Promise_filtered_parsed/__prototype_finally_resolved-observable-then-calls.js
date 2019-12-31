@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,19 +406,14 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var sequence = ([]);
-
 var yesValue = ({});
-
 var yes = (((Promise).resolve)(yesValue));
 (yes).then = function() {
     ((sequence).push)(1.);
     return ((((Promise).prototype).then).apply)(this, arguments)
 };
-
 var noReason = ({});
-
 var no = (((Promise).reject)(noReason));
 (no).then = function() {
     ((sequence).push)(4.);
@@ -431,6 +430,8 @@ var no = (((Promise).reject)(noReason));
     ((sequence).push)(5.);
     ((assert).sameValue)(e, noReason)
 })).then)(function() {
-    (checkSequence)(sequence, 'All expected callbacks called in correct order');
+    (checkSequence)(sequence, "All expected callbacks called in correct order");
     ($DONE)()
 })).catch)($ERROR)
+
+ExecJobQueue();

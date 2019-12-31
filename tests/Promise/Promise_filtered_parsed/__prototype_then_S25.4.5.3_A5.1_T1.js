@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,7 +406,6 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var sequence = ([]),
     pResolve, p = (new(Promise)(function(resolve, reject) {
         pResolve = resolve
@@ -410,14 +413,16 @@ var sequence = ([]),
 ((sequence).push)(1.);
 ((((p).then)(function() {
     ((sequence).push)(3.);
-    (checkSequence)(sequence, 'Should be second')
+    (checkSequence)(sequence, "Should be second")
 })).catch)($DONE);
 ((((((Promise).resolve)()).then)(function() {
     ((((p).then)(function() {
         ((sequence).push)(4.);
-        (checkSequence)(sequence, 'Should be third')
+        (checkSequence)(sequence, "Should be third")
     })).then)($DONE, $DONE);
     ((sequence).push)(2.);
-    (checkSequence)(sequence, 'Should be first');
+    (checkSequence)(sequence, "Should be first");
     (pResolve)()
 })).catch)($DONE)
+
+ExecJobQueue();

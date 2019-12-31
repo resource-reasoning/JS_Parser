@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,9 +406,7 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var resolveElementFunction;
-
 var thenable = ({
     then: function(fulfill) {
         resolveElementFunction = fulfill
@@ -418,7 +420,9 @@ function NotPromise(executor) {
     return v
 };
 (((Promise).all).call)(NotPromise, [thenable]);
-((assert).sameValue)(((((Object).prototype).hasOwnProperty).call)(resolveElementFunction, 'prototype'), false);
+((assert).sameValue)(((((Object).prototype).hasOwnProperty).call)(resolveElementFunction, "prototype"), false);
 ((assert).throws)(TypeError, function() {
     new(resolveElementFunction)()
 })
+
+ExecJobQueue();

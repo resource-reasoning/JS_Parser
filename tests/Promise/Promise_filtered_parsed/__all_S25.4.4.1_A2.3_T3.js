@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,12 +406,13 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var arg = ([]);
 ((((((Promise).all)(arg)).then)(function(result) {
     if ((result) === (arg)) {
         {
-            ($ERROR)('expected a new array from Promise.all but argument was re-used')
+            ($ERROR)("expected a new array from Promise.all but argument was re-used")
         }
     }
 })).then)($DONE, $DONE)
+
+ExecJobQueue();

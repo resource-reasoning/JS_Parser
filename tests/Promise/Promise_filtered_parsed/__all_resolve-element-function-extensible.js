@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,9 +406,7 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var resolveElementFunction;
-
 var thenable = ({
     then: function(fulfill) {
         resolveElementFunction = fulfill
@@ -419,3 +421,5 @@ function NotPromise(executor) {
 };
 (((Promise).all).call)(NotPromise, [thenable]);
 (assert)(((Object).isExtensible)(resolveElementFunction))
+
+ExecJobQueue();

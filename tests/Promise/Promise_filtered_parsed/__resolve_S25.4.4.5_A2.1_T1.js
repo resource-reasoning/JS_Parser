@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,11 +406,12 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var p1 = (((Promise).resolve)(1.)),
     p2 = (((Promise).resolve)(p1));
 if ((p1) !== (p2)) {
     {
-        ($ERROR)('Expected p1 === Promise.resolve(p1) because they have same constructor')
+        ($ERROR)("Expected p1 === Promise.resolve(p1) because they have same constructor")
     }
 }
+
+ExecJobQueue();

@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,17 +406,18 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
-var p = (((Promise).resolve)('foo'));
-((Object).defineProperty)(p, 'constructor', {
+var p = (((Promise).resolve)("foo"));
+((Object).defineProperty)(p, "constructor", {
     get: function() {
         throw new(Test262Error)()
     }
 });
 ((assert).throws)(Test262Error, function() {
     ((p).then)(function() {
-        ($ERROR)('Should never be called.')
+        ($ERROR)("Should never be called.")
     }, function() {
-        ($ERROR)('Should never be called.')
+        ($ERROR)("Should never be called.")
     })
 })
+
+ExecJobQueue();

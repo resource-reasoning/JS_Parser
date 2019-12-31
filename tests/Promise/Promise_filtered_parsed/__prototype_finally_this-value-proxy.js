@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,11 +406,8 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var called = (false);
-
 var p = (new(Proxy)(((Promise).resolve)(), {}));
-
 var oldThen = (((Promise).prototype).then);
 ((Promise).prototype).then = function() {
     called = true
@@ -414,3 +415,5 @@ var oldThen = (((Promise).prototype).then);
 ((((Promise).prototype).finally).call)(p);
 ((assert).sameValue)(called, true);
 ((Promise).prototype).then = oldThen
+
+ExecJobQueue();

@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,7 +406,6 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var sequence = ([]),
     pReject, p = (new(Promise)(function(resolve, reject) {
         pReject = reject
@@ -410,19 +413,21 @@ var sequence = ([]),
 ((sequence).push)(1.);
 (pReject)();
 ((((p).then)(function() {
-    ($ERROR)('Should not be called -- Promise rejected.')
+    ($ERROR)("Should not be called -- Promise rejected.")
 }, function() {
     ((sequence).push)(3.);
-    (checkSequence)(sequence, 'Should be first')
+    (checkSequence)(sequence, "Should be first")
 })).catch)($DONE);
 ((((((Promise).resolve)()).then)(function() {
     ((((p).then)(function() {
-        ($ERROR)('Should not be called (2) -- Promise rejected.')
+        ($ERROR)("Should not be called (2) -- Promise rejected.")
     }, function() {
         ((sequence).push)(5.);
-        (checkSequence)(sequence, 'Should be third')
+        (checkSequence)(sequence, "Should be third")
     })).then)($DONE, $DONE);
     ((sequence).push)(4.);
-    (checkSequence)(sequence, 'Should be second')
+    (checkSequence)(sequence, "Should be second")
 })).catch)($DONE);
 ((sequence).push)(2.)
+
+ExecJobQueue();

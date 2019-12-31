@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,9 +406,7 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var thrown = (new(Test262Error)());
-
 var P = (function(executor) {
     return new(Promise)(function(_, reject) {
         (executor)(function() {
@@ -414,13 +416,17 @@ var P = (function(executor) {
 });
 (P).resolve = (Promise).resolve;
 (((((Promise).all).call)(P, [])).then)(function() {
-    ($DONE)('Promise incorrectly fulfilled.')
+    ($DONE)("Promise incorrectly fulfilled.")
 }, function(reason) {
     if ((reason) !== (thrown)) {
         {
-            ($DONE)('Promise rejected with incorrect "reason."');
+            ($DONE)("Promise rejected with incorrect "
+                reason.
+                "");
             return
         }
     };
     ($DONE)()
 })
+
+ExecJobQueue();

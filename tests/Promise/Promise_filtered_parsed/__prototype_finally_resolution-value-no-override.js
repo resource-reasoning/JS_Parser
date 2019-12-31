@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,20 +406,19 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var sequence = ([]);
-
 var obj = ({});
-
 var p = (((Promise).resolve)(obj));
 ((((((((p).finally)(function() {
     ((sequence).push)(1.);
-    ((assert).sameValue)((arguments).length, 0., 'onFinally receives zero args');
+    ((assert).sameValue)((arguments).length, 0., "onFinally receives zero args");
     return {}
 })).then)(function(x) {
     ((sequence).push)(2.);
-    ((assert).sameValue)(x, obj, 'onFinally can not override the resolution value')
+    ((assert).sameValue)(x, obj, "onFinally can not override the resolution value")
 })).then)(function() {
-    (checkSequence)(sequence, 'All expected callbacks called in correct order');
+    (checkSequence)(sequence, "All expected callbacks called in correct order");
     ($DONE)()
 })).catch)($ERROR)
+
+ExecJobQueue();

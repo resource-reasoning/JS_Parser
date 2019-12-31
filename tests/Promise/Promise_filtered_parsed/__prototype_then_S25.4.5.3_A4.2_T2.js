@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,16 +406,16 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var obj = ({});
-
 var p = (((Promise).reject)(obj));
 ((((((p).then)(3., 5.)).then)(function() {
-    ($ERROR)('Should not be called -- promise was rejected.')
+    ($ERROR)("Should not be called -- promise was rejected.")
 }, function(arg) {
     if ((arg) !== (obj)) {
         {
-            ($ERROR)(('Expected resolution object to be passed through, got ') + (arg))
+            ($ERROR)(("Expected resolution object to be passed through, got ") + (arg))
         }
     }
 })).then)($DONE, $DONE)
+
+ExecJobQueue();

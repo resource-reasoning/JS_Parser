@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,35 +406,36 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var promise = (new(Promise)(function(_, reject) {
     (reject)()
 }));
-
-var log = ('');
+var log = ("");
 ((promise).then)(function() {
-    log += 'A'
+    log += "A"
 }, function() {
-    log += 'a'
+    log += "a"
 });
 ((promise).then)(function() {
-    log += 'B'
+    log += "B"
 }, function() {
-    log += 'b'
+    log += "b"
 });
 ((promise).then)(function() {
-    log += 'C'
+    log += "C"
 }, function() {
-    log += 'c'
+    log += "c"
 });
 ((promise).then)(function() {
-    ($DONE)('This promise should not be fulfilled.')
+    ($DONE)("This promise should not be fulfilled.")
 }, function() {
-    if ((log) !== ('abc')) {
+    if ((log) !== ("abc")) {
         {
-            ($DONE)((('Expected each "onFulfilled" handler to be invoked exactly once in series. ') + ('Expected: abc. Actual: ')) + (log));
+            ($DONE)((("Expected each "
+                onFulfilled " handler to be invoked exactly once in series. ") + ("Expected: abc. Actual: ")) + (log));
             return
         }
     };
     ($DONE)()
 })
+
+ExecJobQueue();

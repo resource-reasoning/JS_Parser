@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,16 +406,16 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var obj = ({});
-
 var p = (((Promise).resolve)(obj));
 ((((((p).catch)(function() {
-    ($ERROR)('Should not be called - promise is fulfilled')
+    ($ERROR)("Should not be called - promise is fulfilled")
 })).then)(function(arg) {
     if ((arg) !== (obj)) {
         {
-            ($ERROR)(('Expected promise to be fulfilled with obj, got ') + (arg))
+            ($ERROR)(("Expected promise to be fulfilled with obj, got ") + (arg))
         }
     }
 })).then)($DONE, $DONE)
+
+ExecJobQueue();

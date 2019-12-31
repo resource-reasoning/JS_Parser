@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,12 +406,13 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var rejectFunction;
 new(Promise)(function(resolve, reject) {
     rejectFunction = reject
 });
-((assert).sameValue)(((((Object).prototype).hasOwnProperty).call)(rejectFunction, 'prototype'), false);
+((assert).sameValue)(((((Object).prototype).hasOwnProperty).call)(rejectFunction, "prototype"), false);
 ((assert).throws)(TypeError, function() {
     new(rejectFunction)()
 })
+
+ExecJobQueue();

@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,14 +406,15 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var nonIterable = (3.);
 ((((((Promise).race)(nonIterable)).then)(function() {
-    ($ERROR)('Promise unexpectedly fulfilled: Promise.race(nonIterable) should throw TypeError')
+    ($ERROR)("Promise unexpectedly fulfilled: Promise.race(nonIterable) should throw TypeError")
 }, function(err) {
     if (!(err) instanceof(TypeError)) {
         {
-            ($ERROR)(('Expected TypeError, got ') + (err))
+            ($ERROR)(("Expected TypeError, got ") + (err))
         }
     }
 })).then)($DONE, $DONE)
+
+ExecJobQueue();

@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,28 +406,28 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var callCount = (0.);
 
 function Constructor(executor) {
     function resolve(values) {
         callCount += 1.;
-        (assert)(((Array).isArray)(values), 'values is array');
-        ((assert).sameValue)((values).length, 1., 'values length');
-        ((assert).sameValue)((values)[0.], 'expectedValue', 'values[0]')
+        (assert)(((Array).isArray)(values), "values is array");
+        ((assert).sameValue)((values).length, 1., "values length");
+        ((assert).sameValue)((values)[0.], "expectedValue", "values[0]")
     };
     (executor)(resolve, $ERROR)
 };
 (Constructor).resolve = function(v) {
     return v
 };
-
 var p1 = ({
     then: function(onFulfilled, onRejected) {
-        (onFulfilled)('expectedValue');
-        (onFulfilled)('unexpectedValue')
+        (onFulfilled)("expectedValue");
+        (onFulfilled)("unexpectedValue")
     }
 });
-((assert).sameValue)(callCount, 0., 'callCount before call to all()');
+((assert).sameValue)(callCount, 0., "callCount before call to all()");
 (((Promise).all).call)(Constructor, [p1]);
-((assert).sameValue)(callCount, 1., 'callCount after call to all()')
+((assert).sameValue)(callCount, 1., "callCount after call to all()")
+
+ExecJobQueue();

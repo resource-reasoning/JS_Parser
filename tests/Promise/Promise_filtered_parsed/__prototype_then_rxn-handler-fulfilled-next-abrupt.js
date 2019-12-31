@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,13 +406,10 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var promise = (new(Promise)(function(resolve) {
     (resolve)()
 }));
-
 var fulfilledCallCount = (0.);
-
 var rejectedCallCount = (0.);
 ((promise).then)(function() {
     fulfilledCallCount += 1.;
@@ -419,17 +420,21 @@ var rejectedCallCount = (0.);
 ((promise).then)(function() {
     if ((fulfilledCallCount) !== (1.)) {
         {
-            ($DONE)('Expected "onFulfilled" handler to be invoked exactly once.');
+            ($DONE)("Expected "
+                onFulfilled " handler to be invoked exactly once.");
             return
         }
     };
     if ((rejectedCallCount) !== (0.)) {
         {
-            ($DONE)('Expected "onRejected" handler to not be invoked.');
+            ($DONE)("Expected "
+                onRejected " handler to not be invoked.");
             return
         }
     };
     ($DONE)()
 }, function() {
-    ($DONE)('This promise should not be rejected.')
+    ($DONE)("This promise should not be rejected.")
 })
+
+ExecJobQueue();

@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,23 +406,15 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var p1 = (((Promise).resolve)(1.));
-
 var p2 = (((Promise).resolve)(1.));
-
 var p3 = (((Promise).reject)(1.));
-
 var p4 = (((Promise).resolve)(1.));
-
 var resolve = ((Promise).resolve);
-
 var getCount = (0.);
-
 var callCount = (0.);
-((Object).defineProperty)(Promise, 'resolve', {
-    configurable: true,
-    get: function() {
+((Object).defineProperty)(Promise, "resolve", {
+    configurable: true;get: function() {
         getCount += 1.;
         return function() {
             callCount += 1.;
@@ -427,5 +423,7 @@ var callCount = (0.);
     }
 });
 ((Promise).race)([p1, p2, p3, p4]);
-((assert).sameValue)(getCount, 1., 'Got `resolve` only once for each iterated value');
-((assert).sameValue)(callCount, 4., '`resolve` invoked once for each iterated value')
+((assert).sameValue)(getCount, 1., "Got `resolve` only once for each iterated value");
+((assert).sameValue)(callCount, 4., "`resolve` invoked once for each iterated value")
+
+ExecJobQueue();

@@ -5,7 +5,11 @@ import time
 import fnmatch
 
 promise_header = """
-var Promise = require(\"../../../js/Promises/Promise\").Promise;
+const PromiseLib = require(\"../../../js/Promises/Promise\");
+require (\"../../../js/Promises/ArrayIterator\"); 
+
+var Promise = PromiseLib.Promise; 
+var ExecJobQueue = PromiseLib.ExecJobQueue; 
 
 function Test262Error(message) {
   this.message = message || "";
@@ -411,6 +415,12 @@ function checkSettledPromises(settleds, expected, message) {
 
 """
 
+promise_conclusion = """
+
+ExecJobQueue();
+
+"""
+
 def run_parser(folder):
     for js_file in os.listdir(folder):
         with open(folder+js_file, "r+") as f:
@@ -418,6 +428,8 @@ def run_parser(folder):
             #Now writing into the file with the prepend line + old file data
             with open(folder+js_file, "w+") as f:
                 f.write(promise_header + a)
+            with open(folder+js_file, "a+") as f:
+                f.write(promise_conclusion)
     for js_file in os.listdir(folder):
         os.system("js-beautify " + folder + js_file + " > " + folder + "_" + js_file)
         os.system("rm "+ folder + js_file)

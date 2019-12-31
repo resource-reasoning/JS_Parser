@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,9 +406,7 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var value = ({});
-
 var promise;
 try {
     ((Array).prototype).then = function(resolve) {
@@ -417,11 +419,13 @@ try {
 ((promise).then)(function(val) {
     if ((val) !== (value)) {
         {
-            ($DONE)('The promise should be resolved with the expected value.');
+            ($DONE)("The promise should be resolved with the expected value.");
             return
         }
     };
     ($DONE)()
 }, function() {
-    ($DONE)('The promise should not be rejected.')
+    ($DONE)("The promise should not be rejected.")
 })
+
+ExecJobQueue();

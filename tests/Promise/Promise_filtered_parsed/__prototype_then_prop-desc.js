@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,7 +406,9 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-((assert).sameValue)(typeof((Promise).prototype).then, 'function');
-(verifyNotEnumerable)((Promise).prototype, 'then');
-(verifyWritable)((Promise).prototype, 'then');
-(verifyConfigurable)((Promise).prototype, 'then')
+((assert).sameValue)(typeof((Promise).prototype).then, "function");
+(verifyNotEnumerable)((Promise).prototype, "then");
+(verifyWritable)((Promise).prototype, "then");
+(verifyConfigurable)((Promise).prototype, "then")
+
+ExecJobQueue();

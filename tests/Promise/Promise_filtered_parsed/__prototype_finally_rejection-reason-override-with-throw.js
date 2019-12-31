@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,24 +406,22 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var sequence = ([]);
-
 var original = ({});
-
 var thrown = ({});
-
 var p = (((Promise).reject)(original));
 ((((((((((p).finally)(function() {
     ((sequence).push)(1.);
-    ((assert).sameValue)((arguments).length, 0., 'onFinally receives zero args');
+    ((assert).sameValue)((arguments).length, 0., "onFinally receives zero args");
     throw thrown
 })).then)(function() {
-    ($ERROR)('promise is rejected; onFulfill should not be called')
+    ($ERROR)("promise is rejected; onFulfill should not be called")
 })).catch)(function(reason) {
     ((sequence).push)(2.);
-    ((assert).sameValue)(reason, thrown, 'onFinally can override the rejection reason by throwing')
+    ((assert).sameValue)(reason, thrown, "onFinally can override the rejection reason by throwing")
 })).then)(function() {
-    (checkSequence)(sequence, 'All expected callbacks called in correct order');
+    (checkSequence)(sequence, "All expected callbacks called in correct order");
     ($DONE)()
 })).catch)($ERROR)
+
+ExecJobQueue();

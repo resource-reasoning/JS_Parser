@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,9 +406,9 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var p1 = (new(Promise)(function() {}));
 delete(p1).constructor;
-
 var p2 = (((p1).then)());
 (assert)((p2) instanceof(Promise))
+
+ExecJobQueue();

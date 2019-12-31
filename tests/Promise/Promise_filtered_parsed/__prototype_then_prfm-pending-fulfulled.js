@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,23 +406,22 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var value = ({});
-
 var resolve;
-
 var p = (new(Promise)(function(_resolve) {
     resolve = _resolve
 }));
 ((p).then)(function(x) {
     if ((x) !== (value)) {
         {
-            ($DONE)('The `onFulfilled` handler should be invoked with the promise result.');
+            ($DONE)("The `onFulfilled` handler should be invoked with the promise result.");
             return
         }
     };
     ($DONE)()
 }, function() {
-    ($DONE)('The `onRejected` handler should not be invoked.')
+    ($DONE)("The `onRejected` handler should not be invoked.")
 });
 (resolve)(value)
+
+ExecJobQueue();

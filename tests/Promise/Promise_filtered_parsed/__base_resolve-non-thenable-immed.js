@@ -1,4 +1,8 @@
-var Promise = require("../../../js/Promises/Promise").Promise;
+const PromiseLib = require("../../../js/Promises/Promise");
+require("../../../js/Promises/ArrayIterator");
+
+var Promise = PromiseLib.Promise;
+var ExecJobQueue = PromiseLib.ExecJobQueue;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -402,25 +406,25 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-
 var returnValue = (null);
-
 var nonThenable = ({
     then: null
 });
-
 var promise = (new(Promise)(function(resolve) {
     returnValue = (resolve)(nonThenable)
 }));
-((assert).sameValue)(returnValue, undefined, '"resolve" return value');
+((assert).sameValue)(returnValue, undefined, ""
+    resolve " return value");
 ((promise).then)(function(value) {
     if ((value) !== (nonThenable)) {
         {
-            ($DONE)('The promise should be fulfilled with the provided value.');
+            ($DONE)("The promise should be fulfilled with the provided value.");
             return
         }
     };
     ($DONE)()
 }, function() {
-    ($DONE)('The promise should not be rejected.')
+    ($DONE)("The promise should not be rejected.")
 })
+
+ExecJobQueue();
