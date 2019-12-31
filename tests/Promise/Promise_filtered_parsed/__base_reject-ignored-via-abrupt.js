@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,7 +408,9 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var thenable = (new(Promise)(function() {}));
+
 var p = (new(Promise)(function(resolve) {
     (resolve)();
     throw thenable
@@ -414,7 +418,7 @@ var p = (new(Promise)(function(resolve) {
 ((p).then)(function() {
     ($DONE)()
 }, function() {
-    ($DONE)("The promise should not be rejected.")
+    ($DONE)('The promise should not be rejected.')
 })
 
 ExecJobQueue();

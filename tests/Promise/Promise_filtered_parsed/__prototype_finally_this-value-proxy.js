@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,8 +408,11 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var called = (false);
+
 var p = (new(Proxy)(((Promise).resolve)(), {}));
+
 var oldThen = (((Promise).prototype).then);
 ((Promise).prototype).then = function() {
     called = true

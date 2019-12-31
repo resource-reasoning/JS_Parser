@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,8 +408,11 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var self, resolve;
+
 var builtinResolve = ((Promise).resolve);
+
 var thenable = ({
     then: function(r) {
         resolve = r
@@ -423,17 +428,17 @@ try {
 };
 (resolve)(self);
 ((self).then)(function() {
-    ($DONE)("The promise should not be fulfilled.")
+    ($DONE)('The promise should not be fulfilled.')
 }, function(value) {
     if (!value) {
         {
-            ($DONE)("The promise should be rejected with a value.");
+            ($DONE)('The promise should be rejected with a value.');
             return
         }
     };
     if (((value).constructor) !== (TypeError)) {
         {
-            ($DONE)("The promise should be rejected with a TypeError instance.");
+            ($DONE)('The promise should be rejected with a TypeError instance.');
             return
         }
     };

@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,11 +408,15 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var expectedThis = ((function() {
     return this
 })());
+
 var resolveCount = (0.);
+
 var thisValue, args;
+
 var P = (function(executor) {
     return new(Promise)(function() {
         (executor)(function() {
@@ -424,7 +430,7 @@ var P = (function(executor) {
 (((Promise).reject).call)(P, 24601.);
 ((assert).sameValue)(resolveCount, 0.);
 ((assert).sameValue)(thisValue, expectedThis);
-((assert).sameValue)(typeof args, "object");
+((assert).sameValue)(typeof args, 'object');
 ((assert).sameValue)((args).length, 1.);
 ((assert).sameValue)((args)[0.], 24601.)
 

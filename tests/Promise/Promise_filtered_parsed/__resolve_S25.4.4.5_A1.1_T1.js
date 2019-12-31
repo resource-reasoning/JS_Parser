@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,9 +408,9 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-if ((typeof(Promise).resolve) !== ("function")) {
+if ((typeof(Promise).resolve) !== ('function')) {
     {
-        ($ERROR)("Expected Promise.resolve to be a function")
+        ($ERROR)('Expected Promise.resolve to be a function')
     }
 }
 

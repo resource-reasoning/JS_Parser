@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,47 +408,52 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var callCount = (0.);
 
 function Constructor(executor) {
     function resolve(values) {
         callCount += 1.;
-        (assert)(((Array).isArray)(values, "values is array"));
-        ((assert).sameValue)((values).length, 3., "values length");
-        ((assert).sameValue)((values)[0.], "p1-fulfill", "values[0]");
-        ((assert).sameValue)((values)[1.], "p2-fulfill", "values[1]");
-        ((assert).sameValue)((values)[2.], "p3-fulfill", "values[2]")
+        (assert)(((Array).isArray)(values, 'values is array'));
+        ((assert).sameValue)((values).length, 3., 'values length');
+        ((assert).sameValue)((values)[0.], 'p1-fulfill', 'values[0]');
+        ((assert).sameValue)((values)[1.], 'p2-fulfill', 'values[1]');
+        ((assert).sameValue)((values)[2.], 'p3-fulfill', 'values[2]')
     };
     (executor)(resolve, $ERROR)
 };
 (Constructor).resolve = function(v) {
     return v
 };
+
 var p1OnFulfilled, p2OnFulfilled, p3OnFulfilled;
+
 var p1 = ({
     then: function(onFulfilled, onRejected) {
         p1OnFulfilled = onFulfilled
     }
 });
+
 var p2 = ({
     then: function(onFulfilled, onRejected) {
         p2OnFulfilled = onFulfilled
     }
 });
+
 var p3 = ({
     then: function(onFulfilled, onRejected) {
         p3OnFulfilled = onFulfilled
     }
 });
-((assert).sameValue)(callCount, 0., "callCount before call to all()");
+((assert).sameValue)(callCount, 0., 'callCount before call to all()');
 (((Promise).all).call)(Constructor, [p1, p2, p3]);
-((assert).sameValue)(callCount, 0., "callCount after call to all()");
-(p1OnFulfilled)("p1-fulfill");
-(p1OnFulfilled)("p1-fulfill-unexpected-1");
-(p1OnFulfilled)("p1-fulfill-unexpected-2");
-((assert).sameValue)(callCount, 0., "callCount after resolving p1");
-(p2OnFulfilled)("p2-fulfill");
-(p3OnFulfilled)("p3-fulfill");
-((assert).sameValue)(callCount, 1., "callCount after resolving all elements")
+((assert).sameValue)(callCount, 0., 'callCount after call to all()');
+(p1OnFulfilled)('p1-fulfill');
+(p1OnFulfilled)('p1-fulfill-unexpected-1');
+(p1OnFulfilled)('p1-fulfill-unexpected-2');
+((assert).sameValue)(callCount, 0., 'callCount after resolving p1');
+(p2OnFulfilled)('p2-fulfill');
+(p3OnFulfilled)('p3-fulfill');
+((assert).sameValue)(callCount, 1., 'callCount after resolving all elements')
 
 ExecJobQueue();

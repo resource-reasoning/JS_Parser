@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,23 +408,26 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var booleanCount = (0.);
 ((Boolean).prototype).then = function() {
     booleanCount += 1.
 };
 ((((Promise).prototype).catch).call)(true);
-((assert).sameValue)(booleanCount, 1., "boolean");
+((assert).sameValue)(booleanCount, 1., 'boolean');
+
 var numberCount = (0.);
 ((Number).prototype).then = function() {
     numberCount += 1.
 };
 ((((Promise).prototype).catch).call)(34.);
-((assert).sameValue)(numberCount, 1., "number");
+((assert).sameValue)(numberCount, 1., 'number');
+
 var stringCount = (0.);
 ((String).prototype).then = function() {
     stringCount += 1.
 };
-((((Promise).prototype).catch).call)("");
-((assert).sameValue)(stringCount, 1., "string")
+((((Promise).prototype).catch).call)('');
+((assert).sameValue)(stringCount, 1., 'string')
 
 ExecJobQueue();

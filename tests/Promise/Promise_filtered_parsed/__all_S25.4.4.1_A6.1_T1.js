@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,10 +408,11 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var p = (((Promise).all)([]));
 if (!(p) instanceof(Promise)) {
     {
-        ($ERROR)(("Expected Promise.all([]) to be instanceof Promise") + (err))
+        ($ERROR)(('Expected Promise.all([]) to be instanceof Promise') + (err))
     }
 }
 

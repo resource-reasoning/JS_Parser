@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,18 +408,19 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var resolveP1, rejectP2, p1 = (new(Promise)(function(resolve) {
         resolveP1 = resolve
     })),
     p2 = (new(Promise)(function(resolve, reject) {
         rejectP2 = reject
     }));
-(rejectP2)(new(Error)("Promise.race should not see this if P1 already resolved"));
+(rejectP2)(new(Error)('Promise.race should not see this if P1 already resolved'));
 (resolveP1)(1.);
 ((((((Promise).race)([p1, p2])).then)(function(arg) {
     if ((arg) !== (1.)) {
         {
-            ($ERROR)(("Expected fulfillment with 1, got ") + (arg))
+            ($ERROR)(('Expected fulfillment with 1, got ') + (arg))
         }
     }
 })).then)($DONE, $DONE)

@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,7 +408,9 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var sequence = ([]);
+
 var p1 = (((Promise).resolve)(1.)),
     p2 = (new(Promise)(function() {})),
     p = (((Promise).race)([p1, p2]));
@@ -414,18 +418,18 @@ var p1 = (((Promise).resolve)(1.)),
 ((((p).then)(function(arg) {
     if ((arg) !== (1.)) {
         {
-            ($ERROR)(("Expected promise to be fulfilled with 1, got ") + (arg))
+            ($ERROR)(('Expected promise to be fulfilled with 1, got ') + (arg))
         }
     };
     ((sequence).push)(4.);
-    (checkSequence)(sequence, "This happens second")
+    (checkSequence)(sequence, 'This happens second')
 })).catch)($DONE);
 ((((((((Promise).resolve)()).then)(function() {
     ((sequence).push)(3.);
-    (checkSequence)(sequence, "This happens first")
+    (checkSequence)(sequence, 'This happens first')
 })).then)(function() {
     ((sequence).push)(5.);
-    (checkSequence)(sequence, "This happens third")
+    (checkSequence)(sequence, 'This happens third')
 })).then)($DONE, $DONE);
 ((sequence).push)(2.)
 

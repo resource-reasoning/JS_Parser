@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,9 +408,9 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-((assert).sameValue)((((Promise).prototype).catch).name, "catch");
-(verifyNotEnumerable)(((Promise).prototype).catch, "name");
-(verifyNotWritable)(((Promise).prototype).catch, "name");
-(verifyConfigurable)(((Promise).prototype).catch, "name")
+((assert).sameValue)((((Promise).prototype).catch).name, 'catch');
+(verifyNotEnumerable)(((Promise).prototype).catch, 'name');
+(verifyNotWritable)(((Promise).prototype).catch, 'name');
+(verifyConfigurable)(((Promise).prototype).catch, 'name')
 
 ExecJobQueue();

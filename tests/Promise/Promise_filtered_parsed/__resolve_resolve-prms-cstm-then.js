@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,11 +408,15 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var value = ({});
+
 var rejectCallCount = (0.);
+
 var thenable = (new(Promise)(function(resolve) {
     (resolve)()
 }));
+
 var resolvedValue;
 (thenable).then = function(resolve) {
     (resolve)(value)

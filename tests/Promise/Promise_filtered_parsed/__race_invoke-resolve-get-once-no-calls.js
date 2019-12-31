@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,11 +408,15 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var resolve = ((Promise).resolve);
+
 var getCount = (0.);
+
 var callCount = (0.);
-((Object).defineProperty)(Promise, "resolve", {
-    configurable: true;get: function() {
+((Object).defineProperty)(Promise, 'resolve', {
+    configurable: true,
+    get: function() {
         getCount += 1.;
         return function() {
             callCount += 1.;
@@ -419,7 +425,7 @@ var callCount = (0.);
     }
 });
 ((Promise).race)([]);
-((assert).sameValue)(getCount, 1., "Got `resolve` only once for each iterated value");
-((assert).sameValue)(callCount, 0., "`resolve` not called for empty iterator")
+((assert).sameValue)(getCount, 1., 'Got `resolve` only once for each iterated value');
+((assert).sameValue)(callCount, 0., '`resolve` not called for empty iterator')
 
 ExecJobQueue();

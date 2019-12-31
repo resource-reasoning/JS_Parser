@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -408,7 +410,7 @@ function checkSettledPromises(settleds, expected, message) {
 
 if ((((Promise).prototype).constructor) !== (Promise)) {
     {
-        ($ERROR)("Expected Promise.prototype.constructor to be Promise")
+        ($ERROR)('Expected Promise.prototype.constructor to be Promise')
     }
 }
 

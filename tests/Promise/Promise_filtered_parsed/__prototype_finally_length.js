@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,8 +408,11 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-(verifyProperty)(((Promise).prototype).finally, "length", {
-    value: 1.;enumerable: false;configurable: true;writable: false
+(verifyProperty)(((Promise).prototype).finally, 'length', {
+    value: 1.,
+    enumerable: false,
+    configurable: true,
+    writable: false
 })
 
 ExecJobQueue();

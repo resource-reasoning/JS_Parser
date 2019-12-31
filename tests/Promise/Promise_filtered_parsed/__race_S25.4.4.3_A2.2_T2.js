@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,12 +408,12 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-((((((Promise).race)(new(Error)("abrupt"))).then)(function() {
-    ($ERROR)("Promise unexpectedly resolved: Promise.race(abruptCompletion) should throw TypeError")
+((((((Promise).race)(new(Error)('abrupt'))).then)(function() {
+    ($ERROR)('Promise unexpectedly resolved: Promise.race(abruptCompletion) should throw TypeError')
 }, function(err) {
     if (!(err) instanceof(TypeError)) {
         {
-            ($ERROR)(("Expected TypeError, got ") + (err))
+            ($ERROR)(('Expected TypeError, got ') + (err))
         }
     }
 })).then)($DONE, $DONE)

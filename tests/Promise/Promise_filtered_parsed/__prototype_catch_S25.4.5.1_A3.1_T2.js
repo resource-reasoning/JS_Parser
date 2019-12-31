@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,14 +408,16 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var obj = ({});
+
 var p = (((Promise).reject)(obj));
 ((((((p).then)(function() {
-    ($ERROR)("Should not be called: did not expect promise to be fulfilled")
+    ($ERROR)('Should not be called: did not expect promise to be fulfilled')
 })).catch)(function(arg) {
     if ((arg) !== (obj)) {
         {
-            ($ERROR)(("Should have been rejected with reason obj, got ") + (arg))
+            ($ERROR)(('Should have been rejected with reason obj, got ') + (arg))
         }
     }
 })).then)($DONE, $DONE)

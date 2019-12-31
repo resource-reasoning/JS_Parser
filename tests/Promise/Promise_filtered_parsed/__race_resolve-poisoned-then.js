@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,23 +408,26 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var value = ({});
-var poisonedThen = (((Object).defineProperty)({}, "then", {
+
+var poisonedThen = (((Object).defineProperty)({}, 'then', {
     get: function() {
         throw value
     }
 }));
+
 var thenable = ({
     then: function(resolve) {
         (resolve)(poisonedThen)
     }
 });
 ((((Promise).race)([thenable])).then)(function() {
-    ($DONE)("The promise should not be fulfilled.")
+    ($DONE)('The promise should not be fulfilled.')
 }, function(val) {
     if ((val) !== (value)) {
         {
-            ($DONE)("The promise should be rejected with the correct value.");
+            ($DONE)('The promise should be rejected with the correct value.');
             return
         }
     };

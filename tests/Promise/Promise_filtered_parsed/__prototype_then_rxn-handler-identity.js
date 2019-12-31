@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,17 +408,19 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var obj = ({});
+
 var p = (((((((Promise).resolve)(obj)).then)()).then)(function(arg) {
     if ((arg) !== (obj)) {
         {
-            ($DONE)(("Expected promise to be fulfilled with obj, actually ") + (arg));
+            ($DONE)(('Expected promise to be fulfilled with obj, actually ') + (arg));
             return
         }
     };
     ($DONE)()
 }, function() {
-    ($DONE)("The promise should not be rejected.")
+    ($DONE)('The promise should not be rejected.')
 }))
 
 ExecJobQueue();

@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,6 +408,7 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var sequence = ([]),
     pResolve, p = (new(Promise)(function(resolve, reject) {
         pResolve = resolve
@@ -414,15 +417,15 @@ var sequence = ([]),
 (pResolve)();
 ((((p).then)(function() {
     ((sequence).push)(3.);
-    (checkSequence)(sequence, "Should be first")
+    (checkSequence)(sequence, 'Should be first')
 })).catch)($DONE);
 ((((((Promise).resolve)()).then)(function() {
     ((((p).then)(function() {
         ((sequence).push)(5.);
-        (checkSequence)(sequence, "Should be third")
+        (checkSequence)(sequence, 'Should be third')
     })).then)($DONE, $DONE);
     ((sequence).push)(4.);
-    (checkSequence)(sequence, "Should be second")
+    (checkSequence)(sequence, 'Should be second')
 })).catch)($DONE);
 ((sequence).push)(2.)
 

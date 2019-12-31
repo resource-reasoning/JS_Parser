@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,83 +408,84 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-var checkPoint = ("");
+
+var checkPoint = ('');
 
 function fn1(executor) {
-    checkPoint += "a";
+    checkPoint += 'a';
     (executor)();
-    checkPoint += "b";
+    checkPoint += 'b';
     (executor)(function() {}, function() {});
-    checkPoint += "c"
+    checkPoint += 'c'
 };
 (fn1).resolve = function() {};
 (((Promise).all).call)(fn1, []);
-((assert).sameValue)(checkPoint, "abc", "executor initially called with no arguments");
-checkPoint = "";
+((assert).sameValue)(checkPoint, 'abc', 'executor initially called with no arguments');
+checkPoint = '';
 
 function fn2(executor) {
-    checkPoint += "a";
+    checkPoint += 'a';
     (executor)(undefined, undefined);
-    checkPoint += "b";
+    checkPoint += 'b';
     (executor)(function() {}, function() {});
-    checkPoint += "c"
+    checkPoint += 'c'
 };
 (fn2).resolve = function() {};
 (((Promise).all).call)(fn2, []);
-((assert).sameValue)(checkPoint, "abc", "executor initially called with (undefined, undefined)");
-checkPoint = "";
+((assert).sameValue)(checkPoint, 'abc', 'executor initially called with (undefined, undefined)');
+checkPoint = '';
 
 function fn3(executor) {
-    checkPoint += "a";
+    checkPoint += 'a';
     (executor)(undefined, function() {});
-    checkPoint += "b";
+    checkPoint += 'b';
     (executor)(function() {}, function() {});
-    checkPoint += "c"
+    checkPoint += 'c'
 };
-((Object).defineProperty)(fn3, "resolve", {
+((Object).defineProperty)(fn3, 'resolve', {
     get: function() {
         throw new(Test262Error)()
     }
 });
 ((assert).throws)(TypeError, function() {
     (((Promise).all).call)(fn3, [])
-}, "executor initially called with (undefined, function)");
-((assert).sameValue)(checkPoint, "ab", "executor initially called with (undefined, function)");
-checkPoint = "";
+}, 'executor initially called with (undefined, function)');
+((assert).sameValue)(checkPoint, 'ab', 'executor initially called with (undefined, function)');
+checkPoint = '';
 
 function fn4(executor) {
-    checkPoint += "a";
+    checkPoint += 'a';
     (executor)(function() {}, undefined);
-    checkPoint += "b";
+    checkPoint += 'b';
     (executor)(function() {}, function() {});
-    checkPoint += "c"
+    checkPoint += 'c'
 };
-((Object).defineProperty)(fn4, "resolve", {
+((Object).defineProperty)(fn4, 'resolve', {
     get: function() {
         throw new(Test262Error)()
     }
 });
 ((assert).throws)(TypeError, function() {
     (((Promise).all).call)(fn4, [])
-}, "executor initially called with (function, undefined)");
-((assert).sameValue)(checkPoint, "ab", "executor initially called with (function, undefined)");
-checkPoint = "";
+}, 'executor initially called with (function, undefined)');
+((assert).sameValue)(checkPoint, 'ab', 'executor initially called with (function, undefined)');
+checkPoint = '';
 
 function fn5(executor) {
-    checkPoint += "a";
-    (executor)("invalid value", 123.);
-    checkPoint += "b";
+    checkPoint += 'a';
+    (executor)('invalid value', 123.);
+    checkPoint += 'b';
     (executor)(function() {}, function() {});
-    checkPoint += "c"
+    checkPoint += 'c'
 };
-((Object).defineProperty)(fn5, "resolve", {
+((Object).defineProperty)(fn5, 'resolve', {
     get: function() {
         throw new(Test262Error)()
     }
 });
 ((assert).throws)(TypeError, function() {
     (((Promise).all).call)(fn5, [])
-}, "executor initially called with (String, Number)");
-((assert).sameValue)(checkPoint, "ab", "executor initially called with (String, Number)")
+}, 'executor initially called with (String, Number)');
+((assert).sameValue)(checkPoint, 'ab', 'executor initially called with (String, Number)')
 
 ExecJobQueue();

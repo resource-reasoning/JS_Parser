@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,11 +408,12 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var arg = ([]);
 ((((((Promise).all)(arg)).then)(function(result) {
     if (((result).length) !== (0.)) {
         {
-            ($ERROR)(("expected an empty array from Promise.all([]), got ") + (result))
+            ($ERROR)(('expected an empty array from Promise.all([]), got ') + (result))
         }
     }
 })).then)($DONE, $DONE)

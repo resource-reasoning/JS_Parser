@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -416,7 +418,7 @@ function checkSettledPromises(settleds, expected, message) {
     (((Promise).resolve).call)(86., [])
 });
 ((assert).throws)(TypeError, function() {
-    (((Promise).resolve).call)("string", [])
+    (((Promise).resolve).call)('string', [])
 });
 ((assert).throws)(TypeError, function() {
     (((Promise).resolve).call)(true, [])

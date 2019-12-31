@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -408,31 +410,31 @@ function checkSettledPromises(settleds, expected, message) {
 
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).catch).call)({})
-}, "undefined");
+}, 'undefined');
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).catch).call)({
         then: null
     })
-}, "null");
+}, 'null');
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).catch).call)({
         then: 1.
     })
-}, "number");
+}, 'number');
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).catch).call)({
-        then: ""
+        then: ''
     })
-}, "string");
+}, 'string');
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).catch).call)({
         then: true
     })
-}, "boolean");
+}, 'boolean');
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).catch).call)({
         then: {}
     })
-}, "ordinary object")
+}, 'ordinary object')
 
 ExecJobQueue();

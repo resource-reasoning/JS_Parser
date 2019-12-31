@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,14 +408,15 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var error = (new(Test262Error)());
-((Object).defineProperty)(Promise, "resolve", {
+((Object).defineProperty)(Promise, 'resolve', {
     get: function() {
         throw error
     }
 });
 ((((((Promise).race)([new(Promise)(function() {})])).then)(function() {
-    ($ERROR)("The promise should be rejected")
+    ($ERROR)('The promise should be rejected')
 }, function(reason) {
     ((assert).sameValue)(reason, error)
 })).then)($DONE, $DONE)

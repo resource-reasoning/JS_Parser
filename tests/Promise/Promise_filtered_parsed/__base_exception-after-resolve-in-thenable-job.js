@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,15 +408,17 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var thenable = ({
     then: function(resolve) {
         (resolve)()
     }
 });
+
 var thenableWithError = ({
     then: function(resolve) {
         (resolve)(thenable);
-        throw new(Error)("ignored exception")
+        throw new(Error)('ignored exception')
     }
 });
 

@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -407,7 +409,7 @@ function checkSettledPromises(settleds, expected, message) {
 
 
 ((assert).throws)(TypeError, function() {
-    new(Promise)("not callable")
+    new(Promise)('not callable')
 });
 ((assert).throws)(TypeError, function() {
     new(Promise)(1.)

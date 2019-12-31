@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,13 +408,15 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var obj = ({});
+
 var p = (((((((Promise).reject)(obj)).then)()).then)(function() {
-    ($DONE)("Unexpected fulfillment - promise should reject.")
+    ($DONE)('Unexpected fulfillment - promise should reject.')
 }, function(arg) {
     if ((arg) !== (obj)) {
         {
-            ($DONE)(("Expected reject reason to be obj, actually ") + (arg));
+            ($DONE)(('Expected reject reason to be obj, actually ') + (arg));
             return
         }
     };

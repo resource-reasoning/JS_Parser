@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,7 +408,8 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-var poisonedThen = (((Object).defineProperty)(new(Promise)(function() {}), "then", {
+
+var poisonedThen = (((Object).defineProperty)(new(Promise)(function() {}), 'then', {
     get: function() {
         throw new(Test262Error)()
     }

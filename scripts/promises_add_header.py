@@ -5,6 +5,8 @@ import time
 import fnmatch
 
 promise_header = """
+'use strict';
+
 const PromiseLib = require(\"../../../js/Promises/Promise\");
 require (\"../../../js/Promises/ArrayIterator\"); 
 

@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -408,7 +410,7 @@ function checkSettledPromises(settleds, expected, message) {
 
 ((Object).defineProperty)((Array).prototype, 0., {
     set: function() {
-        ($ERROR)("Setter on Array.prototype called")
+        ($ERROR)('Setter on Array.prototype called')
     }
 });
 ((((Promise).all)([42.])).then)(function() {

@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,21 +408,24 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var returnValue = (null);
+
 var thenable = (new(Promise)(function() {}));
+
 var resolve, reject;
+
 var p = (new(Promise)(function(_resolve, _reject) {
     resolve = _resolve;
     reject = _reject
 }));
 ((p).then)(function() {
-    ($DONE)("The promise should not be fulfilled.")
+    ($DONE)('The promise should not be fulfilled.')
 }, function() {
     ($DONE)()
 });
 (reject)(thenable);
 returnValue = (resolve)();
-((assert).sameValue)(returnValue, undefined, ""
-    resolve " function return value")
+((assert).sameValue)(returnValue, undefined, '"resolve" function return value')
 
 ExecJobQueue();

@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,6 +408,6 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-((assert).sameValue)(typeof Promise, "function")
+((assert).sameValue)(typeof Promise, 'function')
 
 ExecJobQueue();

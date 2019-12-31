@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,8 +408,10 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var p1 = (new(Promise)(function() {}));
 delete(p1).constructor;
+
 var p2 = (((p1).then)());
 (assert)((p2) instanceof(Promise))
 

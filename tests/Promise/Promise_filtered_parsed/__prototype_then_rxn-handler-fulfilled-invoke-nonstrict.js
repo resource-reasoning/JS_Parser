@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,30 +408,33 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var expectedThis = (this),
     obj = ({});
+
 var p = (((((Promise).resolve)(obj)).then)(function(arg) {
     if ((this) !== (expectedThis)) {
         {
-            ($DONE)(("'this' must be global object, got ") + (this));
+            ($DONE)((''
+                this ' must be global object, got ') + (this));
             return
         }
     };
     if ((arg) !== (obj)) {
         {
-            ($DONE)(("Expected promise to be fulfilled by obj, actually ") + (arg));
+            ($DONE)(('Expected promise to be fulfilled by obj, actually ') + (arg));
             return
         }
     };
     if (((arguments).length) !== (1.)) {
         {
-            ($DONE)("Expected handler function to be called with exactly 1 argument.");
+            ($DONE)('Expected handler function to be called with exactly 1 argument.');
             return
         }
     };
     ($DONE)()
 }, function() {
-    ($DONE)("The promise should not be rejected.")
+    ($DONE)('The promise should not be rejected.')
 }))
 
 ExecJobQueue();

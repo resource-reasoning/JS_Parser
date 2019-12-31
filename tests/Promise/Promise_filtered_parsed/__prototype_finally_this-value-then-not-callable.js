@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,34 +408,36 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-((assert).sameValue)(typeof((Promise).prototype).finally, "function");
+((assert).sameValue)(typeof((Promise).prototype).finally, 'function');
+
 var thrower = (function() {
-    throw new(Test262Error)("this should never happen")
+    throw new(Test262Error)('this should never happen')
 });
+
 var p = (new(Promise)(function() {}));
 (p).then = undefined;
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).finally).call)(p, thrower)
-}, "undefined");
+}, 'undefined');
 (p).then = null;
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).finally).call)(p, thrower)
-}, "null");
+}, 'null');
 (p).then = 1.;
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).finally).call)(p, thrower)
-}, "number");
-(p).then = "";
+}, 'number');
+(p).then = '';
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).finally).call)(p, thrower)
-}, "string");
+}, 'string');
 (p).then = true;
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).finally).call)(p, thrower)
-}, "boolean");
+}, 'boolean');
 (p).then = {};
 ((assert).throws)(TypeError, function() {
     ((((Promise).prototype).finally).call)(p, thrower)
-}, "ordinary object")
+}, 'ordinary object')
 
 ExecJobQueue();

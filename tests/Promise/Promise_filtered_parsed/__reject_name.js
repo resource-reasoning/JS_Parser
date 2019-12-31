@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,9 +408,9 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
-((assert).sameValue)(((Promise).reject).name, "reject");
-(verifyNotEnumerable)((Promise).reject, "name");
-(verifyNotWritable)((Promise).reject, "name");
-(verifyConfigurable)((Promise).reject, "name")
+((assert).sameValue)(((Promise).reject).name, 'reject');
+(verifyNotEnumerable)((Promise).reject, 'name');
+(verifyNotWritable)((Promise).reject, 'name');
+(verifyConfigurable)((Promise).reject, 'name')
 
 ExecJobQueue();

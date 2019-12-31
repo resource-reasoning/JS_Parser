@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,11 +408,12 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var resolveFunction;
 new(Promise)(function(resolve, reject) {
     resolveFunction = resolve
 });
-((assert).sameValue)(((((Object).prototype).hasOwnProperty).call)(resolveFunction, "prototype"), false);
+((assert).sameValue)(((((Object).prototype).hasOwnProperty).call)(resolveFunction, 'prototype'), false);
 ((assert).throws)(TypeError, function() {
     new(resolveFunction)()
 })

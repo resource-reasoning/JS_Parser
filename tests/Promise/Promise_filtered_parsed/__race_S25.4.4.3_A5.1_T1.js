@@ -1,3 +1,5 @@
+'use strict';
+
 const PromiseLib = require("../../../js/Promises/Promise");
 require("../../../js/Promises/ArrayIterator");
 
@@ -406,11 +408,12 @@ function checkSettledPromises(settleds, expected, message) {
 }
 
 
+
 var p = (((Promise).race)([]));
 ((((p).then)(function() {
-    ($ERROR)("Never settles.")
+    ($ERROR)('Never settles.')
 }, function() {
-    ($ERROR)("Never settles.")
+    ($ERROR)('Never settles.')
 })).then)($DONE, $DONE);
 ((((((((Promise).resolve)()).then)()).then)()).then)($DONE, $DONE)
 
