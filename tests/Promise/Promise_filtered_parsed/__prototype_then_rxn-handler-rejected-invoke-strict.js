@@ -417,8 +417,7 @@ var p = (((((Promise).reject)(obj)).then)(function() {
 }, function(arg) {
     if ((this) !== (expectedThis)) {
         {
-            ($DONE)((''
-                this ' must be undefined, got ') + (this));
+            ($DONE)(('this must be undefined, got ') + (this));
             return
         }
     };
