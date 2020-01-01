@@ -409,14 +409,26 @@ function checkSettledPromises(settleds, expected, message) {
 
 
 
-var object = ({
-    get constructor
-    function() {
-        ($ERROR)('get constructor called')
+var resolveElementFunction;
+
+var thenable = ({
+    then: function(fulfill) {
+        resolveElementFunction = fulfill
     }
 });
-((assert).throws)(TypeError, function() {
-    ((((Promise).prototype).then).call)(object)
+
+function NotPromise(executor) {
+    (executor)(function() {}, function() {})
+};
+(NotPromise).resolve = function(v) {
+    return v
+};
+(((Promise).allSettled).call)(NotPromise, [thenable]);
+(verifyProperty)(resolveElementFunction, 'length', {
+    value: 1.,
+    enumerable: false,
+    writable: false,
+    configurable: true
 })
 
 ExecJobQueue();
