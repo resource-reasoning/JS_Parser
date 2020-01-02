@@ -45,13 +45,13 @@ features: [Promise.allSettled]
 ---*/
 
 var obj = {};
-var p1 = new Promise(function(_, reject) {
+var p1 = new Promise(function(__, reject) {
   reject(1);
 });
-var p2 = new Promise(function(_, reject) {
+var p2 = new Promise(function(__, reject) {
   reject('test262');
 });
-var p3 = new Promise(function(_, reject) {
+var p3 = new Promise(function(__, reject) {
   reject(obj);
 });
 

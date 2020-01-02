@@ -46,7 +46,7 @@ features: [Promise.allSettled]
 
 var obj1 = {};
 var obj2 = {};
-var r1 = new Promise(function(_, reject) {
+var r1 = new Promise(function(__, reject) {
   reject(1);
 });
 var f1 = new Promise(function(resolve) {
@@ -55,10 +55,10 @@ var f1 = new Promise(function(resolve) {
 var f2 = new Promise(function(resolve) {
   resolve('tc39');
 });
-var r2 = new Promise(function(_, reject) {
+var r2 = new Promise(function(__, reject) {
   reject('test262');
 });
-var r3 = new Promise(function(_, reject) {
+var r3 = new Promise(function(__, reject) {
   reject(obj1);
 });
 var f3 = new Promise(function(resolve) {

@@ -31,7 +31,7 @@ var poisonedThen = Object.defineProperty({}, 'then', {
     throw value;
   }
 });
-var p1 = new Promise(function(_, _reject) {
+var p1 = new Promise(function(__, _reject) {
   reject = _reject;
 });
 var p2;

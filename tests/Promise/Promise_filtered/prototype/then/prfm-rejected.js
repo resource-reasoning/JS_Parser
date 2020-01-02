@@ -20,7 +20,7 @@ flags: [async]
 ---*/
 
 var value = {};
-var p = new Promise(function(_, reject) {
+var p = new Promise(function(__, reject) {
   reject(value);
 });
 

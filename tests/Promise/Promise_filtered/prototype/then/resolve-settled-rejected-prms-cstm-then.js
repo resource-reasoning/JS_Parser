@@ -39,7 +39,7 @@ var value = {};
 var thenable = new Promise(function(resolve) {
   resolve();
 });
-var p1 = new Promise(function(_, reject) {
+var p1 = new Promise(function(__, reject) {
   reject();
 });
 var p2;

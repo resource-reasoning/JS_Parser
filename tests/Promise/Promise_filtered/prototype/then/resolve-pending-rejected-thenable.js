@@ -34,7 +34,7 @@ var reject;
 var thenable = new Promise(function(resolve) {
   resolve(value);
 });
-var p1 = new Promise(function(_, _reject) {
+var p1 = new Promise(function(__, _reject) {
   reject = _reject;
 });
 var p2;

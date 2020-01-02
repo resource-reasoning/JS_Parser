@@ -19,7 +19,7 @@ features: [Promise.allSettled]
 
 var simulation = {};
 var thenable = {
-  then(_, reject) {
+  then(__, reject) {
     reject(simulation);
   }
 };

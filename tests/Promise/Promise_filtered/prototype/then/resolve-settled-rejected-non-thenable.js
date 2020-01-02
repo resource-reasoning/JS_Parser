@@ -36,7 +36,7 @@ flags: [async]
 var nonThenable = {
   then: null
 };
-var p1 = new Promise(function(_, reject) {
+var p1 = new Promise(function(__, reject) {
   reject();
 });
 var p2;

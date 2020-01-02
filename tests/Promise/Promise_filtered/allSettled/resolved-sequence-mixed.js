@@ -23,13 +23,13 @@ features: [Promise.allSettled]
 
 var sequence = [];
 
-var p1 = new Promise(function(_, reject) {
+var p1 = new Promise(function(__, reject) {
   reject('');
 });
 var p2 = new Promise(function(resolve) {
   resolve('');
 });
-var p3 = new Promise(function(_, reject) {
+var p3 = new Promise(function(__, reject) {
   reject('');
 });
 

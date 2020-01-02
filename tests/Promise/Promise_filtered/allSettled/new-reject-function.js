@@ -28,14 +28,14 @@ var callCount1 = 0,
 var p1OnRejected;
 
 var p1 = {
-  then(_, onRejected) {
+  then(__, onRejected) {
     callCount1 += 1;
     p1OnRejected = onRejected;
     assert.notSameValue(onRejected, rejectFunction, 'p1.then');
   }
 };
 var p2 = {
-  then(_, onRejected) {
+  then(__, onRejected) {
     callCount2 += 1;
     assert.notSameValue(onRejected, rejectFunction, 'p2.then');
     assert.notSameValue(onRejected, p1OnRejected, 'p1.onRejected != p2.onRejected');

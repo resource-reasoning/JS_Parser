@@ -15,7 +15,7 @@ info: |
 flags: [async]
 ---*/
 
-var promise = new Promise(function(_, reject) {
+var promise = new Promise(function(__, reject) {
   reject();
 });
 var fulfilledCallCount = 0;

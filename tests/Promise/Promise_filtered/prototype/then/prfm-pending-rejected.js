@@ -21,7 +21,7 @@ flags: [async]
 
 var value = {};
 var reject;
-var p = new Promise(function(_, _reject) {
+var p = new Promise(function(__, _reject) {
   reject = _reject;
 });
 

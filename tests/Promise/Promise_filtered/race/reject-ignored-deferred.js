@@ -38,7 +38,7 @@ var fulfiller = {
   }
 };
 var rejector = {
-  then: function(_, reject) {
+  then: function(__, reject) {
     new Promise(function(resolve) {
         resolve();
       })

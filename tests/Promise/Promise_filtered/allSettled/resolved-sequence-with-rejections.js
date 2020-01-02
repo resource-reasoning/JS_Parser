@@ -22,10 +22,10 @@ features: [Promise.allSettled]
 
 var sequence = [];
 
-var p1 = new Promise(function(_, reject) {
+var p1 = new Promise(function(__, reject) {
   reject('foo');
 });
-var p2 = new Promise(function(_, reject) {
+var p2 = new Promise(function(__, reject) {
   reject('bar');
 });
 

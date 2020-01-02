@@ -33,7 +33,7 @@ var fulfiller = {
   }
 };
 var rejector = {
-  then: function(_, reject) {
+  then: function(__, reject) {
     reject();
   }
 };

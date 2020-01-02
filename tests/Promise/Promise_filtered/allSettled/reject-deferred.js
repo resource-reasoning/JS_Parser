@@ -28,7 +28,7 @@ features: [Promise.allSettled]
 
 var simulation = {};
 var thenable = {
-  then(_, reject) {
+  then(__, reject) {
     new Promise(function(resolve) {
         resolve();
       })

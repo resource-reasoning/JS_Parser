@@ -20,7 +20,7 @@ flags: [async]
 var thenable = new Promise(function() {});
 var returnValue = null;
 var reject;
-var p = new Promise(function(_, _reject) {
+var p = new Promise(function(__, _reject) {
   reject = _reject;
 });
 

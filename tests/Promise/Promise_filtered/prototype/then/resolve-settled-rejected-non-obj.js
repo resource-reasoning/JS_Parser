@@ -28,7 +28,7 @@ info: |
 flags: [async]
 ---*/
 
-var p1 = new Promise(function(_, reject) {
+var p1 = new Promise(function(__, reject) {
   reject();
 });
 var p2;

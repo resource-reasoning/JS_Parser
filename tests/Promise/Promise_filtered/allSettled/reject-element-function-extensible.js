@@ -13,7 +13,7 @@ features: [Promise.allSettled]
 
 var rejectElementFunction;
 var thenable = {
-  then(_, reject) {
+  then(__, reject) {
     rejectElementFunction = reject;
   }
 };

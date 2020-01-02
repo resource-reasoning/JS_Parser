@@ -24,7 +24,7 @@ flags: [async]
 ---*/
 
 var thenable = {
-  then: function(_, reject) {
+  then: function(__, reject) {
     reject();
   }
 };
