@@ -107,9 +107,9 @@ and exp_syntax =
   | Call of exp * exp list     (* e(e1,..,en) *)
   | Assign of exp * exp   (* e = e *)
   | AssignOp of exp * arith_op * exp   (* e op= e *)
-  | FunctionExp of bool * (string option) * var list * exp * bool (* function (x1,..,x2){e} *)
-  | ArrowExp of bool * (string option) * exp list * exp * bool(* function (x1,..,x2){e} *)
-  | Function of bool * (string option) * var list * exp * bool (* function x(x1,..,x2){e}  *)
+  | FunctionExp of bool * (string option) * var list * exp * bool   (* function (x1,..,x2){e} *)
+  | ArrowExp of bool * (string option) * exp list * exp * bool      (* function (x1,..,x2){e} *)
+  | Function of bool * (string option) * var list * exp * bool      (* function x(x1,..,x2){e}  *)
   | New of exp * exp list      (* new e(e1,..,en) *)
   | Obj of (propname * proptype * exp) list (* {x_i : e_i} *)
   | Array of (exp option) list (* [e1,...,en] *)
@@ -188,15 +188,15 @@ let rec add_strictness parent_strict exp =
     | Call (e1, e2s) -> {exp with exp_stx = Call (f e1, List.map f e2s)}
     | Assign (e1, e2) -> {exp with exp_stx = Assign (f e1, f e2)}
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
-    | FunctionExp (_, n, xs, e, b) ->
+    | FunctionExp (_, n, xs, e, async) ->
       let strict = parent_strict || is_in_strict_mode e in
-      {exp with exp_stx = FunctionExp (strict, n, xs, add_strictness strict e, b)}
+      {exp with exp_stx = FunctionExp (strict, n, xs, add_strictness strict e, async)}
     | ArrowExp (_, n, xs, e, b) ->
       let strict = parent_strict || is_in_strict_mode e in
       {exp with exp_stx = ArrowExp (strict, n, xs, add_strictness strict e, b)}  
-    | Function (_, n, xs, e, b) ->
+    | Function (_, n, xs, e, async) ->
       let strict = parent_strict || is_in_strict_mode e in
-      {exp with exp_stx = Function (strict, n, xs, add_strictness strict e, b)}
+      {exp with exp_stx = Function (strict, n, xs, add_strictness strict e, async)}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, List.map f e2s)}
     | Obj l -> {exp with exp_stx = Obj (List.map (fun (x, p, e) -> (x, p, f e)) l)}
     | Array es -> {exp with exp_stx = Array (List.map fop es)}
@@ -240,3 +240,10 @@ let fresh_sth (name : string) : (unit -> string) =
 let fresh_var : (unit -> string) = fresh_sth "x_09898_"
 
 let fresh_iter_var : (unit -> string) = fresh_sth "x_iter_80980_"
+
+let flat_map f l = List.flatten (List.map f l)
+
+
+
+
+

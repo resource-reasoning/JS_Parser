@@ -1,0 +1,16 @@
+EXCLUDE_QUERY_DIR
+B /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/esy_ocaml__s__flow_parser-0.76.2-a34a2582/lib/flow-parser
+B /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/ocaml-4.6.1000-a4275564/lib/ocaml
+B /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/opam__s__gen-opam__c__0.5.2-71b623f7/lib/gen
+B /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/opam__s__ocamlfind-opam__c__1.8.1-2f5474b2/lib/bytes
+B /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/opam__s__sedlex-opam__c__1.99.4-15764c94/lib/sedlex
+B /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/opam__s__wtf8-opam__c__1.0.2-1e8721fd/lib/wtf8
+B ../_build/default/src/.JS_Parser.objs/byte
+S /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/esy_ocaml__s__flow_parser-0.76.2-a34a2582/lib/flow-parser
+S /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/ocaml-4.6.1000-a4275564/lib/ocaml
+S /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/opam__s__gen-opam__c__0.5.2-71b623f7/lib/gen
+S /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/opam__s__ocamlfind-opam__c__1.8.1-2f5474b2/lib/bytes
+S /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/opam__s__sedlex-opam__c__1.99.4-15764c94/lib/sedlex
+S /Users/gabrielacunhasampaio/.esy/3____________________________________________________/i/opam__s__wtf8-opam__c__1.0.2-1e8721fd/lib/wtf8
+S .
+FLG -open JS_Parser__ -w -40

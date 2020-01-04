@@ -2,16 +2,17 @@ opam-version: "1.2"
 name: "JS_Parser"
 version: "dev"
 maintainer: "Thomas Wood <thomas.wood09@imperial.ac.uk>"
+synopsis: "JavaScript Parser for JaVerT"
 authors: [
   "Daiva Naudziuniene <d.naudziuniene11@imperial.ac.uk>"
   "Conrad Watt <conrad.watt12@imperial.ac.uk>"
   "Thomas Wood <thomas.wood09@imperial.ac.uk>"
   "Petar Maksimovic <p.maksimovic@imperial.ac.uk>"
 ]
-homepage: ""
-bug-reports: ""
+homepage: "https://github.com/resource-reasoning/JS_Parser"
+bug-reports: "https://github.com/resource-reasoning/JS_Parser/issues"
 license: "TBC"
-dev-repo: ""
+dev-repo: "https://github.com/resource-reasoning/JS_Parser.git"
 libraries: ["JS_Parser"]
 
 build: [[make]]
@@ -25,6 +26,7 @@ depends: [
   "ocamlfind"
   "yojson"
   "ounit" {test}
+  "batteries" {build}
 ]
 
 substs: [

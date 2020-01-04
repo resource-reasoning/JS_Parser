@@ -169,6 +169,7 @@ let rec json_to_exp json : exp =
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
       let fn_async = get_json_bool "async" json in 
+
       begin match fn_name with
         | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
         | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
@@ -179,9 +180,10 @@ let rec json_to_exp json : exp =
       let fn_params = map json_to_exp (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
       let fn_async = get_json_bool "async" json in 
+
       begin match fn_name with
-        | `Null -> mk_exp (ArrowExp (false,None,fn_params,fn_body,fn_async)) (get_json_offset json) annotations
-        | ident -> mk_exp (ArrowExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body,fn_async)) (get_json_offset json) annotations
+        | `Null -> mk_exp (ArrowExp (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
+        | ident -> mk_exp (ArrowExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
       end
 
     | "FunctionDeclaration" ->
@@ -189,6 +191,7 @@ let rec json_to_exp json : exp =
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
       let fn_async = get_json_bool "async" json in 
+
       begin match fn_name with
         | `Null -> mk_exp (Function (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
         | ident -> mk_exp (Function (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
@@ -272,10 +275,13 @@ let rec json_to_exp json : exp =
       let offset = get_json_offset json in
       let block_obj = get_json_field "block" json in
       let block = json_mk_block_exp (get_json_list "body" block_obj) (get_json_offset block_obj) annotations in
-      let handler = get_json_list "handlers" json in
-      let guardedHandlers = get_json_list "guardedHandlers" json in
+      (*Printf.printf "getting handler";*)
+      (*let handler = get_json_list "handlers" json in*)
+      let handler = get_json_field "handler" json in
+      (*let guardedHandlers = get_json_list "guardedHandlers" json in*)
       let finaliser = get_json_field "finalizer" json in
-      let catch, finally = json_get_catch_finally handler guardedHandlers finaliser offset in
+      let catch, finally = json_get_catch_finally handler finaliser offset in
+      (*let catch, finally = json_get_catch_finally handler guardedHandlers finaliser offset in*)
       mk_exp (Try (block, catch, finally)) offset annotations
 
     | "WhileStatement" ->
@@ -308,7 +314,7 @@ let rec json_to_exp json : exp =
       let var = json_to_exp (get_json_field "left" json) in
       let obj = json_to_exp (get_json_field "right" json) in
       let block = json_to_exp (get_json_field "body" json) in
-      mk_exp (ForIn (var, obj, block)) offset annotations
+      mk_exp (ForOf (var, obj, block)) offset annotations
 
     | "DebuggerStatement" ->
       mk_exp Debugger (get_json_offset json) annotations
@@ -410,7 +416,7 @@ let rec json_to_exp json : exp =
       begin match (get_json_field "argument" json) with
         | `Null -> raise (Failure "await without expression not supported")
         | expr  -> mk_exp (Await (json_to_exp expr)) offset annotations
-      end
+    end
 
     | _ -> Printf.printf "Ooops!\n"; raise (Parser_Unknown_Tag (json_type, (get_json_offset json)))
 and
@@ -437,15 +443,14 @@ json_parse_catch handler offset =
   let body = json_to_exp (get_json_field "body" handler) in
   (name, body)
 and
-json_get_catch_finally handler guardedHandlers f_block offset =
-  begin if (guardedHandlers <> []) then raise (Parser_Unknown_Tag ("json_get_catch_finally", offset)) end;
+json_get_catch_finally handler f_block offset =
   let finaliser = begin match f_block with
     | `Null -> None
     | expr  -> Some (json_to_exp expr)
   end in
   match handler with
-    | []      -> None, finaliser
-    | h :: [] -> Some (json_parse_catch h offset), finaliser
+    | `Null      -> None, finaliser
+    | h -> Some (json_parse_catch h offset), finaliser
     | _ -> raise (Parser_Unknown_Tag ("json_get_catch_finally", offset))
 and
 json_mk_left_right_op json json_mk_op annotations =
