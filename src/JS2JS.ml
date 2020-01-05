@@ -2,6 +2,9 @@ open JSParserSyntax
 open List
 open JSParserConstants
 
+let promise_var_name = "__promise__internal_"
+let catch_var_name = "e"
+
 
 let strings_from_exps (exps: exp list) : string list =
   (* This is useful to check whether a list of expressions if formed of strings *)
@@ -23,6 +26,15 @@ let await_expression_to_call (e : exp) : exp_syntax =
   let mk_exp_s exp = mk_exp exp 0 [] in
   let await_call = CAccess(mk_exp_s (Var promise_constructor), mk_exp_s (String await_fun))  in  
     Call (mk_exp_s await_call, [ e ])
+
+(*  C(e) ::= Promise.predicate(e) *)
+let await_expression_argument (e : exp) : exp = 
+  (* We assume that the expression e is a promise *)
+  let mk_exp_s exp = mk_exp exp 0 [] in
+  let predicate_fun : exp_syntax = CAccess(mk_exp_s (Var promise_constructor), mk_exp_s (String predicate_fun)) in  
+  let pred_fun_call : exp_syntax = Call (mk_exp_s predicate_fun, [ e ]) in 
+    mk_exp_s pred_fun_call
+
 
 (* Iterates over Template elements and concat the result with the identifier, if applicable *)
 let rec template_literal_to_concat e1s e2s =
@@ -73,6 +85,56 @@ let async_to_sync (e: exp) : exp =
       | _ -> promise_wrapper undefined_exp es true
       ))
   | _ -> e)
+
+
+let async_to_sync_try_catch (s : exp) : exp =
+  let mk_exp_s exp = mk_exp exp 0 [] in
+  let undefined_exp = mk_exp_s (Var undefined_val) in
+  let catch_var_exp = mk_exp_s (Var catch_var_name) in 
+  (**  *)
+  let (resolve_call : exp_syntax) = Call (mk_exp_s (Var resolve_fun), [ undefined_exp ]) in 
+  let (try_body : exp_syntax)     = Block [ s; mk_exp_s resolve_call ] in 
+  let (catch_call : exp_syntax)   = Call (mk_exp_s (Var reject_fun), [ catch_var_exp ]) in 
+  let (catch_body : exp_syntax)   = Block [ mk_exp_s catch_call ] in 
+  let (try_catch : exp_syntax)    = Try (mk_exp_s try_body, Some (catch_var_name, mk_exp_s catch_body), None) in 
+  mk_exp_s (Block [ (mk_exp_s try_catch) ])
+
+
+(* 
+ * C(s) = 
+      var p = new Promise (function (resolve, reject) {
+         try { 
+            s
+            resolve(undefined)
+         }
+         catch (e) {
+           reject(e)
+         }
+      }); 
+      return p 
+ *)
+let async_to_sync_jose (s : exp) : exp =
+  let mk_exp_s exp = mk_exp exp 0 [] in
+  (** *)
+  let (executor_exp : exp_syntax) =  FunctionExp (true, None, [ resolve_fun; reject_fun ], (async_to_sync_try_catch s), false) in  
+  let (promise_exp : exp_syntax)  = New (mk_exp_s (Var promise_constructor), [ mk_exp_s executor_exp ]) in 
+  let (var_decl : exp_syntax)     = VarDec [ (promise_var_name, Some (mk_exp_s promise_exp)) ] in 
+  let (return_stmt : exp_syntax)  = Return (Some (mk_exp_s (Var promise_var_name))) in 
+  let (block_stmt : exp_syntax)   = Block [ (mk_exp_s var_decl); mk_exp_s return_stmt ] in 
+  mk_exp_s block_stmt 
+
+
+let return_to_resolve (e : exp option) : exp = 
+  let mk_exp_s exp  = mk_exp exp 0 [] in
+  let undefined_exp = mk_exp_s (Var undefined_val) in
+  (** *)
+  let call_arg : exp = 
+    match e with 
+      | None   -> undefined_exp 
+      | Some e -> e in
+  let call_exp : exp = mk_exp_s (Call (mk_exp_s (Var resolve_fun), [ call_arg ])) in 
+  call_exp  
+
 
 (* Transforms forOf into while *)
 let for_of_to_while e1 e2 e3 =
@@ -125,8 +187,8 @@ let lambda_to_fdecl (b: bool) (id: string option) (params: exp list) (body: exp)
     | _ -> raise (Failure "Lambda expression not supported yet."))
   | _ -> raise (Failure "Lambda expression not supported yet.") 
 
-let rec js2js (exp: exp) : exp =
-  let f = js2js in
+let rec js2js (async : bool) (exp: exp) : exp =
+  let f = js2js async in
 
   let fop e = match e with
     | None -> None
@@ -146,21 +208,26 @@ let rec js2js (exp: exp) : exp =
     | VarDec xs -> {exp with exp_stx = VarDec (List.map (fun (name, e1) -> (name, fop e1)) xs)}
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
     | FunctionExp (b, n, xs, e, async) -> 
-      let body = if async then async_to_sync (f e) else f e in
+      let body = if async then async_to_sync_jose (js2js true e) else (js2js false e) in
       {exp with exp_stx = FunctionExp (b, n, xs, body, false)}
     | Function (b, n, xs, e, async) -> 
-      let body = if async then async_to_sync (f e) else f e in
+      let body = if async then async_to_sync_jose (js2js true e) else (js2js false e) in
       {exp with exp_stx = Function (b, n, xs, body, false)}
     | ArrowExp (b, n, es, e, async) -> 
-      let body = if async then async_to_sync (f e) else f e in
+      let body = if async then async_to_sync_jose (js2js true e) else (js2js false e) in
       {exp with exp_stx = lambda_to_fdecl b n (map f es) body async}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, map f e2s)}
     | Array es -> {exp with exp_stx = Array (List.map fop es)}
     | CAccess (e1, e2) -> {exp with exp_stx = CAccess (f e1, f e2)}
     | With (e1, e2) -> {exp with exp_stx = With (f e1, f e2)}
     | Throw e -> {exp with exp_stx = Throw (f e)}
-    | Return e -> {exp with exp_stx = Return (fop e)}
-    | Await e -> {exp with exp_stx = await_expression_to_call (f e) }
+    | Return e ->
+        if async 
+          then return_to_resolve e 
+          else  {exp with exp_stx = Return (fop e) }
+    | Await e -> 
+        let e' = await_expression_argument (f e) in
+          { exp with exp_stx = Await e' }
     | TemplateLiteral (e1s, e2s) -> {exp with exp_stx = (template_literal_to_concat (map f e1s) (map f e2s))}
     | TemplateElement (s1, _, _) -> {exp with exp_stx = String s1}
     | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}

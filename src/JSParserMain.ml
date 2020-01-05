@@ -48,7 +48,7 @@ let exp_from_string ?force_strict:(f = false) s =
   let (file, out) = Filename.open_temp_file "js_gen" ".js" in
   output_string out s;
   close_out out;
-  JS2JS.js2js (exp_from_file ~force_strict:f file)
+  JS2JS.js2js false (exp_from_file ~force_strict:f file)
 
 let exp_from_main ?force_strict:(str = false) file =
   fun() ->
