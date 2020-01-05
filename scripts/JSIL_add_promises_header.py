@@ -434,7 +434,7 @@ assert.compareArray = function(actual, expected, message) {
   var format = compareArray.format;
   assert(
     compareArray(actual, expected),
-    'Expected ${format(actual)} and ${format(expected)} to have the same contents. ${(message || '')}'
+    'Expected ${format(actual)} and ${format(expected)} to have the same contents. ${(message || "")}'
   );
 };
 

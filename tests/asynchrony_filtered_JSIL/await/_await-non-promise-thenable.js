@@ -1,10 +1,6 @@
 'use strict';
 
-const PromiseLib = require("../../../js/Promises/Promise");
-require("../../../js/Promises/ArrayIterator");
-
-globalThis.Promise = PromiseLib.Promise;
-var ExecJobQueue = PromiseLib.ExecJobQueue;
+globalThis.Promise = initPromise().Promise;
 
 function Test262Error(message) {
     this.message = message || "";
@@ -49,8 +45,8 @@ assert.sameValue = function(actual, expected, message) {
         if (assert._isSameValue(actual, expected)) {
             return;
         }
-    } catch (error) {
-        $ERROR(message + ' (_isSameValue operation threw) ' + error);
+    } catch (_error) {
+        $ERROR(message + ' (_isSameValue operation threw) ' + _error);
         return;
     }
 
@@ -126,12 +122,12 @@ function __consolePrintHandle__(msg) {
     console.log(msg);
 }
 
-function $DONE(error) {
-    if (error) {
-        if (typeof error === 'object' && error !== null && 'name' in error) {
-            __consolePrintHandle__('Test262:AsyncTestFailure:' + error.name + ': ' + error.message);
+function $DONE(_error) {
+    if (_error) {
+        if (typeof _error === 'object' && _error !== null && 'name' in _error) {
+            __consolePrintHandle__('Test262:AsyncTestFailure:' + _error.name + ': ' + _error.message);
         } else {
-            __consolePrintHandle__('Test262:AsyncTestFailure:Test262Error: ' + error);
+            __consolePrintHandle__('Test262:AsyncTestFailure:Test262Error: ' + _error);
         }
     } else {
         __consolePrintHandle__('Test262:AsyncTestComplete');
@@ -407,6 +403,33 @@ function checkSettledPromises(settleds, expected, message) {
     });
 }
 
+function compareArray(a, b) {
+    if (b.length !== a.length) {
+        return false;
+    }
+
+    for (var i = 0; i < a.length; i++) {
+        if (!compareArray.isSameValue(b[i], a[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+compareArray.isSameValue = function(a, b) {
+    if (a === 0 && b === 0) return 1 / a === 1 / b;
+    if (a !== a && b !== b) return true;
+
+    return a === b;
+};
+
+assert.compareArray = function(actual, expected, message) {
+    var format = compareArray.format;
+    assert(
+        compareArray(actual, expected),
+        'Expected ${format(actual)} and ${format(expected)} to have the same contents. ${(message || "")}'
+    );
+};
 
 // Copyright 2018 the V8 project authors. All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
@@ -464,6 +487,3 @@ new Promise(function(resolve) {
 }).then(function() {
     actual.push('Promise: 4');
 });
-
-
-ExecJobQueue();

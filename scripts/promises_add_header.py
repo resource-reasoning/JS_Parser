@@ -432,9 +432,6 @@ def run_parser(folder):
                 f.write(promise_header + a)
             with open(folder+js_file, "a+") as f:
                 f.write(promise_conclusion)
-    for js_file in os.listdir(folder):
-        os.system("js-beautify " + folder + js_file + " > " + folder + "_" + js_file)
-        os.system("rm "+ folder + js_file)
 
 if __name__ == "__main__":
     folder = sys.argv[1]
