@@ -27,7 +27,12 @@ exception Empty_list
 let get_json_field field_name json =
   let result = match json with
     | `Assoc contents ->
-        let ret = List.find (fun (str, _) -> (str = field_name)) contents in
+        let ret = try List.find (fun (str, _) -> (str = field_name)) contents 
+          with | Not_found -> 
+            Printf.printf "Field not found in JSON: %s\n(%s)" field_name
+              (String.concat ", " (List.map (fun (str, _) -> str) contents));
+            exit 1
+        in 
         snd ret
     | _ -> print_string field_name; raise Empty_list
   in 
