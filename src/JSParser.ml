@@ -27,12 +27,7 @@ exception Empty_list
 let get_json_field field_name json =
   let result = match json with
     | `Assoc contents ->
-      let ret = try List.find (fun (str, _) -> (str = field_name)) contents 
-        with | Not_found when (not (field_name = "leadingComments")) -> 
-          Printf.printf "Field not found in JSON: %s\n(%s)" field_name
-            (String.concat ", " (List.map (fun (str, _) -> str) contents));
-          raise Not_found
-        in
+      let ret = List.find (fun (str, _) -> (str = field_name)) contents in
         snd ret
     | _ -> print_string field_name; raise Empty_list
   in 
@@ -158,7 +153,6 @@ let rec json_to_exp json : exp =
       | "set"  -> (key, PropbodySet, value)
       | _ -> raise Parser_ObjectLit in 
 
-  (try 
    match json_type with
 
     | "Program" ->
@@ -425,7 +419,6 @@ let rec json_to_exp json : exp =
     end
 
     | _ -> Printf.printf "Ooops!\n"; raise (Parser_Unknown_Tag (json_type, (get_json_offset json)))
-  with Not_found -> print_endline ("NOT FOUND: " ^ json_type); exit 1)
 and
 json_propname_element key =
   match (get_json_string "type" key) with
