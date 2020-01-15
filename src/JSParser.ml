@@ -31,7 +31,7 @@ let get_json_field field_name json =
         with | Not_found when (not (field_name = "leadingComments")) -> 
           Printf.printf "Field not found in JSON: %s\n(%s)" field_name
             (String.concat ", " (List.map (fun (str, _) -> str) contents));
-            exit 1
+          raise Not_found
         in
         snd ret
     | _ -> print_string field_name; raise Empty_list
@@ -158,7 +158,8 @@ let rec json_to_exp json : exp =
       | "set"  -> (key, PropbodySet, value)
       | _ -> raise Parser_ObjectLit in 
 
-  match json_type with
+  (try 
+   match json_type with
 
     | "Program" ->
       let children = get_json_list "body" json in
@@ -424,6 +425,7 @@ let rec json_to_exp json : exp =
     end
 
     | _ -> Printf.printf "Ooops!\n"; raise (Parser_Unknown_Tag (json_type, (get_json_offset json)))
+  with Not_found -> print_endline ("NOT FOUND: " ^ json_type); exit 1)
 and
 json_propname_element key =
   match (get_json_string "type" key) with
