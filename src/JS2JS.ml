@@ -223,7 +223,7 @@ let rec js2js (async : bool) (exp: exp) : exp =
     | Throw e -> {exp with exp_stx = Throw (f e)}
     | Return e ->
         if async 
-          then return_to_resolve e 
+          then return_to_resolve (fop e) 
           else  {exp with exp_stx = Return (fop e) }
     | Await e -> 
         let e' = await_expression_argument (f e) in
