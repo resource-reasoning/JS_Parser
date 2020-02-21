@@ -7,7 +7,6 @@ _build
 doctrine.json
 JS_Parser.docdir
 _esy
-esy.lock
 node_modules
 *.merlin
 *.install
