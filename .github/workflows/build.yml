@@ -1,0 +1,40 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        operating-system: [ macos-latest ]
+    runs-on: ${{ matrix.operating-system }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1.1.0
+    - name: Installing esy
+      run: npm install -g esy@0.6.2 --unsafe-perm
+    - name: Restore Cache
+      id: restore-cache
+      uses: actions/cache@v1.1.0
+      with:
+        path: _export
+        key:  ${{ runner.os }}-esy-${{ hashFiles('esy.lock/index.json') }}
+        restore-keys: |
+          ${{ runner.os }}-esy-
+    - name: Esy install
+      run: 'esy install'
+    - name: Import Cache
+      run: |
+        esy import-dependencies _export
+        rm -rf _export
+    - name: Esy build
+      run: 'esy build'
+      id: esy-build
+    - name: Esy run-script test
+      run: 'esy run-script test'
+      id: test
+    - name: Setup dependency cache
+      run: |
+        esy cleanup .
+        esy export-dependencies
+      if: always()

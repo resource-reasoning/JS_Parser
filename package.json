@@ -11,16 +11,13 @@
     "build:doc": "esy -C sh -c \"dune build @doc && cp -R _build/default/_doc/ doc/\""
   },
   "dependencies": {
-    "@esy-ocaml/flow-parser": "*",
+    "@esy-ocaml/flow-parser": "giltho/flow-parser#3a0fae6923e78f",
     "@opam/dune": "*",
     "ocaml": ">=4.6.0"
   },
-  "resolutions": {
-    "@esy-ocaml/flow-parser": "giltho/flow-parser#3a0fae6923e78f"
-  },
   "devDependencies": {
     "@opam/merlin": "*",
-    "ocaml": "^4.8.0",
+    "ocaml": "4.8.1000",
     "@opam/ounit": "*",
     "@opam/odoc": "*",
     "@opam/utop": "*"
