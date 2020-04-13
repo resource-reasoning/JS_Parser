@@ -87,8 +87,13 @@ let async_to_sync (e: exp) : exp =
   | _ -> e)
 
 
+let fixed_aux_var = "_____aux_var_" 
+
 let async_to_sync_try_catch (s : exp) : exp =
   let mk_exp_s exp = mk_exp exp 0 [] in
+  
+  let (var_decl : exp_syntax)     = VarDec [ (fixed_aux_var, None) ] in 
+
   let undefined_exp = mk_exp_s (Var undefined_val) in
   let catch_var_exp = mk_exp_s (Var catch_var_name) in 
   (**  *)
@@ -97,12 +102,12 @@ let async_to_sync_try_catch (s : exp) : exp =
   let (catch_call : exp_syntax)   = Call (mk_exp_s (Var reject_fun), [ catch_var_exp ]) in 
   let (catch_body : exp_syntax)   = Block [ mk_exp_s catch_call ] in 
   let (try_catch : exp_syntax)    = Try (mk_exp_s try_body, Some (catch_var_name, mk_exp_s catch_body), None) in 
-  mk_exp_s (Block [ (mk_exp_s try_catch) ])
-
+  mk_exp_s (Block [ (mk_exp_s var_decl); (mk_exp_s try_catch) ])
 
 (* 
  * C(s) = 
       var p = new Promise (function (resolve, reject) {
+         var _____aux_var_; 
          try { 
             s
             resolve(undefined)
@@ -135,6 +140,19 @@ let return_to_resolve (e : exp option) : exp =
   let call_exp : exp = mk_exp_s (Call (mk_exp_s (Var resolve_fun), [ call_arg ])) in 
   call_exp  
 
+let return_to_resolve_finally (e : exp option) : exp = 
+  let mk_exp_s exp  = mk_exp exp 0 [] in
+  let undefined_exp = mk_exp_s (Var undefined_val) in
+  let asgn_arg : exp = 
+    match e with 
+      | None   -> undefined_exp 
+      | Some e -> e in
+  let asgn_exp : exp = mk_exp_s (Assign (mk_exp_s (Var fixed_aux_var), asgn_arg)) in 
+  asgn_exp 
+
+let make_finally_resolve () : exp = 
+  let mk_exp_s exp  = mk_exp exp 0 [] in
+  mk_exp_s (Call (mk_exp_s (Var resolve_fun), [ mk_exp_s (Var fixed_aux_var) ]))
 
 (* Transforms forOf into while *)
 let for_of_to_while e1 e2 e3 =
@@ -187,12 +205,15 @@ let lambda_to_fdecl (b: bool) (id: string option) (params: exp list) (body: exp)
     | _ -> raise (Failure "Lambda expression not supported yet."))
   | _ -> raise (Failure "Lambda expression not supported yet.") 
 
-let rec js2js (async : bool) (exp: exp) : exp =
-  let f = js2js async in
+let rec js2js (with_finally : bool) (async : bool) (exp: exp) : exp =
+  let f = js2js with_finally async in
+
+  let ff = js2js true async in 
 
   let fop e = match e with
     | None -> None
     | Some e -> Some (f e) in
+
   match exp.exp_stx with
     | Label (x, e) -> {exp with exp_stx = Label (x, f e)}
     | If (e1, e2, e3) -> {exp with exp_stx = If (f e1, f e2, fop e3)}
@@ -208,13 +229,13 @@ let rec js2js (async : bool) (exp: exp) : exp =
     | VarDec xs -> {exp with exp_stx = VarDec (List.map (fun (name, e1) -> (name, fop e1)) xs)}
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
     | FunctionExp (b, n, xs, e, async) -> 
-      let body = if async then async_to_sync_jose (js2js true e) else (js2js false e) in
+      let body = if async then async_to_sync_jose (js2js false true e) else (js2js false false e) in
       {exp with exp_stx = FunctionExp (b, n, xs, body, false)}
     | Function (b, n, xs, e, async) -> 
-      let body = if async then async_to_sync_jose (js2js true e) else (js2js false e) in
+      let body = if async then async_to_sync_jose (js2js false true e) else (js2js false false e) in
       {exp with exp_stx = Function (b, n, xs, body, false)}
     | ArrowExp (b, n, es, e, async) -> 
-      let body = if async then async_to_sync_jose (js2js true e) else (js2js false e) in
+      let body = if async then async_to_sync_jose (js2js false true e) else (js2js false false e) in
       {exp with exp_stx = lambda_to_fdecl b n (map f es) body async}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, map f e2s)}
     | Array es -> {exp with exp_stx = Array (List.map fop es)}
@@ -223,8 +244,16 @@ let rec js2js (async : bool) (exp: exp) : exp =
     | Throw e -> {exp with exp_stx = Throw (f e)}
     | Return e ->
         if async 
-          then return_to_resolve (fop e) 
-          else  {exp with exp_stx = Return (fop e) }
+          then (if with_finally 
+                  then (
+                    return_to_resolve_finally (fop e)
+                  )
+                  else (
+                    return_to_resolve (fop e)
+                  ))         
+          else (
+            {exp with exp_stx = Return (fop e) }
+          )
     | Await e -> 
         let e' = await_expression_argument (f e) in
           { exp with exp_stx = Await e' }
@@ -233,6 +262,10 @@ let rec js2js (async : bool) (exp: exp) : exp =
     | ForIn (e1, e2, e3) -> {exp with exp_stx = ForIn (f e1, f e2, f e3)}
     | ForOf (e1, e2, e3) -> {exp with exp_stx = (for_of_to_while (f e1) (f e2) (f e3))}
     | For (e1, e2, e3, e4) -> {exp with exp_stx = For (fop e1, fop e2, fop e3, f e4)}
+    | Try (e1, e2, Some e3) -> 
+       let e3' = f e3 in 
+       let e3 = { e3' with exp_stx = Block [ e3; make_finally_resolve() ] } in 
+       { exp with exp_stx = Try (ff e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), Some e3)  }
     | Try (e1, e2, e3) -> {exp with exp_stx = Try (f e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), fop e3)}
     | Switch (e1, e2s) -> {exp with exp_stx = 
       Switch (f e1, List.map (
