@@ -264,7 +264,7 @@ let rec js2js (with_finally : bool) (async : bool) (exp: exp) : exp =
     | For (e1, e2, e3, e4) -> {exp with exp_stx = For (fop e1, fop e2, fop e3, f e4)}
     | Try (e1, e2, Some e3) -> 
        let e3' = f e3 in 
-       let e3 = { e3' with exp_stx = Block [ e3; make_finally_resolve() ] } in 
+       let e3 = { e3' with exp_stx = Block [ e3'; make_finally_resolve() ] } in 
        { exp with exp_stx = Try (ff e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), Some e3)  }
     | Try (e1, e2, e3) -> {exp with exp_stx = Try (f e1, (match e2 with None -> None | Some (x, e2) -> Some (x, f e2)), fop e3)}
     | Switch (e1, e2s) -> {exp with exp_stx = 
