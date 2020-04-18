@@ -20,17 +20,17 @@ exception More_Than_One_Finally
 exception CannotHappen
 exception Empty_list
 
-(* ******************** 
+(* ********************
    *       JSON       *
    ******************** *)
-	
+
 let get_json_field field_name json =
   let result = match json with
     | `Assoc contents ->
       let ret = List.find (fun (str, _) -> (str = field_name)) contents in
         snd ret
     | _ -> print_string field_name; raise Empty_list
-  in 
+  in
     result
 
 let get_json_type json =
@@ -66,11 +66,11 @@ let get_json_ident_name ident =
 
 let process_annotation atype adesc =
 	let atype = (match atype with
-	
+
 		| "requires" -> Requires
 		| "ensures" -> Ensures
 		| "ensureserr" -> EnsuresErr
-		
+
 		| "toprequires" -> TopRequires
 		| "topensures" -> TopEnsures
 		| "topensureserr" -> TopEnsuresErr
@@ -88,10 +88,10 @@ let process_annotation atype adesc =
     | "call" -> Call
     | "JSIL" -> JSIL_only
 		| annot -> raise (Unknown_Annotation annot)) in
-	
+
 	{ annot_type = atype; annot_formula = adesc }
 
-let deal_with_whitespace (s : string) = 
+let deal_with_whitespace (s : string) =
   let renl = Str.regexp "\n"    in let s : string = Str.global_replace renl " " s in
   let retb = Str.regexp "[\t]+" in let s : string = Str.global_replace retb " " s in
   let resp = Str.regexp "[ ]+"  in let s : string = Str.global_replace resp " " s in
@@ -100,27 +100,27 @@ let deal_with_whitespace (s : string) =
 let get_esprima_annotations json =
   let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
 
-  let comments    : string                        = String.concat "\n" (List.map (fun x -> get_json_string "value" x) leadingComments) in 
+  let comments    : string                        = String.concat "\n" (List.map (fun x -> get_json_string "value" x) leadingComments) in
   let comments    : string list                   = List.map deal_with_whitespace (List.map String.trim (String.split_on_char '@' comments)) in
-  let comments    : string list                   = List.filter (fun x -> x <> "") comments in 
-  let spaces      : int option list               = List.map (fun x -> try Some (String.index x ' ') with _ -> None) comments in 
-  let annot_pairs : (string * string) option list = List.map2 (fun c i -> 
-      (match i with 
+  let comments    : string list                   = List.filter (fun x -> x <> "") comments in
+  let spaces      : int option list               = List.map (fun x -> try Some (String.index x ' ') with _ -> None) comments in
+  let annot_pairs : (string * string) option list = List.map2 (fun c i ->
+      (match i with
       | None -> None
       | Some i -> Some (String.trim (String.sub c 0 i), String.trim (String.sub c i (String.length c - i))))
-    ) comments spaces in 
-  let annot_pairs : (string * string) list = List.map (fun x -> match x with | Some x -> x) (List.filter (fun x -> x <> None) annot_pairs) in 
-  let annot_pairs : (string * string) list = List.filter (fun (a, d) -> 
-    a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||  
-    a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      || 
+    ) comments spaces in
+  let annot_pairs : (string * string) list = List.map (fun x -> match x with | Some x -> x) (List.filter (fun x -> x <> None) annot_pairs) in
+  let annot_pairs : (string * string) list = List.filter (fun (a, d) ->
+    a = "requires"  || a = "ensures" || a = "ensureserr" || a = "toprequires" || a = "topensures" || a = "topensureserr" ||
+    a = "pre"       || a = "post"    || a = "posterr"    || a = "id"          || a = "pred"       || a = "onlyspec"      ||
     a = "invariant" || a = "lemma"   || a = "tactic"     || a = "codename"    || a = "biabduce" ||
-    a = "call"      || a = "JSIL") annot_pairs in 
+    a = "call"      || a = "JSIL") annot_pairs in
 
   let annot_pairs : (string * string) list = List.map (fun (a, d) ->
-      let len = String.length d in 
-      let d : string = if (String.sub d (len - 1) 1) = "*" then String.trim (String.sub d 0 (len - 1)) else d in 
+      let len = String.length d in
+      let d : string = if (String.sub d (len - 1) 1) = "*" then String.trim (String.sub d 0 (len - 1)) else d in
         (a, d)
-    ) annot_pairs in 
+    ) annot_pairs in
 
   (* if (annot_pairs <> []) then Printf.printf "Annotations:\n%s\n%!" (String.concat "\n" (List.map (fun (a, d) -> a ^ " " ^ d) annot_pairs)); *)
 
@@ -130,7 +130,7 @@ let rec json_to_exp json : exp =
   let json_type = get_json_type json in
   let annotations = get_esprima_annotations json in
 
-  let parse_properties obj = 
+  let parse_properties obj =
     let key = json_propname_element (get_json_field "key" obj) in
     let leadingComments = try (get_json_list "leadingComments" obj) with _ -> [] in
     let obj = (match obj with
@@ -151,7 +151,7 @@ let rec json_to_exp json : exp =
       | "init" -> (key, PropbodyVal, value)
       | "get"  -> (key, PropbodyGet, value)
       | "set"  -> (key, PropbodySet, value)
-      | _ -> raise Parser_ObjectLit in 
+      | _ -> raise Parser_ObjectLit in
 
    match json_type with
 
@@ -168,18 +168,18 @@ let rec json_to_exp json : exp =
       let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
-      let fn_async = get_json_bool "async" json in 
+      let fn_async = get_json_bool "async" json in
 
       begin match fn_name with
-        | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
-        | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async)) (get_json_offset json) annotations
+        | `Null -> mk_exp (FunctionExp (false,None,fn_params,fn_body, fn_async, false)) (get_json_offset json) annotations
+        | ident -> mk_exp (FunctionExp (false,Some (get_json_ident_name fn_name),fn_params,fn_body, fn_async, false)) (get_json_offset json) annotations
       end
-    
-    | "ArrowFunctionExpression" -> 
+
+    | "ArrowFunctionExpression" ->
       let fn_name = get_json_field "id" json in
       let fn_params = map json_to_exp (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
-      let fn_async = get_json_bool "async" json in 
+      let fn_async = get_json_bool "async" json in
 
       begin match fn_name with
         | `Null -> mk_exp (ArrowExp (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
@@ -190,7 +190,7 @@ let rec json_to_exp json : exp =
       let fn_name = get_json_field "id" json in
       let fn_params = map get_json_ident_name (get_json_list "params" json) in
       let fn_body = json_to_exp (get_json_field "body" json) in
-      let fn_async = get_json_bool "async" json in 
+      let fn_async = get_json_bool "async" json in
 
       begin match fn_name with
         | `Null -> mk_exp (Function (false,None,fn_params,fn_body, fn_async)) (get_json_offset json) annotations
@@ -205,7 +205,7 @@ let rec json_to_exp json : exp =
             let vars = map (json_var_declaration offset) children in
             mk_exp (VarDec vars) offset annotations
       end
-			
+
     | "ExpressionStatement" ->
 			(* Get the leading comments *)
 			let leadingComments = try (get_json_list "leadingComments" json) with _ -> [] in
@@ -222,7 +222,7 @@ let rec json_to_exp json : exp =
 	        `Assoc enriched_contents
 	      | _ -> raise (Failure "Unexpected non-assoc.")) in
       json_to_exp jfexp
-			
+
     | "IfStatement" ->
       let offset = get_json_offset json in
       let test = json_to_exp (get_json_field "test" json) in
@@ -308,7 +308,7 @@ let rec json_to_exp json : exp =
       let obj = json_to_exp (get_json_field "right" json) in
       let block = json_to_exp (get_json_field "body" json) in
       mk_exp (ForIn (var, obj, block)) offset annotations
-    
+
     | "ForOfStatement" ->
       let offset = get_json_offset json in
       let var = json_to_exp (get_json_field "left" json) in
@@ -356,7 +356,7 @@ let rec json_to_exp json : exp =
       json_parse_array_literal members (get_json_offset json) annotations
 
     | "ObjectExpression" ->
-      let l = map parse_properties (get_json_list "properties" json) in 
+      let l = map parse_properties (get_json_list "properties" json) in
       (mk_exp (Obj l) (get_json_offset json)) annotations
 
     | "SequenceExpression" ->
@@ -394,15 +394,15 @@ let rec json_to_exp json : exp =
     | "EmptyStatement" ->
       mk_exp Skip (get_json_offset json) annotations
 
-    | "ObjectPattern" -> 
-      let l = map parse_properties (get_json_list "properties" json) in 
+    | "ObjectPattern" ->
+      let l = map parse_properties (get_json_list "properties" json) in
       (mk_exp (Obj l) (get_json_offset json)) annotations
-    
-    | "TemplateLiteral" -> 
+
+    | "TemplateLiteral" ->
       let quasis = (get_json_list "quasis" json) in
       let expressions = (get_json_list "expressions" json) in
       mk_exp (TemplateLiteral ((map json_to_exp quasis),(map json_to_exp expressions))) (get_json_offset json) annotations
-    
+
     | "TemplateElement" ->
       let value = get_json_field "value" json in
       let raw = get_json_string "raw" value in
@@ -411,7 +411,7 @@ let rec json_to_exp json : exp =
       mk_exp (TemplateElement (raw, cooked, tail)) (get_json_offset json) annotations
 
 
-    | "AwaitExpression" -> 
+    | "AwaitExpression" ->
       let offset = (get_json_offset json) in
       begin match (get_json_field "argument" json) with
         | `Null -> raise (Failure "await without expression not supported")

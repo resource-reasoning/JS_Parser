@@ -133,7 +133,7 @@ and string_of_exp_syntax_1 expstx with_annot =
     | Call (e1, e2s) -> Printf.sprintf "(%s)(%s)" (f e1) (String.concat "," (map f e2s))
     | Assign (e1, e2) -> Printf.sprintf "%s = %s" (f e1) (f e2)
     | AssignOp (e1, op, e2) -> Printf.sprintf "%s %s= %s" (f e1) (string_of_arith_op op) (f e2)
-    | FunctionExp (_, n, xs, e, _) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
+    | FunctionExp (_, n, xs, e, _, _) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
     | Function (_, n, xs, e, _) -> Printf.sprintf "function %s(%s) \n%s\n" (string_op n) (string_of_vars xs) (f e)
     | ArrowExp (_, n, es, e, _) -> Printf.sprintf "(%s) => \n%s\n" (String.concat ", " (map f es)) (f e)
     | New (e1, e2s) -> Printf.sprintf "new (%s)(%s)" (f e1) (String.concat "," (map f e2s))
