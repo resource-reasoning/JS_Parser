@@ -26,7 +26,7 @@ let init ?path () =
 let js_to_json ?force_strict:(f = false) ?init:(i = false) (filename : string) : string =
   let force_strict = (if (f) then " -force_strict" else "") in
   let init = (if (i) then " -builtin_init" else "") in
-  let cmd = "node " ^ !json_parser_path ^ " " ^ (Filename.quote filename) ^ force_strict ^ init in 
+  let cmd = "node " ^ !json_parser_path ^ " " ^ (Filename.quote filename) ^ force_strict ^ init in
   match Unix.system cmd with
     | Unix.WEXITED n ->
         if (n <> 0) then raise (Failure (Printf.sprintf "Error %d: %s" n filename)); String.sub filename 0 (String.length filename - 3) ^ ".json"
@@ -46,9 +46,12 @@ let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
 
 let exp_from_string ?force_strict:(f = false) s =
   let (file, out) = Filename.open_temp_file "js_gen" ".js" in
+  print_endline ("Temp file: " ^ file);
   output_string out s;
   close_out out;
-  JS2JS.js2js false false (exp_from_file ~force_strict:f file)
+  let result = JS2JS.js2js false false (exp_from_file ~force_strict:f file) in
+    Sys.remove file;
+    result
 
 let exp_from_main ?force_strict:(str = false) file =
   fun() ->
