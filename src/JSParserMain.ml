@@ -40,7 +40,9 @@ let exp_from_stdin =
 
 let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
 	let js_file = js_to_json ~force_strict:f ~init:i file in
+  print_endline ("Temp JSON: " ^ js_file);
 	let data = Yojson.Safe.from_file js_file in
+  Sys.remove js_file;
 	let expression = json_to_exp data in
   	add_strictness f expression
 
