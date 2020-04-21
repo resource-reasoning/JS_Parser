@@ -40,7 +40,6 @@ let exp_from_stdin =
 
 let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
 	let js_file = js_to_json ~force_strict:f ~init:i file in
-  print_endline ("Temp JSON: " ^ js_file);
 	let data = Yojson.Safe.from_file js_file in
   Sys.remove js_file;
 	let expression = json_to_exp data in
@@ -48,7 +47,6 @@ let exp_from_file ?force_strict:(f = false) ?init:(i = false) file =
 
 let exp_from_string ?force_strict:(f = false) s =
   let (file, out) = Filename.open_temp_file "js_gen" ".js" in
-  print_endline ("Temp file: " ^ file);
   output_string out s;
   close_out out;
   let result = JS2JS.js2js false false (exp_from_file ~force_strict:f file) in
