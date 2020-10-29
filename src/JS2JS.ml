@@ -46,47 +46,6 @@ let rec template_literal_to_concat e1s e2s =
   | (te::tes), [] -> BinOp (te, Arith Plus, mk_exp_s (template_literal_to_concat tes []))
   | (te::tes), (exp::exps) -> BinOp (mk_exp_s (BinOp (te, Arith Plus, exp)), Arith Plus, (mk_exp_s (template_literal_to_concat tes exps))))
 
-(* For now, we only support async functions of the form:
-   async fun(...){ ... return exp } *)
-let async_to_sync (e: exp) : exp =
-  let mk_exp_s exp = mk_exp exp 0 [] in
-  (* The expression e is actually the body of the async function *)
-
-  (* The promise_wrapper function compiles a statement to either Promise.resolve(v) or Promise.reject(v)
-  (e: exp) The expression representing the statement to be compiled (it will be either of the form Return e or Throw e most of the times)
-  (exps: exp list) the remaining block
-  (resolve: bool) if true, the statement is compiled to Promise.resolve(v), otherwise Promise.reject(v)
-  : exp = the compiled block that now returns a promise *)
-  let promise_wrapper (e: exp) (exps: exp list) (resolve: bool) : exp =
-    let promise_fun = if resolve then resolve_fun else reject_fun in
-    let promise_access = Access (mk_exp_s (Var promise_constructor), promise_fun) in
-    let promise_fulfill = Call (mk_exp_s promise_access, [e]) in
-    let new_ret         = mk_exp_s (Return (Some (mk_exp_s promise_fulfill))) in
-    mk_exp_s (Block (List.rev (new_ret :: exps))) in
-
-  let undefined_exp = mk_exp_s (Var undefined_val) in
-  (match e.exp_stx with
-  (* If the body is not a block, we don't do anything *)
-  | Block exps ->
-    (* We need to change the last expression of the block, which should be of the form return exp *)
-    (let rev_exps = List.rev exps in
-    match rev_exps with
-    | [] -> promise_wrapper undefined_exp [] true
-    | (e_ret::es) ->
-      (match e_ret.exp_stx with
-      (* return e ===> return Promise.resolve(e) *)
-      | Return e_ret ->
-        (match e_ret with
-        | Some e -> promise_wrapper e es true
-        (* TODO: perhaps throw error in the cases below. Check the real behaviour!*)
-        | None -> promise_wrapper undefined_exp es true)
-      (* throw e ===> return Promise.reject(e) *)
-      | Throw e_err -> promise_wrapper e_err es false
-      | _ -> promise_wrapper undefined_exp es true
-      ))
-  | _ -> e)
-
-
 let fixed_aux_var = "_____aux_var_"
 
 let async_to_sync_try_catch (s : exp) : exp =
@@ -118,14 +77,16 @@ let async_to_sync_try_catch (s : exp) : exp =
       });
       return p
  *)
-let async_to_sync_jose (s : exp) lambda : exp =
+
+let async_to_sync (s : exp) lambda : exp =
   let mk_exp_s exp = mk_exp exp 0 [] in
-  (** *)
-  let (executor_exp : exp_syntax) =  FunctionExp (true, None, [ resolve_fun; reject_fun ], (async_to_sync_try_catch s), false, lambda) in
+  
+  let (this_decl: exp_syntax)     = VarDec [ (this_async, Some (mk_exp_s This)) ] in
+  let (executor_exp : exp_syntax) = FunctionExp (true, None, [ resolve_fun; reject_fun ], (async_to_sync_try_catch s), false, lambda) in
   let (promise_exp : exp_syntax)  = New (mk_exp_s (Var promise_constructor), [ mk_exp_s executor_exp ]) in
   let (var_decl : exp_syntax)     = VarDec [ (promise_var_name, Some (mk_exp_s promise_exp)) ] in
   let (return_stmt : exp_syntax)  = Return (Some (mk_exp_s (Var promise_var_name))) in
-  let (block_stmt : exp_syntax)   = Block [ (mk_exp_s var_decl); mk_exp_s return_stmt ] in
+  let (block_stmt : exp_syntax)   = Block [ (mk_exp_s this_decl); (mk_exp_s var_decl); mk_exp_s return_stmt ] in
   mk_exp_s block_stmt
 
 
@@ -229,13 +190,13 @@ let rec js2js (with_finally : bool) (async : bool) (exp: exp) : exp =
     | VarDec xs -> {exp with exp_stx = VarDec (List.map (fun (name, e1) -> (name, fop e1)) xs)}
     | AssignOp (e1, op, e2) -> {exp with exp_stx = AssignOp (f e1, op, f e2)}
     | FunctionExp (b, n, xs, e, async, lambda) ->
-      let body = if async then async_to_sync_jose (js2js false true e) lambda else (js2js false false e) in
+      let body = if async then async_to_sync (js2js false true e) lambda else (js2js false false e) in
       {exp with exp_stx = FunctionExp (b, n, xs, body, false, lambda)}
     | Function (b, n, xs, e, async) ->
-      let body = if async then async_to_sync_jose (js2js false true e) false else (js2js false false e) in
+      let body = if async then async_to_sync (js2js false true e) false else (js2js false false e) in
       {exp with exp_stx = Function (b, n, xs, body, false)}
     | ArrowExp (b, n, es, e, async) ->
-      let body = if async then async_to_sync_jose (js2js false true e) true else (js2js false false e) in
+      let body = if async then async_to_sync (js2js false true e) true else (js2js false false e) in
       {exp with exp_stx = lambda_to_fdecl b n (map f es) body async}
     | New (e1, e2s) -> {exp with exp_stx = New (f e1, map f e2s)}
     | Array es -> {exp with exp_stx = Array (List.map fop es)}
@@ -279,4 +240,5 @@ let rec js2js (with_finally : bool) (async : bool) (exp: exp) : exp =
     | ConditionalOp (e1, e2, e3) -> {exp with exp_stx = ConditionalOp (f e1, f e2, f e3)}
     | Block es -> {exp with exp_stx = Block (map f es)}
     | Script (b, es) -> {exp with exp_stx = Script (b, map f es)}
+    | This -> if async then {exp with exp_stx = Var this_async} else exp
     | _ -> exp
