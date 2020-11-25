@@ -241,4 +241,5 @@ let rec js2js (with_finally : bool) (async : bool) (exp: exp) : exp =
     | Block es -> {exp with exp_stx = Block (map f es)}
     | Script (b, es) -> {exp with exp_stx = Script (b, map f es)}
     | This -> if async then {exp with exp_stx = Var this_async} else exp
+    | Obj l -> {exp with exp_stx = Obj (List.map (fun (x, p, e) -> (x, p, f e)) l)}
     | _ -> exp
